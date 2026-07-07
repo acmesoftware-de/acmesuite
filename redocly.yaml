@@ -1,0 +1,30 @@
+# Redocly configuration for the ACMEsuite API contracts.
+# Registers the four module specs (acme-base is the shared library, pulled in via $ref).
+# Usage:    npx @redocly/cli lint        (lints all four)
+#           npx @redocly/cli build-docs acme-hr -o hr.html
+apis:
+  hr:
+    root: api/acme-hr.yaml
+  crm:
+    root: api/acme-crm.yaml
+  supply:
+    root: api/acme-supply.yaml
+  build:
+    root: api/acme-build.yaml
+
+# Contract-first, but pragmatic: known rough edges in the v1 specs don't block the pipeline.
+rules:
+  no-empty-servers: error
+  no-unused-components: warn
+  operation-4xx-response: warn
+  operation-operationId: warn
+  no-server-example.com: error
+  security-defined: warn
+
+# Redoc rendering (applies to build-docs).
+theme:
+  openapi:
+    disableSearch: false
+    hideDownloadButton: false
+    expandResponses: '200,201'
+    jsonSampleExpandLevel: 3

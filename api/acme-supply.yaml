@@ -1,0 +1,479 @@
+openapi: 3.0.3
+info:
+  title: ACMEsupply API
+  version: 1.0.0
+  description: >
+    Procurement system of **ACME analog Inc.** and system of record for **suppliers**,
+    **raw materials & energy**, **supply contracts** (prices, tiers, lead times) and the
+    **material stock** (warehouse).
+
+
+    Procurements (material/energy) go through approval — like sales: above the
+    threshold an approval is required; the approval rule
+    (signing authority) comes from ACMEhr. Confirmed procurements feed port imports, the warehouse
+    and power plants. Stock is consumed by the production cycle (`consumption`).
+
+
+    Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally (procurement/approval/consumption),
+    `ADMIN` maintains master data (materials) and the reset. Per operation under `x-required-role`;
+    hierarchy ADMIN > WORK > WATCH.
+  contact:
+    name: ACME analog Inc · ACMEsuite
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://api.acmesoftware.de/supply
+    description: ACMEsuite API (TLS at the edge)
+tags:
+  - name: Suppliers
+    description: Suppliers.
+  - name: Materials
+    description: Raw materials and energy.
+  - name: SupplyContracts
+    description: Supply contracts — tiered prices + lead times, price resolution.
+  - name: SupplyOrders
+    description: Procurements incl. approval (submission, approval/rejection, goods receipt).
+  - name: Stock
+    description: Material stock — read, consumption (production), reset.
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ─────────────────────────── Suppliers ───────────────────────────
+  /suppliers:
+    get:
+      tags: [Suppliers]
+      summary: List suppliers
+      operationId: listSuppliers
+      x-required-role: WATCH
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/SupplierStatus' } }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Matches.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Supplier' } } } }
+    post:
+      tags: [Suppliers]
+      summary: Create supplier
+      operationId: createSupplier
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SupplierWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /suppliers/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Suppliers]
+      summary: Read supplier
+      operationId: getSupplier
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Supplier., content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Suppliers]
+      summary: Update supplier
+      operationId: updateSupplier
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SupplierWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Supplier' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Materials ───────────────────────────
+  /materials:
+    get:
+      tags: [Materials]
+      summary: List raw materials/energy
+      operationId: listMaterials
+      x-required-role: WATCH
+      parameters:
+        - { name: kind, in: query, schema: { $ref: '#/components/schemas/MaterialKind' } }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Materials.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Material' } } } }
+    post:
+      tags: [Materials]
+      summary: Create material (master data)
+      operationId: createMaterial
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/MaterialWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Material' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /materials/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Materials]
+      summary: Read material
+      operationId: getMaterial
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Material., content: { application/json: { schema: { $ref: '#/components/schemas/Material' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Materials]
+      summary: Update material (master data)
+      operationId: updateMaterial
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/MaterialWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Material' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Stock ───────────────────────────
+  /materials/{id}/stock:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Stock]
+      summary: Read available stock of a material
+      operationId: getStock
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Stock., content: { application/json: { schema: { $ref: '#/components/schemas/MaterialStock' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /materials/{id}/stock/consumption:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Stock]
+      summary: Consume stock (production)
+      description: Reduces available stock by the produced quantity. Called by the production cycle.
+      operationId: consumeStock
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/StockConsumption' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: New stock., content: { application/json: { schema: { $ref: '#/components/schemas/MaterialStock' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /stock/reset:
+    post:
+      tags: [Stock]
+      summary: Reset all stock (data reset)
+      description: Resets the warehouse stock — only for the data/economy reset, hence ADMIN. Not for normal operation.
+      operationId: resetStock
+      x-required-role: ADMIN
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '204': { description: Stock reset. }
+
+  # ─────────────────────────── Supply contracts ───────────────────────────
+  /supply-contracts:
+    get:
+      tags: [SupplyContracts]
+      summary: List supply contracts
+      operationId: listSupplyContracts
+      x-required-role: WATCH
+      parameters:
+        - { name: supplierId, in: query, schema: { type: string } }
+        - { name: materialId, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Contracts.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SupplyContract' } } } }
+    post:
+      tags: [SupplyContracts]
+      summary: Create supply contract
+      operationId: createSupplyContract
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SupplyContractWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyContract' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /supply-contracts/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [SupplyContracts]
+      summary: Read supply contract
+      operationId: getSupplyContract
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Contract., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyContract' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /procurement-price:
+    get:
+      tags: [SupplyContracts]
+      summary: Resolve procurement price + lead time
+      description: Returns the unit price applicable for supplier + material + quantity (best tier) and the lead time.
+      operationId: resolveProcurementPrice
+      x-required-role: WATCH
+      parameters:
+        - { name: supplierId, in: query, required: true, schema: { type: string } }
+        - { name: materialId, in: query, required: true, schema: { type: string } }
+        - { name: quantity, in: query, schema: { type: integer, default: 1, minimum: 1 } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Price + lead time., content: { application/json: { schema: { $ref: '#/components/schemas/ResolvedSupplyPrice' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Supply orders ───────────────────────────
+  /supply-orders:
+    get:
+      tags: [SupplyOrders]
+      summary: List procurements
+      operationId: listSupplyOrders
+      x-required-role: WATCH
+      parameters:
+        - { name: supplierId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/SupplyOrderStatus' } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Procurements.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SupplyOrder' } } } }
+    post:
+      tags: [SupplyOrders]
+      summary: Create procurement
+      operationId: createSupplyOrder
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SupplyOrderWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyOrder' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /supply-orders/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [SupplyOrders]
+      summary: Read procurement
+      operationId: getSupplyOrder
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Procurement., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyOrder' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /supply-orders/{id}/submission:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [SupplyOrders]
+      summary: Submit procurement for approval
+      description: "Above the threshold → PENDING_APPROVAL, otherwise APPROVED."
+      operationId: submitSupplyOrder
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Submitted., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyOrder' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /supply-orders/{id}/decision:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [SupplyOrders]
+      summary: Approval decision
+      operationId: decideSupplyOrder
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: 'acme-base.yaml#/components/schemas/ApprovalDecision' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Decided., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyOrder' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /supply-orders/{id}/receipt:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [SupplyOrders]
+      summary: Book goods receipt (delivered)
+      description: Books the goods receipt and increases the material stock.
+      operationId: receiveSupplyOrder
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Received., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyOrder' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /supply-orders/{id}/cancellation:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [SupplyOrders]
+      summary: Cancel procurement
+      operationId: cancelSupplyOrder
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Cancelled., content: { application/json: { schema: { $ref: '#/components/schemas/SupplyOrder' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT from ACMEbase auth. The bearer role (WATCH/WORK/ADMIN) must satisfy the role
+        required per operation under `x-required-role` (hierarchy ADMIN > WORK > WATCH).
+
+  schemas:
+    SupplierStatus:
+      type: string
+      enum: [PROSPECT, ACTIVE, BLOCKED]
+    Supplier:
+      type: object
+      required: [id, name, status]
+      properties:
+        id: { type: string }
+        name: { type: string, example: Rohstoff Handels AG }
+        status: { $ref: '#/components/schemas/SupplierStatus' }
+        email: { type: string, format: email, nullable: true }
+        country: { type: string, nullable: true, example: DE }
+    SupplierWrite:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        status: { $ref: '#/components/schemas/SupplierStatus' }
+        email: { type: string, format: email }
+        country: { type: string }
+
+    MaterialKind:
+      type: string
+      enum: [RAW_MATERIAL, ENERGY]
+    Material:
+      type: object
+      required: [id, code, name, kind, unit]
+      properties:
+        id: { type: string }
+        code: { type: string, example: STAHL }
+        name: { type: string, example: Stahlblech }
+        kind: { $ref: '#/components/schemas/MaterialKind' }
+        unit: { type: string, example: kg }
+    MaterialWrite:
+      type: object
+      required: [code, name, kind]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        kind: { $ref: '#/components/schemas/MaterialKind' }
+        unit: { type: string }
+
+    MaterialStock:
+      description: Available warehouse stock of a material.
+      type: object
+      required: [materialId, available]
+      properties:
+        materialId: { type: string }
+        available: { type: number, description: Available quantity in the material's unit. }
+    StockConsumption:
+      type: object
+      required: [quantity]
+      properties:
+        quantity: { type: number, minimum: 0, description: Quantity to consume. }
+
+    Tier:
+      type: object
+      required: [minQuantity, unitPrice]
+      properties:
+        minQuantity: { type: integer, default: 1, description: The price applies from this quantity on (tier). }
+        unitPrice: { type: number }
+    SupplyContract:
+      type: object
+      required: [id, supplierId, materialId, currency, leadTimeDays, tiers]
+      properties:
+        id: { type: string }
+        supplierId: { type: string }
+        supplierName: { type: string }
+        materialId: { type: string }
+        materialName: { type: string }
+        currency: { type: string, minLength: 3, maxLength: 3, example: EUR }
+        leadTimeDays: { type: integer, description: Lead time in days. }
+        validity: { $ref: 'acme-base.yaml#/components/schemas/DateRange' }
+        tiers: { type: array, items: { $ref: '#/components/schemas/Tier' } }
+    SupplyContractWrite:
+      type: object
+      required: [supplierId, materialId, currency, leadTimeDays, tiers]
+      properties:
+        supplierId: { type: string }
+        materialId: { type: string }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        leadTimeDays: { type: integer }
+        validFrom: { type: string, format: date }
+        validUntil: { type: string, format: date, nullable: true }
+        tiers: { type: array, minItems: 1, items: { $ref: '#/components/schemas/Tier' } }
+    ResolvedSupplyPrice:
+      type: object
+      required: [supplierId, materialId, quantity, unitPrice, leadTimeDays]
+      properties:
+        supplierId: { type: string }
+        materialId: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        currency: { type: string }
+        leadTimeDays: { type: integer }
+        contractId: { type: string, nullable: true }
+
+    SupplyOrderStatus:
+      type: string
+      enum: [CREATED, PENDING_APPROVAL, APPROVED, REJECTED, RECEIVED, CANCELLED]
+    LineWrite:
+      type: object
+      required: [materialId, quantity]
+      properties:
+        materialId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+        unitPrice: { type: number, nullable: true, description: Optional — otherwise resolved from the supply contract. }
+    Line:
+      type: object
+      required: [materialId, quantity, unitPrice, lineTotal]
+      properties:
+        materialId: { type: string }
+        materialName: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        lineTotal: { type: number }
+    SupplyOrder:
+      type: object
+      required: [id, supplierId, status, orderDate, lines, total]
+      properties:
+        id: { type: string }
+        supplierId: { type: string }
+        supplierName: { type: string }
+        status: { $ref: '#/components/schemas/SupplyOrderStatus' }
+        orderDate: { type: string, format: date }
+        expectedDeliveryDate: { type: string, format: date, nullable: true, description: orderDate + max. lead time. }
+        lines: { type: array, items: { $ref: '#/components/schemas/Line' } }
+        total: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        approval: { $ref: 'acme-base.yaml#/components/schemas/Approval' }
+        note: { type: string, nullable: true }
+    SupplyOrderWrite:
+      type: object
+      required: [supplierId, lines]
+      properties:
+        supplierId: { type: string }
+        lines: { type: array, minItems: 1, items: { $ref: '#/components/schemas/LineWrite' } }
+        note: { type: string, nullable: true }

@@ -1,0 +1,91 @@
+openapi: 3.0.3
+info:
+  title: ACMEbase — Shared API Components
+  version: 1.0.0
+  description: >
+    Shared contract building blocks of the **ACMEsuite** (foundation *ACMEbase*): value types
+    (`Money`, `DateRange`), the RFC-7807 error object, the generic error responses, the
+    e-approval types (`Approval`/`ApprovalDecision`) and the auth scheme.
+
+
+    The four module specs (hr/crm/build/supply) reference these components via cross-file `$ref`
+    (`acme-base.yaml#/components/...`). `redocly bundle` resolves them into self-contained specs when needed.
+
+
+    **Roles (ACMEbase auth):** `WATCH` reads · `WORK` writes operationally · `ADMIN` maintains master data;
+    hierarchy ADMIN > WORK > WATCH. Annotated per operation as `x-required-role`. Note: because of OpenAPI 3.0,
+    the `bearerAuth` scheme must additionally be declared locally in each module spec (a `security`
+    requirement cannot be resolved via cross-file `$ref`); the definition maintained here is the canonical template.
+  contact:
+    name: ACME analog Inc · ACMEsuite
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://api.acmesoftware.de
+    description: Namespace for shared components only — no paths of its own (TLS at the edge).
+paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT from ACMEbase auth. The bearer role (WATCH/WORK/ADMIN) must satisfy the role
+        required per operation under `x-required-role` (hierarchy ADMIN > WORK > WATCH).
+
+  responses:
+    Unauthorized:
+      description: Missing/invalid authentication or insufficient role.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    NotFound:
+      description: Resource not found.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Unprocessable:
+      description: Semantically invalid.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+
+  schemas:
+    Problem:
+      description: Error per RFC 7807.
+      type: object
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+
+    Money:
+      description: Monetary amount. `unlimited=true` → no amount limit (then amount/currency are empty).
+      type: object
+      properties:
+        amount: { type: number, nullable: true, example: 50000 }
+        currency: { type: string, minLength: 3, maxLength: 3, nullable: true, example: EUR }
+        unlimited: { type: boolean, default: false }
+
+    DateRange:
+      description: Validity period. `until=null` = open-ended.
+      type: object
+      properties:
+        from: { type: string, format: date }
+        until: { type: string, format: date, nullable: true }
+
+    Approval:
+      description: E-approval status of an order/procurement.
+      type: object
+      properties:
+        required: { type: boolean }
+        approverId: { type: string, nullable: true, description: Authorized signatory (resolved from ACMEhr). }
+        decision: { type: string, nullable: true, enum: [APPROVE, REJECT] }
+        decidedOn: { type: string, format: date, nullable: true }
+        comment: { type: string, nullable: true }
+    ApprovalDecision:
+      description: Approval decision by an authorized signatory.
+      type: object
+      required: [approverId, decision]
+      properties:
+        approverId: { type: string, description: "Person (ACMEhr) making the decision." }
+        decision: { type: string, enum: [APPROVE, REJECT] }
+        comment: { type: string, nullable: true }

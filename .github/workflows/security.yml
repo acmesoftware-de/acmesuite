@@ -1,0 +1,114 @@
+# Supply-chain security for ACMEsuite:
+#   1. CycloneDX SBOM from the Maven build (target/bom.json)
+#   2. Push to Dependency-Track 5  (secrets: DTRACK_URL [HTTPS], DTRACK_API_KEY)
+#   3. Trivy gate on the SBOM (dependencies) and on the container image
+# The Trivy stages are hard gates (exit code 1 on CRITICAL/HIGH). The DT push is informational
+# and is skipped when no secrets are set (e.g. forks/PRs) — it does not fail the pipeline.
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Generate the SBOM + push it to Dependency-Track 5 ───────────────────────────
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build SBOM (CycloneDX → target/bom.json)
+        run: mvn -B -ntp -DskipTests package
+
+      - name: Store SBOM as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclonedx-sbom
+          path: target/bom.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Push to Dependency-Track 5
+        env:
+          DTRACK_URL: ${{ secrets.DTRACK_URL }}
+          DTRACK_API_KEY: ${{ secrets.DTRACK_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DTRACK_URL:-}" ] || [ -z "${DTRACK_API_KEY:-}" ]; then
+            echo "::notice::DTRACK_URL/DTRACK_API_KEY not set — DT5 push skipped."
+            exit 0
+          fi
+          case "$DTRACK_URL" in
+            https://*) : ;;
+            *) echo "::error::DTRACK_URL must be HTTPS (project rule: everything over TLS)."; exit 1 ;;
+          esac
+          echo "Pushing SBOM to Dependency-Track (project acmesuite / ${GITHUB_REF_NAME}) …"
+          curl -sSf -X POST "${DTRACK_URL%/}/api/v1/bom" \
+            -H "X-Api-Key: ${DTRACK_API_KEY}" \
+            -F "autoCreate=true" \
+            -F "projectName=acmesuite" \
+            -F "projectVersion=${GITHUB_REF_NAME}" \
+            -F "bom=@target/bom.json" \
+            -o /dev/null -w "DT5 HTTP %{http_code}\n"
+
+  # ── Trivy gate: dependencies (from the SBOM) ────────────────────────────────────
+  trivy-dependencies:
+    needs: sbom
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the SBOM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cyclonedx-sbom
+
+      - name: "Trivy scan of the SBOM (gate: CRITICAL/HIGH)"
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: sbom
+          scan-ref: bom.json
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+          format: table
+
+  # ── Trivy gate: container image (buildpacks) ────────────────────────────────────
+  trivy-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build the OCI image (spring-boot:build-image)
+        run: mvn -B -ntp -DskipTests spring-boot:build-image -Dspring-boot.build-image.imageName=acmesuite:ci
+
+      - name: "Trivy scan of the image (gate: CRITICAL/HIGH)"
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: acmesuite:ci
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+          format: table

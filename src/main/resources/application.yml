@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: acmesuite
+  datasource:
+    # docker compose up -d acmesuite-db  →  Postgres on :5545 (does not collide with :5544)
+    url: jdbc:postgresql://localhost:5545/acme_suite
+    username: acme
+    password: acme
+  jpa:
+    hibernate:
+      # Flyway owns the schema (schema ownership). Hibernate only validates.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,modulith
+
+# ACMEbase auth (WATCH/WORK/ADMIN on the suite APIs). Default off = open (dev mode);
+# set to true to enable authentication → role rules via HTTP Basic (ADR-0006).
+acme:
+  base:
+    auth:
+      enabled: false

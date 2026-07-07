@@ -1,0 +1,50 @@
+# Local run stack of the ACMEsuite: DB + app (built from source) + nginx TLS edge (mkcert).
+# Purpose: run the suite locally over HTTPS so that external clients can test against it for real.
+#
+#   Create deploy/certs (once):
+#     mkcert -cert-file deploy/certs/cert.pem -key-file deploy/certs/key.pem localhost 127.0.0.1 ::1
+#   Start:   docker-compose -f deploy/docker-compose.local.yml up -d --build
+#     -> ACMEsuite on https://localhost:8543   (e.g. GET /api/org/persons)
+#   Stop:    docker-compose -f deploy/docker-compose.local.yml down        (data is kept)
+#             docker-compose -f deploy/docker-compose.local.yml down -v     (incl. DB volume)
+#
+# Runs independently; own DB acme_suite (host port 5545, does not collide with :5544).
+name: acmesuite-local
+
+services:
+  acmesuite-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: acme
+      POSTGRES_PASSWORD: acme
+      POSTGRES_DB: acme_suite
+    ports:
+      - "5545:5432"
+    volumes:
+      - acmesuite-db-local:/var/lib/postgresql
+    restart: unless-stopped
+
+  acmesuite-backend:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://acmesuite-db:5432/acme_suite
+      SPRING_DATASOURCE_USERNAME: acme
+      SPRING_DATASOURCE_PASSWORD: acme
+    depends_on: [acmesuite-db]
+    restart: unless-stopped
+
+  acmesuite-edge:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./edge.local.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/certs:ro
+    ports:
+      - "8543:443"   # https://localhost:8543
+      - "8480:80"    # http -> redirect to https
+    depends_on: [acmesuite-backend]
+    restart: unless-stopped
+
+volumes:
+  acmesuite-db-local:
