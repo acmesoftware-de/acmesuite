@@ -1,0 +1,34 @@
+serve:
+  hostname: 0.0.0.0
+  port: 4000
+  endpoint: /graphql
+
+sources:
+  - name: Hr
+    handler:
+      openapi:
+        source: ./openapi/acme-hr.yaml
+        endpoint: "{env.ACMESUITE_API_BASE_URL}/api/hr"
+        operationHeaders:
+          Authorization: "{context.headers.authorization}"
+  - name: Crm
+    handler:
+      openapi:
+        source: ./openapi/acme-crm.yaml
+        endpoint: "{env.ACMESUITE_API_BASE_URL}/api/crm"
+        operationHeaders:
+          Authorization: "{context.headers.authorization}"
+  - name: Supply
+    handler:
+      openapi:
+        source: ./openapi/acme-supply.yaml
+        endpoint: "{env.ACMESUITE_API_BASE_URL}/api/supply"
+        operationHeaders:
+          Authorization: "{context.headers.authorization}"
+  - name: Build
+    handler:
+      openapi:
+        source: ./openapi/acme-build.yaml
+        endpoint: "{env.ACMESUITE_API_BASE_URL}/api/build"
+        operationHeaders:
+          Authorization: "{context.headers.authorization}"

@@ -6,3 +6,12 @@ target/
 
 # lokale TLS-Zertifikate (mkcert) nicht committen
 deploy/certs/
+
+# generated portal/mesh build artifacts (rebuilt by api/build-portal.sh + api/changelog.sh)
+api/.bundled/
+api/portal/redoc/
+api/portal/openapi/
+api/portal/changelog/
+mesh/openapi/
+mesh/node_modules/
+mesh/.mesh/

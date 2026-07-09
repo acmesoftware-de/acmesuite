@@ -9,10 +9,16 @@
     * { box-sizing: border-box; }
     body { margin:0; font:16px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
            background:var(--bg); color:var(--fg); }
+    nav.portal-nav { display:flex; gap:18px; align-items:center; padding:12px 20px;
+                     background:#0b0d11; border-bottom:1px solid var(--edge); font-size:.9rem; }
+    nav.portal-nav a { color:var(--muted); text-decoration:none; font-weight:600; }
+    nav.portal-nav a:hover, nav.portal-nav a.active { color:var(--fg); }
     .wrap { max-width:960px; margin:0 auto; padding:48px 20px 80px; }
     header h1 { margin:0 0 6px; font-size:2rem; letter-spacing:-.02em; }
     header p { margin:0; color:var(--muted); }
-    .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); margin-top:36px; }
+    .section-title { font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+                     font-weight:700; margin:40px 0 16px; }
+    .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
     a.card { display:block; text-decoration:none; color:inherit; background:var(--card);
              border:1px solid var(--edge); border-radius:12px; padding:20px 22px; transition:border-color .15s, transform .15s; }
     a.card:hover { border-color:var(--accent); transform:translateY(-2px); }
@@ -25,29 +31,62 @@
   </style>
 </head>
 <body>
+  <nav class="portal-nav">
+    <a href="/" class="active">Portal Home</a>
+    <a href="/swagger/">Swagger</a>
+    <a href="/redoc/">Redoc</a>
+    <a href="/graphql-ui/">GraphQL UI</a>
+    <a href="/changelog/">Changelog</a>
+    <a href="/openapi/all.yaml">OpenAPI</a>
+  </nav>
   <div class="wrap">
     <header>
       <h1>ACMEsuite — API Portal</h1>
       <p>Contract-first OpenAPI contracts of ACME analog Inc. · <code>v1</code> · TLS at the edge</p>
     </header>
 
+    <div class="section-title">Explorer &amp; documentation</div>
     <div class="grid">
-      <a class="card" href="hr.html">
+      <a class="card" href="/swagger/">
+        <div class="tag">Interactive</div>
+        <h2>Swagger Explorer</h2>
+        <p>Dropdown across All APIs, HR, CRM, Supply and Build. Try requests directly against <code>demo.acmesoftware.de</code>.</p>
+      </a>
+      <a class="card" href="/redoc/">
+        <div class="tag">Readable</div>
+        <h2>Redoc Documentation</h2>
+        <p>Clean documentation view, one page per module plus a combined view.</p>
+      </a>
+      <a class="card" href="/graphql-ui/">
+        <div class="tag">Experimental</div>
+        <h2>GraphQL UI</h2>
+        <p>GraphiQL for the experimental GraphQL Mesh gateway at <code>/graphql</code>, generated from these same contracts.</p>
+      </a>
+      <a class="card" href="/changelog/">
+        <div class="tag">History</div>
+        <h2>API Changelog</h2>
+        <p>oasdiff-generated changelog between released contract versions.</p>
+      </a>
+    </div>
+
+    <div class="section-title">Modules</div>
+    <div class="grid">
+      <a class="card" href="/redoc/hr.html">
         <div class="tag">ACMEhr</div>
         <h2>People &amp; Organization</h2>
         <p>Employees, hierarchy, absences, powers of attorney, approval limits.</p>
       </a>
-      <a class="card" href="crm.html">
+      <a class="card" href="/redoc/crm.html">
         <div class="tag">ACMEcrm</div>
         <h2>Customers &amp; Sales</h2>
         <p>Customers/resellers, products, price lists, quotes, orders (e-approval).</p>
       </a>
-      <a class="card" href="supply.html">
+      <a class="card" href="/redoc/supply.html">
         <div class="tag">ACMEsupply</div>
         <h2>Procurement</h2>
         <p>Suppliers, raw materials/energy, supply contracts, procurements (e-approval).</p>
       </a>
-      <a class="card" href="build.html">
+      <a class="card" href="/redoc/build.html">
         <div class="tag">ACMEbuild</div>
         <h2>Production</h2>
         <p>Products/BOM, capacity planning, material demand, feasibility API.</p>
@@ -56,11 +95,12 @@
 
     <div class="foot">
       <p>Self-contained specs (bundled) for download:
-        <a href="specs/acme-hr.yaml">hr</a> ·
-        <a href="specs/acme-crm.yaml">crm</a> ·
-        <a href="specs/acme-supply.yaml">supply</a> ·
-        <a href="specs/acme-build.yaml">build</a>
-        &nbsp;|&nbsp; shared building blocks: <a href="specs/acme-base.yaml">acme-base</a>
+        <a href="openapi/acme-hr.yaml">hr</a> ·
+        <a href="openapi/acme-crm.yaml">crm</a> ·
+        <a href="openapi/acme-supply.yaml">supply</a> ·
+        <a href="openapi/acme-build.yaml">build</a> ·
+        <a href="openapi/all.yaml">all</a>
+        &nbsp;|&nbsp; shared building blocks: <a href="openapi/acme-base.yaml">acme-base</a>
       </p>
       <p>Source of truth: <a href="https://github.com/acmesoftware-de/acmesuite/tree/main/api">acmesoftware-de/acmesuite · api/</a>.
          Auth: <code>bearerAuth</code> (JWT), roles WATCH·WORK·ADMIN. Errors per RFC 7807.</p>

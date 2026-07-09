@@ -1,0 +1,9 @@
+{
+  "inputs": [
+    { "inputFile": "./.bundled/acme-hr.yaml", "pathModification": { "prepend": "/hr" } },
+    { "inputFile": "./.bundled/acme-crm.yaml", "pathModification": { "prepend": "/crm" } },
+    { "inputFile": "./.bundled/acme-supply.yaml", "pathModification": { "prepend": "/supply" } },
+    { "inputFile": "./.bundled/acme-build.yaml", "pathModification": { "prepend": "/build" } }
+  ],
+  "output": "./portal/openapi/all.yaml"
+}

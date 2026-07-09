@@ -24,7 +24,7 @@ info:
     name: Apache-2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
 servers:
-  - url: https://api.acmesoftware.de/build
+  - url: https://demo.acmesoftware.de/api/build
     description: ACMEsuite API (TLS at the edge)
 tags:
   - name: BOM

@@ -1,0 +1,15 @@
+{
+  "name": "acmesuite-graphql-mesh",
+  "private": true,
+  "scripts": {
+    "build": "mesh build",
+    "start": "mesh start",
+    "dev": "mesh dev",
+    "validate": "mesh build"
+  },
+  "dependencies": {
+    "@graphql-mesh/cli": "latest",
+    "@graphql-mesh/openapi": "latest",
+    "graphql": "latest"
+  }
+}

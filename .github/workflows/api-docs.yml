@@ -1,81 +1,65 @@
-# Builds a static API portal from the OpenAPI contracts (api/*.yaml) and publishes it to
-# GitHub Pages on the custom domain api.acmesoftware.de (HTTPS enforced, see api/portal/CNAME
-# and the repo setting Pages → "Enforce HTTPS"). One Redoc page per module spec + bundled spec downloads.
+# Builds the static API developer portal from the OpenAPI contracts (api/*.yaml): lints, bundles,
+# merges into a combined all.yaml, renders Redoc, generates the oasdiff changelog and validates the
+# GraphQL Mesh image. This is a build/lint gate — the portal is deployed to api.acmesoftware.de by
+# uploading api/portal/ to the Hetzner VM directly (DNS points there, not at GitHub Pages).
 name: API-Portal
 
 on:
   push:
     branches: [main]
+    tags: ['v*']
     paths:
       - 'api/**'
+      - 'mesh/**'
       - 'redocly.yaml'
       - '.github/workflows/api-docs.yml'
   pull_request:
     paths:
       - 'api/**'
+      - 'mesh/**'
       - 'redocly.yaml'
       - '.github/workflows/api-docs.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Only one Pages deploy at a time; do not cancel a running deploy.
 concurrency:
-  group: pages
-  cancel-in-progress: false
-
-env:
-  REDOCLY: '@redocly/cli@1'
-  MODULES: 'hr crm supply build'
+  group: api-portal-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags, needed by api/changelog.sh (oasdiff git-ref diffs)
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Lint the contracts
-        run: npx --yes $REDOCLY lint
-
-      - name: Build the portal (Redoc page + bundled spec per module)
+      - name: Install oasdiff
         run: |
           set -euo pipefail
-          mkdir -p _site/specs
-          for m in $MODULES; do
-            echo "::group::build $m"
-            npx --yes $REDOCLY build-docs "api/acme-$m.yaml" -o "_site/$m.html"
-            npx --yes $REDOCLY bundle     "api/acme-$m.yaml" -o "_site/specs/acme-$m.yaml"
-            echo "::endgroup::"
-          done
-          # ship the shared building blocks as a self-contained reference too
-          npx --yes $REDOCLY bundle api/acme-base.yaml -o _site/specs/acme-base.yaml
-          cp api/portal/index.html _site/index.html
-          cp api/portal/CNAME      _site/CNAME
-          # 404 → landing page, so deep links don't dead-end
-          cp api/portal/index.html _site/404.html
+          VERSION=$(curl -s https://api.github.com/repos/oasdiff/oasdiff/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+          curl -sSfL -o oasdiff.deb "https://github.com/oasdiff/oasdiff/releases/download/v${VERSION}/oasdiff_${VERSION}_linux_amd64.deb"
+          sudo dpkg -i oasdiff.deb
+          oasdiff --version
 
-      - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
+      - name: Build the portal (lint, bundle, merge, Redoc)
+        run: bash api/build-portal.sh
+
+      - name: Build the API changelog (oasdiff across tagged versions)
+        run: bash api/changelog.sh
+
+      - name: Validate the GraphQL Mesh image builds
+        run: docker build -t acmesuite-mesh-ci ./mesh
+
+      - name: Upload portal artifact
+        uses: actions/upload-artifact@v4
         with:
-          path: _site
-
-  deploy:
-    # Only main publishes; PRs build (lint gate) without deploying.
-    if: github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          name: api-portal
+          path: api/portal
+          retention-days: 14
