@@ -2,6 +2,8 @@ package de.acmesoftware.acmesuite.base.web;
 
 import de.acmesoftware.acmesuite.base.BaseAuthService;
 import de.acmesoftware.acmesuite.base.auth.AuthProvider;
+import de.acmesoftware.acmesuite.base.auth.AuthProviderKind;
+import de.acmesoftware.acmesuite.base.auth.ProviderConfigService;
 import de.acmesoftware.acmesuite.base.web.BaseViews.LoginRequest;
 import de.acmesoftware.acmesuite.base.web.BaseViews.LoginResponse;
 import de.acmesoftware.acmesuite.base.web.BaseViews.MeView;
@@ -28,10 +30,13 @@ public class AuthController {
 
     private final BaseAuthService auth;
     private final List<AuthProvider> providers;
+    private final ProviderConfigService providerConfigs;
 
-    public AuthController(BaseAuthService auth, List<AuthProvider> providers) {
+    public AuthController(BaseAuthService auth, List<AuthProvider> providers,
+            ProviderConfigService providerConfigs) {
         this.auth = auth;
         this.providers = providers;
+        this.providerConfigs = providerConfigs;
     }
 
     @PostMapping("/login")
@@ -42,10 +47,12 @@ public class AuthController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
-    /** Login options for the sign-in screen (local + configured federated providers). */
+    /** Login options for the sign-in screen: local always, federated only when enabled. */
     @GetMapping("/providers")
     public List<ProviderView> providers() {
+        var enabled = providerConfigs.enabledProviderIds();
         return providers.stream()
+                .filter(p -> p.kind() == AuthProviderKind.LOCAL || enabled.contains(p.id()))
                 .map(p -> new ProviderView(p.id(), p.displayName(), p.kind().name()))
                 .toList();
     }
