@@ -2,30 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ACMEsuite — Swagger Explorer</title>
-  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/vendor/swagger-ui.css">
+  <link rel="stylesheet" href="/assets/fonts/acme-fonts.css">
+  <link rel="stylesheet" href="/assets/brand.css">
   <style>
-    :root { --bg:#0f1115; --edge:#262b36; --fg:#e8eaed; --muted:#9aa4b2; --accent:#5b9dff; }
-    html, body { margin:0; height:100%; background:#fff; }
-    nav.portal-nav { display:flex; gap:18px; align-items:center; padding:12px 20px;
-                     background:#0b0d11; border-bottom:1px solid var(--edge); font:14px -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
-    nav.portal-nav a { color:var(--muted); text-decoration:none; font-weight:600; }
-    nav.portal-nav a:hover, nav.portal-nav a.active { color:var(--fg); }
-    #swagger-ui { max-width: 1400px; margin: 0 auto; }
+    #swagger-ui{max-width:1400px; margin:0 auto;}
+    /* nudge Swagger UI toward the brand: mono for code, Archivo for headings */
+    .swagger-ui, .swagger-ui .opblock-tag, .swagger-ui .info .title{font-family:var(--text);}
+    .swagger-ui .info .title{font-family:var(--display); font-weight:normal;}
+    .swagger-ui .opblock .opblock-summary-path, .swagger-ui code, .swagger-ui .microlight{font-family:var(--mono);}
   </style>
 </head>
 <body>
   <nav class="portal-nav">
-    <a href="/">Portal Home</a>
-    <a href="/swagger/" class="active">Swagger</a>
-    <a href="/redoc/">Redoc</a>
-    <a href="/graphql-ui/">GraphQL UI</a>
-    <a href="/changelog/">Changelog</a>
-    <a href="/openapi/all.yaml">OpenAPI</a>
+    <a class="brand" href="/"><span class="bars"><i></i><i></i><i></i><i></i></span>
+      <span class="wm"><b>ACME</b><span>SOFTWARE</span></span></a>
+    <span class="nav-links">
+      <a href="/">Portal</a>
+      <a href="/swagger/" class="active">Swagger</a>
+      <a href="/redoc/">Redoc</a>
+      <a href="/graphql-ui/">GraphQL</a>
+      <a href="/changelog/">Changelog</a>
+      <a href="/openapi/all.yaml">OpenAPI</a>
+    </span>
+    <span class="nav-badge">API PORTAL</span>
   </nav>
   <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+  <script src="/assets/vendor/swagger-ui-bundle.js"></script>
+  <script src="/assets/vendor/swagger-ui-standalone-preset.js"></script>
   <script>
     fetch('./swagger-config.json')
       .then(function (r) { return r.json(); })

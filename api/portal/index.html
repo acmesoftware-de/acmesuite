@@ -4,45 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ACMEsuite — API Portal</title>
-  <style>
-    :root { --bg:#0f1115; --card:#181b22; --edge:#262b36; --fg:#e8eaed; --muted:#9aa4b2; --accent:#5b9dff; }
-    * { box-sizing: border-box; }
-    body { margin:0; font:16px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-           background:var(--bg); color:var(--fg); }
-    nav.portal-nav { display:flex; gap:18px; align-items:center; padding:12px 20px;
-                     background:#0b0d11; border-bottom:1px solid var(--edge); font-size:.9rem; }
-    nav.portal-nav a { color:var(--muted); text-decoration:none; font-weight:600; }
-    nav.portal-nav a:hover, nav.portal-nav a.active { color:var(--fg); }
-    .wrap { max-width:960px; margin:0 auto; padding:48px 20px 80px; }
-    header h1 { margin:0 0 6px; font-size:2rem; letter-spacing:-.02em; }
-    header p { margin:0; color:var(--muted); }
-    .section-title { font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
-                     font-weight:700; margin:40px 0 16px; }
-    .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
-    a.card { display:block; text-decoration:none; color:inherit; background:var(--card);
-             border:1px solid var(--edge); border-radius:12px; padding:20px 22px; transition:border-color .15s, transform .15s; }
-    a.card:hover { border-color:var(--accent); transform:translateY(-2px); }
-    a.card h2 { margin:0 0 6px; font-size:1.15rem; }
-    a.card .tag { font-size:.72rem; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; }
-    a.card p { margin:8px 0 0; color:var(--muted); font-size:.9rem; }
-    .foot { margin-top:44px; padding-top:22px; border-top:1px solid var(--edge); color:var(--muted); font-size:.85rem; }
-    .foot a { color:var(--accent); }
-    code { background:#0b0d11; padding:2px 6px; border-radius:5px; font-size:.85em; }
-  </style>
+  <link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/fonts/acme-fonts.css">
+  <link rel="stylesheet" href="/assets/brand.css">
 </head>
 <body>
   <nav class="portal-nav">
-    <a href="/" class="active">Portal Home</a>
-    <a href="/swagger/">Swagger</a>
-    <a href="/redoc/">Redoc</a>
-    <a href="/graphql-ui/">GraphQL UI</a>
-    <a href="/changelog/">Changelog</a>
-    <a href="/openapi/all.yaml">OpenAPI</a>
+    <a class="brand" href="/"><span class="bars"><i></i><i></i><i></i><i></i></span>
+      <span class="wm"><b>ACME</b><span>SOFTWARE</span></span></a>
+    <span class="nav-links">
+      <a href="/" class="active">Portal</a>
+      <a href="/swagger/">Swagger</a>
+      <a href="/redoc/">Redoc</a>
+      <a href="/graphql-ui/">GraphQL</a>
+      <a href="/changelog/">Changelog</a>
+      <a href="/openapi/all.yaml">OpenAPI</a>
+    </span>
+    <span class="nav-badge">API PORTAL</span>
   </nav>
+
   <div class="wrap">
-    <header>
-      <h1>ACMEsuite — API Portal</h1>
-      <p>Contract-first OpenAPI contracts of ACME analog Inc. · <code>v1</code> · TLS at the edge</p>
+    <header class="page">
+      <div class="kicker">api.acmesoftware.de</div>
+      <h1>ACMEsuite API Portal</h1>
+      <p>Contract-first OpenAPI-Verträge der ACMEsuite &middot; <code>v1</code> &middot; TLS at the edge.
+         ACMEsuite ist die Anwendung hinter der Marke ACMEsoftware (AFINA GmbH).</p>
     </header>
 
     <div class="section-title">Explorer &amp; documentation</div>
@@ -71,22 +57,22 @@
 
     <div class="section-title">Modules</div>
     <div class="grid">
-      <a class="card" href="/redoc/hr.html">
+      <a class="card mod mod-hr" href="/redoc/hr.html">
         <div class="tag">ACMEhr</div>
         <h2>People &amp; Organization</h2>
         <p>Employees, hierarchy, absences, powers of attorney, approval limits.</p>
       </a>
-      <a class="card" href="/redoc/crm.html">
+      <a class="card mod mod-crm" href="/redoc/crm.html">
         <div class="tag">ACMEcrm</div>
         <h2>Customers &amp; Sales</h2>
         <p>Customers/resellers, products, price lists, quotes, orders (e-approval).</p>
       </a>
-      <a class="card" href="/redoc/supply.html">
+      <a class="card mod mod-supply" href="/redoc/supply.html">
         <div class="tag">ACMEsupply</div>
         <h2>Procurement</h2>
         <p>Suppliers, raw materials/energy, supply contracts, procurements (e-approval).</p>
       </a>
-      <a class="card" href="/redoc/build.html">
+      <a class="card mod mod-build" href="/redoc/build.html">
         <div class="tag">ACMEbuild</div>
         <h2>Production</h2>
         <p>Products/BOM, capacity planning, material demand, feasibility API.</p>
@@ -95,15 +81,15 @@
 
     <div class="foot">
       <p>Self-contained specs (bundled) for download:
-        <a href="openapi/acme-hr.yaml">hr</a> ·
-        <a href="openapi/acme-crm.yaml">crm</a> ·
-        <a href="openapi/acme-supply.yaml">supply</a> ·
-        <a href="openapi/acme-build.yaml">build</a> ·
+        <a href="openapi/acme-hr.yaml">hr</a> &middot;
+        <a href="openapi/acme-crm.yaml">crm</a> &middot;
+        <a href="openapi/acme-supply.yaml">supply</a> &middot;
+        <a href="openapi/acme-build.yaml">build</a> &middot;
         <a href="openapi/all.yaml">all</a>
         &nbsp;|&nbsp; shared building blocks: <a href="openapi/acme-base.yaml">acme-base</a>
       </p>
-      <p>Source of truth: <a href="https://github.com/acmesoftware-de/acmesuite/tree/main/api">acmesoftware-de/acmesuite · api/</a>.
-         Auth: <code>bearerAuth</code> (JWT), roles WATCH·WORK·ADMIN. Errors per RFC 7807.</p>
+      <p>Source of truth: <a href="https://github.com/acmesoftware-de/acmesuite/tree/main/api">acmesoftware-de/acmesuite &middot; api/</a>.
+         Auth: <code>bearerAuth</code> (JWT), roles WATCH&middot;WORK&middot;ADMIN. Errors per RFC 7807.</p>
     </div>
   </div>
 </body>
