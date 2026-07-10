@@ -24,8 +24,22 @@ management:
         include: health,info,modulith
 
 # ACMEbase auth (WATCH/WORK/ADMIN on the suite APIs). Default off = open (dev mode);
-# set to true to enable authentication → role rules via HTTP Basic (ADR-0006).
+# set to true to enable authentication → Base-issued session JWT (bearer). Federated
+# login (Entra/OIDC) authenticates the identity; roles are assigned locally in Base.
 acme:
   base:
     auth:
       enabled: false
+      # HS256 signing secret for the Base session token. DEV VALUE — override in prod
+      # (env ACME_BASE_AUTH_JWT_SECRET); must be >= 32 bytes.
+      jwt:
+        secret: ${ACME_BASE_AUTH_JWT_SECRET:dev-only-insecure-jwt-secret-change-me-please-32b}
+        ttl: PT12H
+      # Master key (base64, 32 bytes) for AES-GCM envelope encryption of provider
+      # secrets at rest. DEV VALUE — override in prod (env ACME_BASE_CRYPTO_MASTER_KEY).
+      crypto:
+        master-key: ${ACME_BASE_CRYPTO_MASTER_KEY:YWNtZS1zdWl0ZS1kZXYtbWFzdGVyLWtleS0zMmJ5dGU=}
+      # Local break-glass admin created at first startup if no ADMIN exists. A random
+      # temporary password is logged once; it must be changed on first login.
+      bootstrap:
+        admin-username: admin
