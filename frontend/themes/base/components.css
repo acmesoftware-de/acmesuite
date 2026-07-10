@@ -1,0 +1,176 @@
+/* =============================================================================
+   BASE — shared component layer (the "class contract").
+
+   These rules implement the shell's look using ONLY design tokens (CSS variables).
+   They carry no hard-coded colors, fonts or radii, so any theme restyles the whole
+   app just by supplying token values (see themes/<id>/tokens.css). This file lives in
+   the theme layer, not in src/, so the entire look stays separate from the code.
+
+   The app code (src/) only emits the class names below and sets three attributes on
+   the root: data-theme, data-mode, data-module. A theme MAY additionally override any
+   rule here under its own [data-theme="<id>"] selector for structural deviations.
+   ============================================================================= */
+
+/* ---- Active accent resolution (values come from each theme's --accent-*) --- */
+.acme-app[data-module='CRM'] { --accent: var(--accent-crm); --on-accent: #fff; }
+.acme-app[data-module='SUP'] { --accent: var(--accent-sup); --on-accent: #fff; }
+.acme-app[data-module='BLD'] { --accent: var(--accent-bld); --on-accent: #fff; }
+.acme-app[data-module='HR']  { --accent: var(--accent-hr);  --on-accent: #111; }
+.acme-app[data-module='ADM'] { --accent: var(--accent-adm); --on-accent: #fff; }
+
+/* ---- App root ------------------------------------------------------------- */
+.acme-app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  overflow: hidden;
+}
+.acme-app ::-webkit-scrollbar { height: 9px; width: 9px; }
+.acme-app ::-webkit-scrollbar-thumb { background: var(--line2); }
+.acme-app ::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- Top bar -------------------------------------------------------------- */
+.acme-app .acme-topbar {
+  display: flex;
+  align-items: center;
+  height: 57px;
+  flex: none;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+/* Bar-Mark logo (inline SVG). Colors are the immutable brand sequence (brand.css). */
+.acme-app .acme-logo { display: block; height: 20px; width: auto; }
+.acme-app .acme-logo-bar--crm { fill: var(--mark-crm); }
+.acme-app .acme-logo-bar--hr { fill: var(--mark-hr); }
+.acme-app .acme-logo-bar--bld { fill: var(--mark-bld); }
+.acme-app .acme-logo-bar--sup { fill: var(--mark-sup); }
+.acme-app .acme-brand {
+  font: 700 13px var(--font-ui);
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  margin-left: 9px;
+}
+.acme-app .acme-brand-dim { color: var(--dim); font-weight: 500; }
+.acme-app .acme-divider { width: 1px; height: 22px; background: var(--line); margin: 0 18px; }
+
+.acme-app .acme-modtabs { display: flex; align-self: stretch; align-items: stretch; }
+.acme-app .acme-modtab { display: flex; align-items: center; padding: 0 16px; position: relative; cursor: pointer; }
+.acme-app .acme-modtab-label { font: 500 13px var(--font-ui); color: var(--dim); }
+.acme-app .acme-modtab.is-active .acme-modtab-label { font-weight: 700; color: var(--ink); }
+.acme-app .acme-modtab-underline { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: transparent; }
+.acme-app .acme-modtab.is-active .acme-modtab-underline { background: var(--accent); }
+
+.acme-app .acme-spacer { flex: 1; }
+
+.acme-app .acme-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  min-width: 190px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--dim);
+  font-size: 12.5px;
+}
+.acme-app .acme-kbd {
+  margin-left: auto;
+  font: 700 10px var(--font-mono);
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--faint);
+}
+.acme-app .acme-theme-toggle {
+  width: 34px;
+  height: 34px;
+  margin-left: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.acme-app .acme-avatar {
+  width: 32px;
+  height: 32px;
+  margin-left: 10px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 11px var(--font-mono);
+}
+
+/* ---- Module header -------------------------------------------------------- */
+.acme-app .acme-modhead { display: flex; align-items: flex-end; gap: 16px; padding: 22px 24px 16px; }
+.acme-app .acme-eyebrow { font: 400 10px var(--font-mono); letter-spacing: 0.14em; color: var(--accent); }
+.acme-app .acme-title { font: 400 40px/0.9 var(--font-display); color: var(--ink); margin: 8px 0 0; }
+
+.acme-app .acme-subtabs { display: flex; border: 1px solid var(--line2); border-radius: var(--radius); margin-bottom: 7px; overflow: hidden; }
+.acme-app .acme-subtab {
+  padding: 8px 13px;
+  border: none;
+  font: 700 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  background: transparent;
+  color: var(--dim);
+}
+.acme-app .acme-subtab + .acme-subtab { border-left: 1px solid var(--line2); }
+.acme-app .acme-subtab.is-active { background: var(--accent); color: var(--on-accent); }
+/* Build's tab row is a touch tighter. */
+.acme-app[data-module='BLD'] .acme-subtab { padding: 8px 12px; letter-spacing: 0.03em; }
+
+.acme-app .acme-btn-new {
+  margin-bottom: 7px;
+  padding: 8px 15px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 700 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+/* ---- KPI bar -------------------------------------------------------------- */
+.acme-app .acme-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 24px 16px; flex: none; }
+.acme-app .acme-kpi { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 13px 15px; }
+.acme-app .acme-kpi-label { font: 700 9.5px var(--font-mono); letter-spacing: 0.08em; color: var(--faint); }
+.acme-app .acme-kpi-row { display: flex; align-items: baseline; gap: 8px; margin-top: 9px; }
+.acme-app .acme-kpi-value { font: 400 27px var(--font-display); color: var(--ink); }
+.acme-app .acme-kpi-delta { font: 700 10.5px var(--font-mono); }
+.acme-app .acme-kpi-delta.is-up { color: var(--success); }
+.acme-app .acme-kpi-delta.is-down { color: var(--danger); }
+
+/* ---- Content / placeholder ----------------------------------------------- */
+.acme-app .acme-content { flex: 1; min-height: 0; overflow: auto; padding: 0 24px 24px; }
+.acme-app .acme-placeholder {
+  height: 100%;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border: 1px dashed var(--line2);
+  border-radius: var(--radius);
+  background: var(--chip);
+  text-align: center;
+}
+.acme-app .acme-placeholder-title { font: 400 34px var(--font-display); color: var(--ink); }
+.acme-app .acme-placeholder-desc { font: 500 13px var(--font-ui); color: var(--dim); max-width: 360px; }

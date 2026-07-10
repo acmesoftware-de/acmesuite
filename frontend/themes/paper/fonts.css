@@ -1,0 +1,10 @@
+/* Fonts for the Paper theme — bundled, no CDN. Paper reuses Archivo (for both display
+   and UI) and Space Mono, so no new font packages are needed; these @imports are
+   de-duplicated with the ACME theme at build time. A theme wanting a genuinely new
+   family would `npm i @fontsource/<family>` and import it here. */
+@import '@fontsource/archivo/400.css';
+@import '@fontsource/archivo/500.css';
+@import '@fontsource/archivo/600.css';
+@import '@fontsource/archivo/700.css';
+@import '@fontsource/space-mono/400.css';
+@import '@fontsource/space-mono/700.css';

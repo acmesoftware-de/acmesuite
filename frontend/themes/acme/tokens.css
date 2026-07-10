@@ -1,0 +1,57 @@
+/* ACME — default theme tokens. The house look: squared, high-contrast, module
+   signal colors. Only variable values live here; the component rules that consume
+   them are in themes/base/components.css. */
+@import './fonts.css';
+
+[data-theme='acme'] {
+  /* Surfaces / text (dark = default) */
+  --bg: #0e0f11;
+  --panel: #17181c;
+  --panel2: #1e2025; /* zebra */
+  --line: rgba(255, 255, 255, 0.09);
+  --line2: rgba(255, 255, 255, 0.15);
+  --ink: #f4f3ef;
+  --dim: rgba(255, 255, 255, 0.54);
+  --faint: rgba(255, 255, 255, 0.34);
+  --chip: rgba(255, 255, 255, 0.05);
+  --shadow: rgba(0, 0, 0, 0.45);
+
+  /* Semantic signal colors — aligned to the brand palette. */
+  --success: var(--mark-sup); /* green */
+  --warning: var(--mark-hr); /* yellow */
+  --danger: var(--mark-crm); /* red */
+  --info: var(--mark-bld); /* blue */
+  --neutral: var(--brand-graphite-tint);
+
+  /* Module accents = the ACMEsoftware brand palette. CRM/HR/Build/Supply reuse the
+     immutable Bar-Mark colors (brand.css); Admin uses corporate graphite (its tint,
+     so the accent stays visible on dark surfaces). */
+  --accent-crm: var(--mark-crm);
+  --accent-hr: var(--mark-hr);
+  --accent-bld: var(--mark-bld);
+  --accent-sup: var(--mark-sup);
+  --accent-adm: var(--brand-graphite-tint);
+
+  /* Typography (families only; sizes are structural). */
+  --font-display: 'Anton', system-ui, sans-serif;
+  --font-ui: 'Archivo', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  /* Geometry */
+  --radius: 0px; /* squared corners */
+  --edge: 3px; /* accent edge width */
+}
+
+/* Light mode — only surface/text tokens flip. */
+[data-theme='acme'][data-mode='light'] {
+  --bg: #f1efe9;
+  --panel: #ffffff;
+  --panel2: #f6f4ef;
+  --line: rgba(0, 0, 0, 0.1);
+  --line2: rgba(0, 0, 0, 0.18);
+  --ink: #15161a;
+  --dim: rgba(0, 0, 0, 0.56);
+  --faint: rgba(0, 0, 0, 0.4);
+  --chip: rgba(0, 0, 0, 0.045);
+  --shadow: rgba(0, 0, 0, 0.14);
+}

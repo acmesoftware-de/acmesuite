@@ -1,0 +1,10 @@
+/* Fonts for the ACME theme — self-hosted and bundled (NO CDN, per policy).
+   Adding a theme with different fonts: `npm i @fontsource/<family>` and import it in
+   that theme's fonts.css. The families are then referenced via the --font-* tokens. */
+@import '@fontsource/anton/400.css';
+@import '@fontsource/archivo/400.css';
+@import '@fontsource/archivo/500.css';
+@import '@fontsource/archivo/600.css';
+@import '@fontsource/archivo/700.css';
+@import '@fontsource/space-mono/400.css';
+@import '@fontsource/space-mono/700.css';

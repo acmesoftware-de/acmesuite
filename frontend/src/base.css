@@ -1,0 +1,46 @@
+/* Structural reset only — NO look here. Colors, fonts, spacing, classes all live in
+   themes/ (activated via data-theme / data-mode / data-module on the app root). */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  /* Neutral fallback so there is no flash before a theme paints. */
+  background: #0e0f11;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Motion primitives are structural (themes may reference them). */
+@keyframes acmefade {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes acmepulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
