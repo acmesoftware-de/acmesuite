@@ -36,6 +36,10 @@ export interface ModuleDef {
   /** Sub-view tabs shown at the right of the module header. Empty → no tabs. */
   subViews: SubView[]
   kpis: Kpi[]
+  /** Module renders its own actions (e.g. Admin) — suppress the shell's "+ NEU" button. */
+  ownsActions?: boolean
+  /** Visible only to ADMIN users (the module tab is hidden otherwise). */
+  adminOnly?: boolean
 }
 
 // Note: the per-module accent color is NOT here — it is theme-owned. The shell sets
@@ -125,13 +129,13 @@ export const MODULES: ModuleDef[] = [
     eyebrow: 'MODUL 05 · VERWALTUNG',
     title: 'System',
     newLabel: '+ NUTZER',
-    subViews: [],
-    kpis: [
-      { label: 'NUTZER', value: '152', delta: '+4', up: D.pos },
-      { label: 'ROLLEN', value: '8', delta: '0', up: D.pos },
-      { label: 'AKTIVE SESSIONS', value: '37', delta: '+9', up: D.pos },
-      { label: 'LIZENZEN', value: '160', delta: '8 frei', up: D.pos },
+    ownsActions: true,
+    adminOnly: true,
+    subViews: [
+      { key: 'nutzer', label: 'NUTZER', hideKpis: true },
+      { key: 'authentifizierung', label: 'AUTHENTIFIZIERUNG', hideKpis: true },
     ],
+    kpis: [],
   },
 ]
 

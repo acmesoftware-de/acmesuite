@@ -5,9 +5,17 @@ interface ModuleHeaderProps {
   activeSubKey: string
   onSelectSubView: (key: string) => void
   newLabel: string
+  /** Show the "+ NEU" button (gated by write permission and module ownership of actions). */
+  showNew: boolean
 }
 
-export function ModuleHeader({ module, activeSubKey, onSelectSubView, newLabel }: ModuleHeaderProps) {
+export function ModuleHeader({
+  module,
+  activeSubKey,
+  onSelectSubView,
+  newLabel,
+  showNew,
+}: ModuleHeaderProps) {
   return (
     <div className="acme-modhead">
       <div>
@@ -31,7 +39,7 @@ export function ModuleHeader({ module, activeSubKey, onSelectSubView, newLabel }
         </div>
       )}
 
-      <button className="acme-btn-new">{newLabel}</button>
+      {showNew && <button className="acme-btn-new">{newLabel}</button>}
     </div>
   )
 }

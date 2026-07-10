@@ -7,9 +7,28 @@ interface TopBarProps {
   onSelectModule: (id: ModuleId) => void
   mode: ThemeMode
   onToggleTheme: () => void
+  userLabel: string
+  roleLabel: string
+  isAdmin: boolean
+  onLogout: () => void
 }
 
-export function TopBar({ activeMod, onSelectModule, mode, onToggleTheme }: TopBarProps) {
+function initials(label: string): string {
+  const parts = label.trim().split(/\s+/)
+  return (parts.length > 1 ? parts[0][0] + parts[1][0] : label.slice(0, 2)).toUpperCase()
+}
+
+export function TopBar({
+  activeMod,
+  onSelectModule,
+  mode,
+  onToggleTheme,
+  userLabel,
+  roleLabel,
+  isAdmin,
+  onLogout,
+}: TopBarProps) {
+  const visibleModules = MODULES.filter((m) => !m.adminOnly || isAdmin)
   return (
     <div className="acme-topbar">
       <LogoGlyph />
@@ -20,7 +39,7 @@ export function TopBar({ activeMod, onSelectModule, mode, onToggleTheme }: TopBa
       <div className="acme-divider" />
 
       <div className="acme-modtabs">
-        {MODULES.map((m) => (
+        {visibleModules.map((m) => (
           <div
             key={m.id}
             className={`acme-modtab${m.id === activeMod ? ' is-active' : ''}`}
@@ -43,7 +62,13 @@ export function TopBar({ activeMod, onSelectModule, mode, onToggleTheme }: TopBa
         {mode === 'dark' ? '◐' : '◑'}
       </button>
 
-      <div className="acme-avatar">JS</div>
+      <button
+        className="acme-avatar acme-avatar--button"
+        onClick={onLogout}
+        title={`${userLabel} · ${roleLabel} — abmelden`}
+      >
+        {initials(userLabel)}
+      </button>
     </div>
   )
 }
