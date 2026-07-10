@@ -5,7 +5,10 @@
 // TLS edge (see vite.config.ts); in production the app is served behind the same edge.
 // Auth is a JWT bearer from ACMEbase; role (WATCH/WORK/ADMIN) is enforced server-side.
 
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api'
+/** API base path — same-origin "/api" (dev proxy → backend), overridable via VITE_API_BASE. */
+export const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api'
+
+const BASE = API_BASE
 
 let authToken: string | null = null
 

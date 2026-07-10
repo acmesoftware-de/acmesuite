@@ -13,6 +13,8 @@ interface AuthContextValue {
   /** true for WORK and ADMIN (may perform operational writes). */
   canWrite: boolean
   isAdmin: boolean
+  /** Set when a federated (OIDC) sign-in returned an error/pending on redirect back. */
+  oidcError: string | null
   login: (username: string, password: string) => Promise<void>
   completeSetPassword: (newPassword: string) => Promise<void>
   logout: () => void
@@ -31,9 +33,41 @@ function persist(token: string | null) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>('loading')
   const [user, setUser] = useState<Me | null>(null)
+  const [oidcError, setOidcError] = useState<string | null>(null)
 
-  // Restore a session from a stored token on load.
+  // On load: first consume an OIDC redirect result from the URL fragment, otherwise restore a
+  // stored session.
   useEffect(() => {
+    const frag = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : ''
+    const params = new URLSearchParams(frag)
+    const redirectToken = params.get('token')
+    const redirectError = params.get('oidc_error')
+
+    if (redirectToken || redirectError) {
+      // Strip the token/error from the address bar.
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+
+    if (redirectToken) {
+      persist(redirectToken)
+      authApi
+        .me()
+        .then((me) => {
+          setUser(me)
+          setPhase('authed')
+        })
+        .catch(() => {
+          persist(null)
+          setPhase('anon')
+        })
+      return
+    }
+    if (redirectError) {
+      setOidcError(redirectError)
+      setPhase('anon')
+      return
+    }
+
     const token = localStorage.getItem(TOKEN_KEY)
     if (!token) {
       setPhase('anon')
@@ -78,11 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       canWrite: user ? ROLE_RANK[user.role] >= ROLE_RANK.WORK : false,
       isAdmin: user?.role === 'ADMIN',
+      oidcError,
       login,
       completeSetPassword,
       logout,
     }),
-    [phase, user, login, completeSetPassword, logout],
+    [phase, user, oidcError, login, completeSetPassword, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

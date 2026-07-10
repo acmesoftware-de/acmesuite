@@ -4,8 +4,15 @@ import { useAuth, apiStatus } from './AuthContext'
 import { authApi } from './authApi'
 import type { ProviderOption } from './types'
 
+const OIDC_MESSAGES: Record<string, string> = {
+  pending: 'Dein Konto wartet auf Freischaltung durch einen Admin.',
+  config: 'Der Identity-Provider ist nicht vollständig konfiguriert.',
+  idp: 'Die Anmeldung wurde vom Identity-Provider abgelehnt.',
+  error: 'Anmeldung über den Identity-Provider fehlgeschlagen.',
+}
+
 export function LoginScreen() {
-  const { login } = useAuth()
+  const { login, oidcError } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -43,6 +50,10 @@ export function LoginScreen() {
 
         <div className="acme-login-title">Anmelden</div>
 
+        {oidcError && (
+          <div className="acme-error">{OIDC_MESSAGES[oidcError] ?? OIDC_MESSAGES.error}</div>
+        )}
+
         <label className="acme-field">
           <span className="acme-label">Benutzername</span>
           <input
@@ -79,10 +90,11 @@ export function LoginScreen() {
                 key={p.id}
                 type="button"
                 className="acme-btn acme-btn--ghost acme-btn--full"
-                disabled
-                title="Kommt in Kürze"
+                onClick={() => {
+                  window.location.href = authApi.oidcStartUrl(p.id)
+                }}
               >
-                Mit {p.displayName} anmelden <span className="acme-soon">bald</span>
+                Mit {p.displayName} anmelden
               </button>
             ))}
           </div>

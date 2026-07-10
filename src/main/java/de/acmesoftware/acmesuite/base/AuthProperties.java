@@ -22,6 +22,7 @@ public class AuthProperties {
     private final Jwt jwt = new Jwt();
     private final Crypto crypto = new Crypto();
     private final Bootstrap bootstrap = new Bootstrap();
+    private final Oidc oidc = new Oidc();
 
     public boolean isEnabled() {
         return enabled;
@@ -41,6 +42,10 @@ public class AuthProperties {
 
     public Bootstrap getBootstrap() {
         return bootstrap;
+    }
+
+    public Oidc getOidc() {
+        return oidc;
     }
 
     /** Base session token (HS256). The same secret signs and validates. */
@@ -91,6 +96,41 @@ public class AuthProperties {
 
         public void setAdminUsername(String adminUsername) {
             this.adminUsername = adminUsername;
+        }
+    }
+
+    /** Federated OIDC redirect flow (Entra / generic OIDC). */
+    public static class Oidc {
+        /** Where Base redirects the browser after login, carrying the session token in the URL
+         *  fragment. Default same-origin; set to the frontend origin in split dev setups. */
+        private String postLoginUrl = "/";
+        /** Base scopes always requested (provider config may add more). */
+        private String defaultScopes = "openid email profile";
+        /** Lifetime of the signed OIDC state (CSRF/nonce carrier). */
+        private Duration stateTtl = Duration.ofMinutes(10);
+
+        public String getPostLoginUrl() {
+            return postLoginUrl;
+        }
+
+        public void setPostLoginUrl(String postLoginUrl) {
+            this.postLoginUrl = postLoginUrl;
+        }
+
+        public String getDefaultScopes() {
+            return defaultScopes;
+        }
+
+        public void setDefaultScopes(String defaultScopes) {
+            this.defaultScopes = defaultScopes;
+        }
+
+        public Duration getStateTtl() {
+            return stateTtl;
+        }
+
+        public void setStateTtl(Duration stateTtl) {
+            this.stateTtl = stateTtl;
         }
     }
 }

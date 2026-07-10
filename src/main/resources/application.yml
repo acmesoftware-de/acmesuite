@@ -43,3 +43,8 @@ acme:
       # temporary password is logged once; it must be changed on first login.
       bootstrap:
         admin-username: admin
+      # Federated OIDC redirect flow. post-login-url is where Base sends the browser back
+      # after login (token in the URL fragment); same-origin in prod, the frontend origin
+      # in split dev setups (e.g. http://localhost:5273).
+      oidc:
+        post-login-url: ${ACME_BASE_AUTH_OIDC_POST_LOGIN_URL:/}

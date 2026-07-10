@@ -78,6 +78,8 @@ class BaseSecurityConfig {
                             // Public login surface.
                             .requestMatchers(HttpMethod.POST, "/api/base/auth/login").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/base/auth/providers").permitAll()
+                            // Public OIDC redirect flow (start + IdP callback).
+                            .requestMatchers(HttpMethod.GET, "/api/base/auth/oidc/**").permitAll()
                             // Any authenticated user may read their profile / set their own password.
                             .requestMatchers("/api/base/auth/me", "/api/base/auth/password").authenticated()
                             // Admin surface: user/role management + provider configuration.
