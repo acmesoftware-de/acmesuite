@@ -20,6 +20,7 @@ for m in $MODULES; do
   cp "api/.bundled/acme-$m.yaml" "api/portal/openapi/acme-$m.yaml"
 done
 npx --yes $REDOCLY bundle api/acme-base.yaml -o api/portal/openapi/acme-base.yaml
+npx --yes $REDOCLY build-docs api/acme-base.yaml -o api/portal/redoc/base.html
 
 npx --yes openapi-merge-cli@latest --config api/merge-config.json
 

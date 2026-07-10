@@ -1,8 +1,11 @@
 # Redocly configuration for the ACMEsuite API contracts.
-# Registers the four module specs (acme-base is the shared library, pulled in via $ref).
-# Usage:    npx @redocly/cli lint        (lints all four)
+# Registers the base platform API (auth/users/providers) and the four module specs.
+# acme-base is also the shared component library the module specs pull in via $ref.
+# Usage:    npx @redocly/cli lint        (lints all)
 #           npx @redocly/cli build-docs acme-hr -o hr.html
 apis:
+  base:
+    root: api/acme-base.yaml
   hr:
     root: api/acme-hr.yaml
   crm:
