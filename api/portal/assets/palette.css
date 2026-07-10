@@ -1,0 +1,20 @@
+/* ACMEsoftware — Farb-Tokens · AFINA GmbH */
+:root {
+  --acme-crm-dark: #B21D14;
+  --acme-crm-base: #E63329;
+  --acme-crm-tint: #F7A69F;
+  --acme-hrm-dark: #C7940A;
+  --acme-hrm-base: #F6BE00;
+  --acme-hrm-tint: #FBE38C;
+  --acme-prod-dark: #003C80;
+  --acme-prod-base: #0057B8;
+  --acme-prod-tint: #84AEDD;
+  --acme-scm-dark: #137341;
+  --acme-scm-base: #1F9E5A;
+  --acme-scm-tint: #8FD3AF;
+  --acme-company-dark: #181B20;
+  --acme-company-base: #2B2F36;
+  --acme-company-tint: #9AA0AA;
+  --acme-paper: #F5F4F0;
+  --acme-ink: #141414;
+}

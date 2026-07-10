@@ -9,6 +9,10 @@ OUT=api/portal/changelog
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
+# Shared ACMEsoftware brand top-navigation (same shell as the rest of the portal, see
+# api/portal/assets/brand.css and api/portal-brandify.py). Changelog link marked active.
+PORTAL_NAV_CHANGELOG='<nav class="portal-nav"><a class="brand" href="/"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="wm"><b>ACME</b><span>SOFTWARE</span></span></a><span class="nav-links"><a href="/">Portal</a><a href="/swagger/">Swagger</a><a href="/redoc/">Redoc</a><a href="/graphql-ui/">GraphQL</a><a href="/changelog/" class="active">Changelog</a><a href="/openapi/all.yaml">OpenAPI</a></span><span class="nav-badge">API PORTAL</span></nav>'
+
 # Semver tags only, oldest first. (Portable read loop instead of `mapfile` — macOS ships bash 3.2.)
 TAGS=()
 while IFS= read -r t; do
@@ -41,18 +45,19 @@ for ((i = 0; i < ${#REFS[@]} - 1; i++)); do
      oasdiff changelog "${base}:api/acme-build.yaml" "${rev}:api/acme-build.yaml" --format html > "$file.build" 2>/dev/null; then
     # Concatenate the four module changelogs into one page with section headers.
     {
-      echo "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+      echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
       echo "<title>ACMEsuite Changelog — $label</title>"
-      echo "<style>body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:1000px;margin:0 auto;padding:20px}"
-      echo "h1{font-size:1.4rem}h2{margin-top:2.5rem;border-top:1px solid #e2e8f0;padding-top:1.5rem}"
-      echo "nav a{color:#5b9dff;text-decoration:none;font-weight:600;margin-right:16px}</style></head><body>"
-      echo "<nav><a href=\"/\">Portal Home</a><a href=\"/changelog/\">Changelog Index</a></nav>"
+      echo '<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">'
+      echo '<link rel="stylesheet" href="/assets/fonts/acme-fonts.css"><link rel="stylesheet" href="/assets/brand.css">'
+      echo '<style>.wrap h1{font-family:var(--display);font-weight:400;font-size:30px;letter-spacing:-0.03em}.wrap h2{font-family:var(--display);font-weight:400;font-size:21px;margin-top:2.4rem;border-top:2px solid var(--ink);padding-top:1.4rem}</style></head><body>'
+      echo "$PORTAL_NAV_CHANGELOG"
+      echo '<div class="wrap">'
       echo "<h1>ACMEsuite API Changelog — $label</h1>"
       echo "<h2>ACMEhr</h2>"; cat "$file.hr"
       echo "<h2>ACMEcrm</h2>"; cat "$file.crm"
       echo "<h2>ACMEsupply</h2>"; cat "$file.supply"
       echo "<h2>ACMEbuild</h2>"; cat "$file.build"
-      echo "</body></html>"
+      echo "</div></body></html>"
     } > "$file"
     rm -f "$file.hr" "$file.crm" "$file.supply" "$file.build"
     ENTRIES+=("$label")
@@ -60,24 +65,15 @@ for ((i = 0; i < ${#REFS[@]} - 1; i++)); do
 done
 
 {
-  echo '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+  echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
   echo '<title>ACMEsuite — API Changelog</title>'
-  echo '<style>
-    :root { --bg:#0f1115; --card:#181b22; --edge:#262b36; --fg:#e8eaed; --muted:#9aa4b2; --accent:#5b9dff; }
-    body{margin:0;font:16px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--fg)}
-    nav.portal-nav{display:flex;gap:18px;align-items:center;padding:12px 20px;background:#0b0d11;border-bottom:1px solid var(--edge);font-size:.9rem}
-    nav.portal-nav a{color:var(--muted);text-decoration:none;font-weight:600}
-    nav.portal-nav a:hover,nav.portal-nav a.active{color:var(--fg)}
-    .wrap{max-width:760px;margin:0 auto;padding:48px 20px 80px}
-    ul{list-style:none;padding:0}
-    li a{display:block;background:var(--card);border:1px solid var(--edge);border-radius:10px;padding:14px 18px;margin-bottom:10px;color:var(--fg);text-decoration:none}
-    li a:hover{border-color:var(--accent)}
-    .empty{color:var(--muted)}
-  </style></head><body>'
-  echo '<nav class="portal-nav"><a href="/">Portal Home</a><a href="/swagger/">Swagger</a><a href="/redoc/">Redoc</a><a href="/graphql-ui/">GraphQL UI</a><a href="/changelog/" class="active">Changelog</a><a href="/openapi/all.yaml">OpenAPI</a></nav>'
+  echo '<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">'
+  echo '<link rel="stylesheet" href="/assets/fonts/acme-fonts.css"><link rel="stylesheet" href="/assets/brand.css">'
+  echo '<style>.wrap h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,4vw,44px);letter-spacing:-0.03em;margin:0 0 20px}.wrap ul{list-style:none;padding:0}.wrap li a{display:block;background:#fff;border:2px solid var(--ink);padding:14px 18px;margin-bottom:12px;color:var(--ink);text-decoration:none;font-family:var(--mono);font-weight:700}.wrap li a:hover{transform:translateY(-2px)}.empty{color:#3a3a3a}</style></head><body>'
+  echo "$PORTAL_NAV_CHANGELOG"
   echo '<div class="wrap"><h1>API Changelog</h1>'
   if [ "${#ENTRIES[@]}" -eq 0 ]; then
-    echo "<p class=\"empty\">No version history yet — <code>v1.0.0</code> is the initial release. The next tagged version will show up here as a diff via <a href=\"https://github.com/oasdiff/oasdiff\" style=\"color:var(--accent)\">oasdiff</a>.</p>"
+    echo "<p class=\"empty\">No version history yet — <code>v1.0.0</code> is the initial release. The next tagged version will show up here as a diff via <a href=\"https://github.com/oasdiff/oasdiff\">oasdiff</a>.</p>"
   else
     echo '<ul>'
     for e in "${ENTRIES[@]}"; do

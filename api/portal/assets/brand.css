@@ -1,0 +1,82 @@
+/* ACMEsuite API Portal — Brand-Kit-Styling (acmesoftware.de), 100% lokal, kein CDN.
+   Fonts via assets/fonts/acme-fonts.css. Palette/Prinzipien: Swiss/Bauhaus, 2px-Rahmen,
+   keine Rundungen, keine Verläufe/Schatten; Archivo Black (Display), Archivo (Text),
+   Space Mono (Labels). */
+:root{
+  --paper:#F5F4F0; --ink:#141414; --graphite:#2B2F36; --graphite-tint:#9AA0AA;
+  --crm:#E63329; --hr:#F6BE00; --supply:#1F9E5A; --build:#0057B8;
+  --display:'Archivo Black',sans-serif; --text:'Archivo',sans-serif; --mono:'Space Mono',monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--paper); color:var(--ink);
+     font-family:var(--text); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;}
+::selection{background:var(--hr); color:var(--ink);}
+a{color:inherit;}
+code{font-family:var(--mono); font-size:.85em; background:#fff; border:1px solid var(--ink); padding:1px 6px;}
+
+/* ---- Top navigation (shared across all portal pages) ---- */
+nav.portal-nav{
+  display:flex; align-items:center; gap:22px; flex-wrap:wrap;
+  background:var(--ink); border:none; border-bottom:2px solid var(--ink);
+  padding:0 24px; height:60px; font-family:var(--text);
+}
+nav.portal-nav .brand{display:flex; align-items:center; gap:11px; text-decoration:none; margin-right:6px;}
+nav.portal-nav .bars{display:flex; align-items:flex-end; gap:2.5px; height:22px;}
+nav.portal-nav .bars i{width:5px; display:block;}
+nav.portal-nav .bars i:nth-child(1){height:9px;  background:var(--crm);}
+nav.portal-nav .bars i:nth-child(2){height:14px; background:var(--hr);}
+nav.portal-nav .bars i:nth-child(3){height:18px; background:var(--build);}
+nav.portal-nav .bars i:nth-child(4){height:22px; background:var(--supply);}
+nav.portal-nav .wm{display:flex; flex-direction:column; line-height:.8;}
+nav.portal-nav .wm b{font-family:var(--display); font-size:15px; letter-spacing:-0.04em; color:var(--paper); font-weight:normal;}
+nav.portal-nav .wm span{font-family:var(--display); font-size:6px; letter-spacing:0.28em; color:var(--graphite-tint); padding-left:0.28em;}
+nav.portal-nav .nav-links{display:flex; align-items:center; gap:20px; flex:1;}
+nav.portal-nav .nav-links a{
+  color:#c9c9c9; text-decoration:none; font-family:var(--text); font-weight:700; font-size:14px;
+  letter-spacing:.01em; padding:4px 0; border-bottom:2px solid transparent;
+}
+nav.portal-nav .nav-links a:hover{color:var(--paper);}
+nav.portal-nav .nav-links a.active{color:var(--paper); border-bottom-color:var(--hr);}
+nav.portal-nav .nav-badge{
+  font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--hr);
+  border:1px solid #6b6b6b; padding:6px 10px; white-space:nowrap;
+}
+
+/* ---- Page shell ---- */
+.wrap{max-width:1080px; margin:0 auto; padding:56px 24px 80px;}
+header.page h1{margin:0 0 10px; font-family:var(--display); font-weight:normal;
+               font-size:clamp(34px,5vw,58px); line-height:.92; letter-spacing:-0.04em;}
+header.page p{margin:0; color:#3a3a3a; font-size:18px; max-width:70ch;}
+.kicker{font-family:var(--mono); font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+        color:var(--graphite); margin-bottom:16px;}
+.section-title{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.12em;
+               color:var(--graphite); font-weight:700; margin:52px 0 18px;
+               border-top:2px solid var(--ink); padding-top:16px;}
+
+/* ---- Cards ---- */
+.grid{display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
+a.card{display:block; text-decoration:none; color:inherit; background:#fff;
+       border:2px solid var(--ink); padding:22px 24px; transition:transform .12s;}
+a.card:hover{transform:translateY(-3px);}
+a.card .tag{font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.1em;
+            color:var(--graphite);}
+a.card h2{margin:8px 0 0; font-family:var(--display); font-weight:normal; font-size:19px; letter-spacing:-0.02em;}
+a.card p{margin:10px 0 0; color:#3a3a3a; font-size:14.5px; line-height:1.5;}
+/* module accent bar (color-coded like the brand palette) */
+a.card.mod{position:relative; padding-left:24px;}
+a.card.mod::before{content:""; position:absolute; left:0; top:0; bottom:0; width:6px;}
+a.card.mod-hr::before{background:var(--hr);}
+a.card.mod-crm::before{background:var(--crm);}
+a.card.mod-supply::before{background:var(--supply);}
+a.card.mod-build::before{background:var(--build);}
+
+/* ---- Footer ---- */
+.foot{margin-top:52px; border-top:2px solid var(--ink); padding-top:22px;
+      color:#3a3a3a; font-size:14px; line-height:1.7;}
+.foot a{color:var(--build); font-weight:600; text-decoration:none;}
+.foot a:hover{text-decoration:underline;}
+
+@media(max-width:640px){
+  nav.portal-nav{height:auto; padding:10px 16px; gap:12px;}
+  nav.portal-nav .nav-badge{display:none;}
+}

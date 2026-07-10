@@ -21,10 +21,34 @@ rules:
   no-server-example.com: error
   security-defined: warn
 
-# Redoc rendering (applies to build-docs).
+# Redoc rendering (applies to build-docs). The portal wraps these pages with the ACMEsoftware
+# brand shell (nav + fonts, see api/portal-brandify.py); this themes the Redoc body to match:
+# Archivo / Archivo Black / Space Mono + the ACME palette. Fonts are served locally (no CDN).
 theme:
   openapi:
     disableSearch: false
     hideDownloadButton: false
     expandResponses: '200,201'
     jsonSampleExpandLevel: 3
+    theme:
+      colors:
+        primary:
+          main: '#0057B8'
+        http:
+          get: '#1F9E5A'
+          post: '#0057B8'
+          put: '#F6BE00'
+          delete: '#E63329'
+      typography:
+        fontFamily: 'Archivo, sans-serif'
+        fontSize: '15px'
+        headings:
+          fontFamily: 'Archivo Black, sans-serif'
+          fontWeight: '400'
+        code:
+          fontFamily: 'Space Mono, monospace'
+      sidebar:
+        backgroundColor: '#F5F4F0'
+        textColor: '#141414'
+      rightPanel:
+        backgroundColor: '#141414'

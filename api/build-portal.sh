@@ -36,6 +36,10 @@ mv api/portal/openapi/all.yaml.tmp api/portal/openapi/all.yaml
 npx --yes $REDOCLY build-docs api/portal/openapi/all.yaml -o api/portal/redoc/all.html
 cp api/portal/redoc/all.html api/portal/redoc/index.html
 
+# Wrap the generated Redoc pages in the ACMEsoftware brand shell (top nav + local fonts) and
+# rewrite their CDN dependencies to the vendored copies under api/portal/assets/ (no-CDN).
+python3 api/portal-brandify.py api/portal/redoc/*.html
+
 rm -rf api/.bundled
 
 # GraphQL Mesh reads its OpenAPI sources from mesh/openapi/ (Docker build context) — keep them
