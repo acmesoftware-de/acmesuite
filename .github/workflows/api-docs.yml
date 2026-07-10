@@ -41,10 +41,15 @@ jobs:
           node-version: '20'
 
       - name: Install oasdiff
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          VERSION=$(curl -s https://api.github.com/repos/oasdiff/oasdiff/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
-          curl -sSfL -o oasdiff.deb "https://github.com/oasdiff/oasdiff/releases/download/v${VERSION}/oasdiff_${VERSION}_linux_amd64.deb"
+          # Authenticated download via gh (the unauthenticated api.github.com lookup was getting
+          # rate-limited on shared runners -> empty version -> pipefail). `gh release download`
+          # with no tag = latest, uses GH_TOKEN, and is robust to release-asset name changes.
+          gh release download --repo oasdiff/oasdiff \
+            --pattern 'oasdiff_*_linux_amd64.deb' --output oasdiff.deb --clobber
           sudo dpkg -i oasdiff.deb
           oasdiff --version
 
