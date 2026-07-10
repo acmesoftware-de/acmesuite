@@ -41,6 +41,15 @@ nav.portal-nav .nav-badge{
   font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--hr);
   border:1px solid #6b6b6b; padding:6px 10px; white-space:nowrap;
 }
+/* Redoc variant switcher (injected into Redoc pages by api/portal-brandify.py) */
+nav.portal-nav .variant-select{
+  font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--paper);
+  background:#1f1f1f; border:1px solid #6b6b6b; padding:6px 26px 6px 10px; cursor:pointer;
+  appearance:none; -webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--hr) 50%),linear-gradient(135deg,var(--hr) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 12px,calc(100% - 9px) 12px; background-size:5px 5px,5px 5px; background-repeat:no-repeat;
+}
+nav.portal-nav .variant-select:hover{border-color:var(--paper);}
 
 /* ---- Page shell ---- */
 .wrap{max-width:1080px; margin:0 auto; padding:56px 24px 80px;}
@@ -69,6 +78,7 @@ a.card.mod-hr::before{background:var(--hr);}
 a.card.mod-crm::before{background:var(--crm);}
 a.card.mod-supply::before{background:var(--supply);}
 a.card.mod-build::before{background:var(--build);}
+a.card.mod-base::before{background:var(--graphite);}
 
 /* ---- Footer ---- */
 .foot{margin-top:52px; border-top:2px solid var(--ink); padding-top:22px;

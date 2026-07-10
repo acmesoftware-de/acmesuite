@@ -20,6 +20,9 @@ for m in $MODULES; do
   cp "api/.bundled/acme-$m.yaml" "api/portal/openapi/acme-$m.yaml"
 done
 npx --yes $REDOCLY bundle api/acme-base.yaml -o api/portal/openapi/acme-base.yaml
+# acme-base is the shared component library (schemas only, no paths) — still render it as its own
+# Redoc page so it shows up in the portal and the variant dropdown.
+npx --yes $REDOCLY build-docs api/acme-base.yaml -o api/portal/redoc/base.html
 
 npx --yes openapi-merge-cli@latest --config api/merge-config.json
 
