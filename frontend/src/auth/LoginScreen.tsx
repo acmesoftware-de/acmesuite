@@ -3,6 +3,7 @@ import { LogoGlyph } from '../shell/LogoGlyph'
 import { useAuth, apiStatus } from './AuthContext'
 import { authApi } from './authApi'
 import type { ProviderOption } from './types'
+import { versionLabel } from '../version'
 
 const OIDC_MESSAGES: Record<string, string> = {
   pending: 'Dein Konto wartet auf Freischaltung durch einen Admin.',
@@ -99,6 +100,8 @@ export function LoginScreen() {
             ))}
           </div>
         )}
+
+        <div className="acme-login-foot">{versionLabel}</div>
       </form>
     </div>
   )
