@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEbase — Platform API (auth, users, providers) + shared components
-  version: 1.1.0
+  version: 0.2.0
   description: >
     Foundation of the **ACMEsuite** (*ACMEbase*). Two roles in one spec:
 

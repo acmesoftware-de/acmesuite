@@ -32,7 +32,7 @@ npx --yes openapi-merge-cli@latest --config api/merge-config.json
 awk '
   /^info:$/ { in_info=1 }
   in_info && !done_title && /^  title:/ { print "  title: ACMEsuite — All APIs"; done_title=1; next }
-  in_info && !done_version && /^  version:/ { print "  version: 1.0.0"; done_version=1; next }
+  in_info && !done_version && /^  version:/ { print "  version: 0.2.0"; done_version=1; next }
   { print }
 ' api/portal/openapi/all.yaml > api/portal/openapi/all.yaml.tmp
 mv api/portal/openapi/all.yaml.tmp api/portal/openapi/all.yaml

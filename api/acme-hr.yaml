@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEhr API
-  version: 1.0.0
+  version: 0.1.0
   description: >
     HR system of **ACME analog Inc.** and system of record for employees
     (title/role/hierarchy), vacation/absence planning, deputies & assistants,

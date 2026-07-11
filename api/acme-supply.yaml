@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEsupply API
-  version: 1.0.0
+  version: 0.1.0
   description: >
     Procurement system of **ACME analog Inc.** and system of record for **suppliers**,
     **raw materials & energy**, **supply contracts** (prices, tiers, lead times) and the

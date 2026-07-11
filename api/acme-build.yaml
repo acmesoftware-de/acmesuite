@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEbuild API
-  version: 1.0.0
+  version: 0.1.0
   description: >
     Production system of **ACME analog Inc.** (formerly *ACMEprod*). System of record for
     **products, bills of materials (BOM)** and **production planning**. Core capabilities:
