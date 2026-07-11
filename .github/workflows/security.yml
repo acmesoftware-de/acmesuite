@@ -103,7 +103,7 @@ jobs:
       - name: Build the OCI image (spring-boot:build-image)
         run: mvn -B -ntp -DskipTests spring-boot:build-image -Dspring-boot.build-image.imageName=acmesuite:ci
 
-      - name: "Trivy scan of the image (gate: CRITICAL/HIGH)"
+      - name: "Trivy scan of the image (gate: CRITICAL/HIGH, OS packages only)"
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: image
@@ -112,3 +112,8 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
           format: table
+          # Gate nur auf OS-Pakete (via Base-Image patchbar). Die eingebetteten Go-Helper-Binaries
+          # der Paketo/CNB-Buildpacks (launcher/helper) schleppen regelmaessig Go-stdlib-CVEs ein,
+          # die wir nicht fixen koennen; App-Libraries sind bereits durch trivy-dependencies (SBOM)
+          # + Dependency-Track abgedeckt.
+          vuln-type: 'os'

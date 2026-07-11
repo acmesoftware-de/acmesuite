@@ -20,6 +20,9 @@ for m in $MODULES; do
   cp "api/.bundled/acme-$m.yaml" "api/portal/openapi/acme-$m.yaml"
 done
 npx --yes $REDOCLY bundle api/acme-base.yaml -o api/portal/openapi/acme-base.yaml
+# acme-base is both the platform API (auth/users/providers) and the shared component library the
+# module specs pull in via $ref — render it as its own Redoc page so it shows up in the portal and
+# the variant dropdown.
 npx --yes $REDOCLY build-docs api/acme-base.yaml -o api/portal/redoc/base.html
 
 npx --yes openapi-merge-cli@latest --config api/merge-config.json
@@ -36,6 +39,10 @@ mv api/portal/openapi/all.yaml.tmp api/portal/openapi/all.yaml
 
 npx --yes $REDOCLY build-docs api/portal/openapi/all.yaml -o api/portal/redoc/all.html
 cp api/portal/redoc/all.html api/portal/redoc/index.html
+
+# Wrap the generated Redoc pages in the ACMEsoftware brand shell (top nav + local fonts) and
+# rewrite their CDN dependencies to the vendored copies under api/portal/assets/ (no-CDN).
+python3 api/portal-brandify.py api/portal/redoc/*.html
 
 rm -rf api/.bundled
 
