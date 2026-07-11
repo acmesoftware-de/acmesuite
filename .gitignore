@@ -15,3 +15,7 @@ api/portal/changelog/
 mesh/openapi/
 mesh/node_modules/
 mesh/.mesh/
+
+# Claude Code local files
+.claude/settings.local.json
+.claude/worktrees/

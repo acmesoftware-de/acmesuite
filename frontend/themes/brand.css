@@ -1,0 +1,21 @@
+/* =============================================================================
+   ACMEsoftware brand constants — the "Bar-Mark".
+
+   Source of truth: https://brand.acmesoftware.de (brand-kit/assets/tokens.json).
+   Per brand policy the bar-mark color SEQUENCE must remain unchanged, so these are
+   deliberately NOT theme tokens: every theme shares the same logo colors. Themes
+   restyle module accents, surfaces, fonts etc. — never the mark.
+
+   The mark is four ASCENDING bars: Red · Yellow · Blue · Green
+   (product families CRM · HRM · Production · SCM).
+   ============================================================================= */
+.acme-app {
+  --mark-crm: #e63329; /* CRM · Red */
+  --mark-hr: #f6be00; /* HRM · Yellow */
+  --mark-bld: #0057b8; /* Production · Blue */
+  --mark-sup: #1f9e5a; /* SCM · Green */
+
+  /* Corporate graphite (company / Admin) — from the same brand palette. */
+  --brand-graphite: #2b2f36;
+  --brand-graphite-tint: #9aa0aa;
+}

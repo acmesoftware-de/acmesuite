@@ -1,0 +1,66 @@
+/* PAPER — a proof-of-concept alternate theme. Same class contract, entirely different
+   look: warm surfaces, rounded corners (geometry token), an editorial palette and a
+   different display font (Archivo instead of Anton) — all via tokens, zero code
+   changes. Demonstrates that colors, geometry AND fonts are theme-owned. */
+@import './fonts.css';
+
+[data-theme='paper'] {
+  /* Surfaces / text (warm dark = default) */
+  --bg: #1a1714;
+  --panel: #241f1b;
+  --panel2: #2b2521;
+  --line: rgba(255, 255, 255, 0.08);
+  --line2: rgba(255, 255, 255, 0.14);
+  --ink: #f3ede4;
+  --dim: rgba(255, 255, 255, 0.55);
+  --faint: rgba(255, 255, 255, 0.33);
+  --chip: rgba(255, 255, 255, 0.05);
+  --shadow: rgba(0, 0, 0, 0.5);
+
+  /* Semantic signal colors */
+  --success: #2f8f5b;
+  --warning: #c98a1a;
+  --danger: #c8432f;
+  --info: #3a63c0;
+  --neutral: #8a8175;
+
+  /* Module accents (editorial palette) */
+  --accent-crm: #c8432f;
+  --accent-sup: #2f8f5b;
+  --accent-bld: #3a63c0;
+  --accent-hr: #c98a1a;
+  --accent-adm: #8a8175;
+
+  /* Typography — display swapped to Archivo (no Anton). */
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-ui: 'Archivo', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  /* Geometry — rounded. */
+  --radius: 6px;
+  --edge: 3px;
+}
+
+/* Light mode — warm paper. */
+[data-theme='paper'][data-mode='light'] {
+  --bg: #efe9dd;
+  --panel: #fbf7ef;
+  --panel2: #f3ecdf;
+  --line: rgba(0, 0, 0, 0.1);
+  --line2: rgba(0, 0, 0, 0.16);
+  --ink: #23201b;
+  --dim: rgba(0, 0, 0, 0.55);
+  --faint: rgba(0, 0, 0, 0.4);
+  --chip: rgba(0, 0, 0, 0.04);
+  --shadow: rgba(0, 0, 0, 0.12);
+}
+
+/* Paper's amber HR accent is dark enough to want white foreground (overrides the
+   base default of #111 — note the higher specificity so it wins). */
+.acme-app[data-theme='paper'][data-module='HR'] { --on-accent: #fff; }
+
+/* The display font here isn't condensed like Anton, so titles read large — pull the
+   headline sizes back a touch for balance. Optional per-theme structural tweak. */
+[data-theme='paper'] .acme-title { font-size: 34px; letter-spacing: -0.01em; }
+[data-theme='paper'] .acme-kpi-value { font-size: 24px; }
+[data-theme='paper'] .acme-placeholder-title { font-size: 28px; }

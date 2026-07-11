@@ -71,6 +71,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+        <!-- Base issues + validates its own session JWT (bearer). Brings spring-security
+             -oauth2-jose (Nimbus JWT encoder/decoder). Federated login (Entra/OIDC) is
+             added on top via spring-boot-starter-oauth2-client with the provider plugins. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
 
         <!-- Persistence: JPA aggregates + Flyway schema ownership. -->
         <dependency>
