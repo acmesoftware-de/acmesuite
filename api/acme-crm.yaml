@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEcrm API
-  version: 1.0.0
+  version: 0.1.0
   description: >
     Sales system of **ACME analog Inc.** and system of record for **customers & resellers**,
     **products**, **price lists**, **quotes** and **orders** (production contracts).

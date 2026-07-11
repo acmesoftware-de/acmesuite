@@ -225,6 +225,13 @@
   padding: 1px 4px;
   margin-left: 6px;
 }
+.acme-app .acme-login-foot {
+  text-align: center;
+  font: 400 9.5px var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  margin-top: 2px;
+}
 
 /* ---- Form primitives ------------------------------------------------------ */
 .acme-app .acme-field { display: flex; flex-direction: column; gap: 5px; }

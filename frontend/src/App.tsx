@@ -8,6 +8,7 @@ import { useTheme } from './theme/ThemeProvider'
 import { useAuth } from './auth/AuthContext'
 import { LoginScreen } from './auth/LoginScreen'
 import { SetPasswordScreen } from './auth/SetPasswordScreen'
+import { versionLabel } from './version'
 
 export function App() {
   const { themeId, mode, toggleMode } = useTheme()
@@ -20,7 +21,13 @@ export function App() {
   const dataModule = auth.phase === 'authed' ? module.id : 'CRM'
 
   return (
-    <div className="acme-app" data-theme={themeId} data-mode={mode} data-module={dataModule}>
+    <div
+      className="acme-app"
+      data-theme={themeId}
+      data-mode={mode}
+      data-module={dataModule}
+      data-build={versionLabel}
+    >
       {auth.phase === 'loading' && <div className="acme-splash">ACMEsuite…</div>}
 
       {auth.phase === 'anon' && <LoginScreen />}
