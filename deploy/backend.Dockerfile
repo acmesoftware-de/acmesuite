@@ -11,7 +11,7 @@ COPY src ./src
 RUN mvn -B -ntp -DskipTests package
 
 FROM eclipse-temurin:25-jre
-ARG VERSION=0.1.0-SNAPSHOT
+ARG VERSION=0.2.0
 ARG GIT_COMMIT=unknown
 LABEL org.opencontainers.image.title="ACMEsuite" \
       org.opencontainers.image.version="$VERSION" \

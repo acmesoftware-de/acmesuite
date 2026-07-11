@@ -14,7 +14,7 @@
 
     <groupId>de.acmesoftware</groupId>
     <artifactId>acmesuite</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <name>ACMEsuite</name>
     <description>ACMEsuite — a lightweight, enterprise-ready business suite (CRM, HR, Supply, Build) on the ACMEbase platform; integrated exclusively via its REST API</description>
     <url>https://github.com/acmesoftware-de/acmesuite</url>
