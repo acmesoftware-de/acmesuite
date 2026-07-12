@@ -19,6 +19,16 @@
 3. **Ollama tool-calling** — pull `qwen2.5:7b`, verify a real function call returns structured
    args; measure warm/cold latency on the target CPU (sizes the hardware floor).
 
+> **Spike outcome (2026-07-12).** Boot parent is **4.1.0** (Spring Framework 7). The Spring AI BOM
+> resolves from Maven Central, but Spring AI 1.x targets Framework 6 / Boot 3 — running its
+> autoconfiguration on Boot 4.1 is unverified and, if incompatible, would fail the whole app
+> context (every `@SpringBootTest`). langgraph4j Boot-4 support is likewise unconfirmed. **Decision:
+> M3 ships an interim `provider=ollama` engine that talks to Ollama directly (Spring `RestClient`
+> → `/api/chat`) with a hand-rolled ReAct loop over `AuthenticatedApiDispatcher`** — no heavy new
+> deps, so the shared build is safe. The `AssistantEngine` port is unchanged, so swapping to
+> Spring AI + langgraph4j once they support Boot 4.1 is a drop-in. Spike #3 (validate the Ollama
+> wire format + latency against a live server) remains open.
+
 ## 1. Backend module layout
 
 New Spring Modulith module `de.acmesoftware.acmesuite.assist`:
