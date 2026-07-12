@@ -177,6 +177,18 @@
              on a version bump; the version is carried by build-info + the image labels. -->
         <finalName>acmesuite</finalName>
         <plugins>
+            <!-- Run tests with an in-memory search index so cached Spring contexts don't clash on
+                 the on-disk Lucene lock (set once for the whole test JVM). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <acme.search.index-dir>:memory:</acme.search.index-dir>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
