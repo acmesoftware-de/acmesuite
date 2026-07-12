@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEcrm API
-  version: 0.3.0
+  version: 0.4.0
   description: >
     Sales system of **ACME analog Inc.** and system of record for **customers & resellers**,
     **products**, **price lists**, **quotes** and **orders** (production contracts).
@@ -28,6 +28,15 @@ info:
     its opportunities (`/pipeline?customerId=…`/`?contactId=…`) alongside its correspondence
     (`/threads?customerId=…`/`?contactId=…`). Mail threads are a lightweight overlay for the
     CRM UI; a real mail-sync backend is future work (currently mocked, like `/pipeline`).
+
+
+    **Web forms & newsletter.** `/forms` are lead-capture forms / newsletter signups. Their
+    layout (fields, required flags) **and** the actions a valid submission triggers
+    (send email · create contact/opportunity · schedule appointment · newsletter
+    subscribe/unsubscribe) are maintained in the Admin area. `POST /forms/{id}/submit` is the
+    **public** (unauthenticated) submission tool: it validates the required fields, stores the
+    submission on success and runs the configured actions. Captured submissions are readable
+    by CRM users via `/forms/{id}/submissions`.
 
 
     Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally (quotes/orders/approval),
@@ -62,6 +71,10 @@ tags:
     description: >
       Mail threads (correspondence) attached to a customer/contact. UI overlay — a real
       mail-sync backend is future work (currently mocked).
+  - name: Forms
+    description: >
+      Web forms / newsletter signups. Layout and trigger actions are configured in Admin;
+      `POST /forms/{id}/submit` is the public submission tool (validate → store → trigger).
 
 security:
   - bearerAuth: []
@@ -567,6 +580,88 @@ paths:
         '200': { description: Thread., content: { application/json: { schema: { $ref: '#/components/schemas/MailThread' } } } }
         '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
 
+  # ─────────────────────────── Web forms (lead capture / newsletter) ───────────────────────────
+  /forms:
+    get:
+      tags: [Forms]
+      summary: List web forms
+      description: Configured web forms / newsletter signups (definition maintained in Admin).
+      operationId: listForms
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Forms.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/WebForm' } } } }
+    post:
+      tags: [Forms]
+      summary: Create a web form (Admin)
+      operationId: createForm
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/WebFormWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/WebForm' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /forms/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Forms]
+      summary: Read a web form (definition)
+      operationId: getForm
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Form., content: { application/json: { schema: { $ref: '#/components/schemas/WebForm' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Forms]
+      summary: Update a web form (Admin — fields, required flags, trigger actions)
+      operationId: updateForm
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/WebFormWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/WebForm' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /forms/{id}/submit:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Forms]
+      summary: Submit a web form (public)
+      description: >
+        Public submission tool for the embedded web form / newsletter signup — **no auth**
+        (overrides the global bearer security). Validates the submitted values against the
+        form's required fields (`422` listing the offending fields on failure); on success
+        stores the submission and runs the configured trigger actions (send email, create
+        contact/opportunity, schedule appointment, newsletter subscribe/unsubscribe). Returns
+        the stored submission incl. which actions were triggered.
+      operationId: submitForm
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/FormSubmitRequest' } } }
+      responses:
+        '201': { description: Accepted & stored., content: { application/json: { schema: { $ref: '#/components/schemas/FormSubmission' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /forms/{id}/submissions:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Forms]
+      summary: List captured submissions of a form
+      operationId: listFormSubmissions
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Submissions (newest first).
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/FormSubmission' } } } }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -838,6 +933,7 @@ components:
         email: { type: string, format: email, nullable: true }
         phone: { type: string, nullable: true }
         primary: { type: boolean, default: false, description: Primary contact of the customer. }
+        newsletter: { type: boolean, default: false, description: Newsletter opt-in (set by form newsletter actions). }
     ContactWrite:
       type: object
       required: [name]
@@ -848,6 +944,7 @@ components:
         email: { type: string, format: email, nullable: true }
         phone: { type: string, nullable: true }
         primary: { type: boolean }
+        newsletter: { type: boolean }
 
     # ─────────────────────────── Mail (correspondence) ───────────────────────────
     MailDirection:
@@ -878,3 +975,91 @@ components:
         lastMessageAt: { type: string, format: date-time, nullable: true }
         preview: { type: string, nullable: true, description: Snippet of the latest message. }
         messages: { type: array, items: { $ref: '#/components/schemas/MailMessage' } }
+
+    # ─────────────────────────── Web forms (lead capture / newsletter) ───────────────────────────
+    FormFieldType:
+      type: string
+      enum: [TEXT, EMAIL, PHONE, NUMBER, TEXTAREA, CHECKBOX, SELECT, DATE]
+    FormField:
+      description: One field of a web form.
+      type: object
+      required: [key, label, type]
+      properties:
+        key: { type: string, example: email, description: Unique within the form; keys the submission values. }
+        label: { type: string, example: "E-Mail" }
+        type: { $ref: '#/components/schemas/FormFieldType' }
+        required: { type: boolean, default: false }
+        placeholder: { type: string, nullable: true }
+        options: { type: array, items: { type: string }, nullable: true, description: Choices for SELECT. }
+    FormActionType:
+      description: >
+        What a valid submission triggers (configured in Admin): send an email, create a contact
+        or opportunity (deal), schedule an appointment, or subscribe/unsubscribe the submitter
+        from the newsletter.
+      type: string
+      enum: [SEND_EMAIL, CREATE_CONTACT, CREATE_OPPORTUNITY, SCHEDULE_APPOINTMENT, NEWSLETTER_SUBSCRIBE, NEWSLETTER_UNSUBSCRIBE]
+    FormAction:
+      description: A trigger configured in Admin, run on a valid submission.
+      type: object
+      required: [type]
+      properties:
+        type: { $ref: '#/components/schemas/FormActionType' }
+        config:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: >
+            Action-specific settings, e.g. template + recipient for SEND_EMAIL, target
+            stage/owner for CREATE_OPPORTUNITY, calendar/slot for SCHEDULE_APPOINTMENT, list id
+            for NEWSLETTER_*.
+    WebForm:
+      description: A web form / newsletter signup. Layout and trigger actions are maintained in Admin.
+      type: object
+      required: [id, name, slug, fields]
+      properties:
+        id: { type: string, example: form-lead }
+        name: { type: string, example: "Kontaktformular" }
+        slug: { type: string, example: kontakt, description: Public identifier used to embed the form. }
+        description: { type: string, nullable: true }
+        enabled: { type: boolean, default: true }
+        fields: { type: array, items: { $ref: '#/components/schemas/FormField' } }
+        actions: { type: array, items: { $ref: '#/components/schemas/FormAction' }, description: Triggered on a valid submission. }
+        createdOn: { type: string, format: date, nullable: true }
+    WebFormWrite:
+      type: object
+      required: [name, slug, fields]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        enabled: { type: boolean }
+        fields: { type: array, items: { $ref: '#/components/schemas/FormField' } }
+        actions: { type: array, items: { $ref: '#/components/schemas/FormAction' } }
+    FormSubmitRequest:
+      description: A public submission — field values keyed by `FormField.key`.
+      type: object
+      required: [values]
+      properties:
+        values:
+          type: object
+          additionalProperties: true
+          example: { name: "Sara Mena", email: "sara@example.com", newsletter: true }
+    TriggeredAction:
+      description: Outcome of one configured action after a submission.
+      type: object
+      required: [type, status]
+      properties:
+        type: { $ref: '#/components/schemas/FormActionType' }
+        status: { type: string, enum: [DONE, SKIPPED, FAILED, PENDING] }
+        detail: { type: string, nullable: true }
+        ref: { type: string, nullable: true, description: Id of a created contact/deal/appointment, if any. }
+    FormSubmission:
+      description: A stored form submission and the outcome of its trigger actions.
+      type: object
+      required: [id, formId, values, submittedAt]
+      properties:
+        id: { type: string }
+        formId: { type: string }
+        values: { type: object, additionalProperties: true }
+        submittedAt: { type: string, format: date-time }
+        triggered: { type: array, items: { $ref: '#/components/schemas/TriggeredAction' } }

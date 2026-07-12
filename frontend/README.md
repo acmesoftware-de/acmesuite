@@ -76,10 +76,14 @@ Everything lives in `src/modules/crm/` and talks only to `crmApi` (`/crm/pipelin
 inline edit, phase select, Kanban drag-drop) are gated on `useAuth().canWrite` — **WATCH is
 read-only**.
 
-> **Backend note:** the `/pipeline`, `/contacts` and `/threads` surfaces are contract-first;
-> the Java backend implementations are still pending, so they are currently mocked for review
-> (a contract-shaped dev mock stands in). The existing `/crm/customers|quotes|orders`
-> endpoints are unchanged.
+Web forms / newsletter signups are configured in Admin (`/forms`, fields + trigger actions)
+and captured via the public `POST /forms/{id}/submit` tool — see the `Forms` tag in the
+contract. The Admin form-builder UI and the public form renderer are separate follow-ups.
+
+> **Backend note:** the `/pipeline`, `/contacts`, `/threads` and `/forms` surfaces are
+> contract-first; the Java backend implementations are still pending, so they are currently
+> mocked for review (a contract-shaped dev mock stands in). The existing
+> `/crm/customers|quotes|orders` endpoints are unchanged.
 
 ## Status
 

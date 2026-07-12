@@ -41,6 +41,8 @@ export interface Contact {
   email?: string | null
   phone?: string | null
   primary?: boolean
+  /** Newsletter opt-in (set by web-form newsletter actions). */
+  newsletter?: boolean
 }
 
 export type MailDirection = 'INBOUND' | 'OUTBOUND'
@@ -102,6 +104,7 @@ export interface ContactWrite {
   email?: string | null
   phone?: string | null
   primary?: boolean
+  newsletter?: boolean
 }
 
 export interface CustomerWrite {
