@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { ModuleDef } from '../modules/registry'
 
 interface ModuleHeaderProps {
@@ -9,6 +10,9 @@ interface ModuleHeaderProps {
   showNew: boolean
   /** Invoked when the "+ NEU" button is pressed (module-specific create action). */
   onNew?: () => void
+  /** Optional module-provided control shown in the header, left of "+ NEU"
+   *  (e.g. CRM's Tabelle/Kanban/Funnel switch on the Pipeline sub-view). */
+  headerExtra?: ReactNode
 }
 
 export function ModuleHeader({
@@ -18,6 +22,7 @@ export function ModuleHeader({
   newLabel,
   showNew,
   onNew,
+  headerExtra,
 }: ModuleHeaderProps) {
   return (
     <div className="acme-modhead">
@@ -41,6 +46,8 @@ export function ModuleHeader({
           ))}
         </div>
       )}
+
+      {headerExtra}
 
       {showNew && (
         <button className="acme-btn-new" onClick={onNew}>

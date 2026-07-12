@@ -5,6 +5,7 @@ import { KpiBar } from './shell/KpiBar'
 import { ModulePlaceholder } from './modules/ModulePlaceholder'
 import { AdminModule } from './modules/admin/AdminModule'
 import { CrmModule } from './modules/crm/CrmModule'
+import { PIPELINE_MODES, type PipelineMode } from './modules/crm/PipelineView'
 import { useShellState } from './shell/useShellState'
 import { useTheme } from './theme/ThemeProvider'
 import { useAuth } from './auth/AuthContext'
@@ -19,6 +20,10 @@ export function App() {
   const { module } = shell
   // Bumped when the shell's "+ DEAL" button is pressed; the CRM module opens its create form.
   const [newDealTick, setNewDealTick] = useState(0)
+  // CRM pipeline view mode (Tabelle/Kanban/Funnel) — its switch lives in the module header,
+  // next to the Pipeline tab, so it is only shown on that sub-view.
+  const [pipelineMode, setPipelineMode] = useState<PipelineMode>('tabelle')
+  const showPipelineSwitch = module.id === 'CRM' && shell.activeSubKey === 'pipeline'
 
   // The root always carries the theming attributes; data-module also drives --accent on
   // the login/splash screens (fall back to CRM before a module is active).
@@ -58,6 +63,21 @@ export function App() {
             newLabel={shell.newLabel}
             showNew={auth.canWrite && !module.ownsActions}
             onNew={module.id === 'CRM' ? () => setNewDealTick((t) => t + 1) : undefined}
+            headerExtra={
+              showPipelineSwitch ? (
+                <div className="acme-subtabs">
+                  {PIPELINE_MODES.map((m) => (
+                    <button
+                      key={m.key}
+                      className={`acme-subtab${pipelineMode === m.key ? ' is-active' : ''}`}
+                      onClick={() => setPipelineMode(m.key)}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              ) : undefined
+            }
           />
 
           {shell.showKpis && <KpiBar kpis={module.kpis} />}
@@ -65,7 +85,11 @@ export function App() {
           {module.id === 'ADM' ? (
             <AdminModule subView={shell.activeSubKey} />
           ) : module.id === 'CRM' ? (
-            <CrmModule subView={shell.activeSubKey} newDealTick={newDealTick} />
+            <CrmModule
+              subView={shell.activeSubKey}
+              newDealTick={newDealTick}
+              pipelineMode={pipelineMode}
+            />
           ) : (
             <ModulePlaceholder module={module} activeSub={shell.activeSub} />
           )}

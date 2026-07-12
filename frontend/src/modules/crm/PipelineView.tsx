@@ -5,26 +5,30 @@ import { TableView } from './TableView'
 import { KanbanView } from './KanbanView'
 import { FunnelView } from './FunnelView'
 
-type Mode = 'tabelle' | 'kanban' | 'funnel'
-const MODES: { key: Mode; label: string }[] = [
+export type PipelineMode = 'tabelle' | 'kanban' | 'funnel'
+
+/** The Tabelle/Kanban/Funnel switch options — rendered in the module header (see App). */
+export const PIPELINE_MODES: { key: PipelineMode; label: string }[] = [
   { key: 'tabelle', label: 'TABELLE' },
   { key: 'kanban', label: 'KANBAN' },
   { key: 'funnel', label: 'FUNNEL' },
 ]
 
-/** Pipeline sub-view: a secondary Tabelle/Kanban/Funnel switch over the shared deal list. */
+/** Pipeline sub-view over the shared deal list. The view mode is controlled by the shell
+ *  header (the Tabelle/Kanban/Funnel switch lives next to the Pipeline tab). */
 export function PipelineView({
   deals,
   actions,
   createTick,
   onCreate,
+  mode,
 }: {
   deals: Deal[]
   actions: DealActions
   createTick: number
   onCreate: (body: DealCreate) => Promise<void>
+  mode: PipelineMode
 }) {
-  const [mode, setMode] = useState<Mode>('tabelle')
   const [creating, setCreating] = useState(false)
   const [form, setForm] = useState({ company: '', contact: '', value: '', owner: 'JS' })
 
@@ -79,20 +83,6 @@ export function PipelineView({
           </div>
         </div>
       )}
-
-      <div className="acme-pipeline-toolbar">
-        <div className="acme-subtabs">
-          {MODES.map((m) => (
-            <button
-              key={m.key}
-              className={`acme-subtab${mode === m.key ? ' is-active' : ''}`}
-              onClick={() => setMode(m.key)}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className={`acme-pipeline-body${mode === 'kanban' ? ' acme-pipeline-body--board' : ''}`}>
         {mode === 'kanban' ? (

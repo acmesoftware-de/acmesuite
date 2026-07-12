@@ -585,9 +585,8 @@
 }
 .acme-app .acme-fun-total-value { font: 400 30px var(--font-display); color: var(--ink); margin-top: 8px; }
 
-/* ---- CRM: Pipeline sub-view (secondary Tabelle/Kanban/Funnel switch) ------- */
+/* ---- CRM: Pipeline sub-view (Tabelle/Kanban/Funnel switch lives in the header) --- */
 .acme-app .acme-pipeline { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-.acme-app .acme-pipeline-toolbar { display: flex; justify-content: flex-end; flex: none; }
 .acme-app .acme-pipeline-body { flex: 1; min-height: 0; overflow-y: auto; }
 .acme-app .acme-pipeline-body--board { overflow: hidden; }
 

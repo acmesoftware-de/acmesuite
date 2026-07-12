@@ -12,7 +12,7 @@ import {
   type PipelineStage,
 } from './crmApi'
 import { probabilityFor } from './pipelineModel'
-import { PipelineView } from './PipelineView'
+import { PipelineView, type PipelineMode } from './PipelineView'
 import { CustomersView } from './CustomersView'
 import { ContactsView } from './ContactsView'
 
@@ -29,7 +29,15 @@ export interface DealActions {
  * threads) and dispatches to the sub-view the shell selected: Pipeline · Kunden · Kontakte.
  * `newDealTick` increments when the shell's context "+ …" button is pressed.
  */
-export function CrmModule({ subView, newDealTick }: { subView: string; newDealTick: number }) {
+export function CrmModule({
+  subView,
+  newDealTick,
+  pipelineMode,
+}: {
+  subView: string
+  newDealTick: number
+  pipelineMode: PipelineMode
+}) {
   const { canWrite } = useAuth()
   const [deals, setDeals] = useState<Deal[] | null>(null)
   const [customers, setCustomers] = useState<Customer[] | null>(null)
@@ -139,6 +147,7 @@ export function CrmModule({ subView, newDealTick }: { subView: string; newDealTi
           actions={dealActions}
           createTick={newDealTick}
           onCreate={createDeal}
+          mode={pipelineMode}
         />
       )}
     </div>
