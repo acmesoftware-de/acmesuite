@@ -74,8 +74,7 @@ class OidcLoginTest {
 
     private String configureIdp(String issuer) {
         configs.upsert("oidc", true, Map.of(
-                "issuerUri", issuer, "clientId", CID, "clientSecret", "s3cr3t", "redirectUri", REDIRECT),
-                "test");
+                "issuerUri", issuer, "clientId", CID, "clientSecret", "s3cr3t", "redirectUri", REDIRECT));
         Map<String, Object> discovery = Map.of(
                 "issuer", issuer,
                 "authorization_endpoint", issuer + "/authorize",
