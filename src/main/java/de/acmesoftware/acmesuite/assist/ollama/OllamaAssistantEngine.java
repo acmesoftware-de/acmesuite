@@ -14,8 +14,10 @@ import de.acmesoftware.acmesuite.assist.ollama.OllamaChatClient.ToolSpec;
 import de.acmesoftware.acmesuite.assist.tools.AssistTool;
 import de.acmesoftware.acmesuite.assist.tools.AuthenticatedApiDispatcher;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -48,18 +50,24 @@ public class OllamaAssistantEngine implements AssistantEngine {
         messages.add(ChatMessage.user(request.message()));
 
         List<ToolSpec> tools = toolSpecs();
+        Set<String> knownTools = knownToolNames();
         List<String> sources = new ArrayList<>();
         int maxIterations = maxIterations();
 
         for (int i = 0; i < maxIterations; i++) {
             Reply reply = chat.chat(new ChatCall(model(), messages, tools, numCtx()));
-            if (!reply.hasToolCalls()) {
+            // M3.1: some models leak the tool call as text content instead of a structured
+            // tool_calls object — recover it rather than mis-reading garbage as the final answer.
+            List<ToolCall> calls = reply.hasToolCalls()
+                    ? reply.toolCalls()
+                    : ToolCallRecovery.fromContent(reply.content(), knownTools);
+            if (calls.isEmpty()) {
                 stream(reply.content(), sink);
                 sink.accept(new AssistEvent.Message(reply.content(), List.copyOf(sources)));
                 sink.accept(new AssistEvent.Done(conversationId(request)));
                 return;
             }
-            for (ToolCall call : reply.toolCalls()) {
+            for (ToolCall call : calls) {
                 sink.accept(new AssistEvent.ToolCall(call.name(), String.valueOf(call.arguments())));
                 String path = pathFor(call);
                 AuthenticatedApiDispatcher.Result result = dispatcher.get(caller, path);
@@ -107,6 +115,14 @@ public class OllamaAssistantEngine implements AssistantEngine {
             specs.add(new ToolSpec(tool.name(), tool.description(), Map.of("type", "object")));
         }
         return specs;
+    }
+
+    private Set<String> knownToolNames() {
+        Set<String> names = new HashSet<>();
+        for (AssistTool tool : Customer360Agent.TOOLS) {
+            names.add(tool.name());
+        }
+        return names;
     }
 
     private String model() {

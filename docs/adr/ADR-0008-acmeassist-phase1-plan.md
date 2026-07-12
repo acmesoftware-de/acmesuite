@@ -34,9 +34,10 @@
 > German answer. Latency (Metal, not the CPU target): **~36 s cold, ~1–4 s warm** → keep-warm is
 > essential. **Reliability finding:** in ~25–30 % of warm turns the model leaked the tool call as
 > *text* instead of a structured `tool_calls` object, so our engine mis-read it as the final answer
-> (garbage output). **Hardening item (M3.1):** detect JSON-tool-call-shaped content and re-route it
-> (and/or stricter prompt / Ollama structured-output `format` / one retry). **Part B (realistic
-> CPU-only latency on a temporary Hetzner box) is still pending** — same harness, tunnelled.
+> (garbage output). **Hardening item (M3.1) — implemented & verified (2026-07-12):** `ToolCallRecovery`
+> re-routes JSON-tool-call-shaped content, plus a prompt nudge; after the fix, 6/6 warm re-runs
+> produced grounded answers with no garbage. **Part B (realistic CPU-only latency on a temporary
+> Hetzner box) is still pending** — same harness, tunnelled.
 
 ## 1. Backend module layout
 

@@ -63,4 +63,42 @@ class OllamaAssistantEngineTest {
         assertThat(message.sources()).isNotEmpty();
         assertThat(events).last().isInstanceOf(AssistEvent.Done.class);
     }
+
+    @Test
+    void recoversToolCallLeakedAsTextInsteadOfAnsweringGarbage() {
+        // Reproduces the spike finding: the model leaks the call in `content`, tool_calls empty.
+        ArrayDeque<Reply> script = new ArrayDeque<>(List.of(
+                new Reply("-toast {\"name\": \"get_customer\", \"arguments\": {\"id\": \"VELA-004\"}}", List.of()),
+                new Reply("Vela Robotics ist aktiv.", List.of())));
+        OllamaChatClient chat = call -> script.poll();
+
+        AtomicReference<String> dispatchedPath = new AtomicReference<>();
+        AuthenticatedApiDispatcher dispatcher = new AuthenticatedApiDispatcher() {
+            @Override
+            public Result get(CallerContext caller, String path) {
+                dispatchedPath.set(path);
+                return new Result(200, "{\"id\":\"VELA-004\",\"name\":\"Vela Robotics\"}");
+            }
+        };
+        AssistProperties props = new AssistProperties(true, "ollama",
+                new AssistProperties.Ollama("http://localhost:11434", "granite4:3b", "qwen2.5:7b", 4096),
+                new AssistProperties.Budget(5, 0), "de");
+
+        OllamaAssistantEngine engine = new OllamaAssistantEngine(chat, dispatcher, props);
+        List<AssistEvent> events = new ArrayList<>();
+        engine.converse(
+                new AssistRequest(null, "Wie steht es um Vela Robotics?",
+                        new AssistRequest.Context("CRM", null, null)),
+                new CallerContext("tester", null, "http://localhost:8080"),
+                events::add);
+
+        // The leaked call was recovered and dispatched — not streamed back as the garbage answer.
+        assertThat(dispatchedPath.get()).isEqualTo("/api/crm/customers/VELA-004");
+        AssistEvent.Message message = events.stream()
+                .filter(AssistEvent.Message.class::isInstance)
+                .map(AssistEvent.Message.class::cast)
+                .findFirst()
+                .orElseThrow();
+        assertThat(message.text()).isEqualTo("Vela Robotics ist aktiv.");
+    }
 }
