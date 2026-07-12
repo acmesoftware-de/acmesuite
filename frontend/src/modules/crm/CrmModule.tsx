@@ -144,6 +144,8 @@ export function CrmModule({
       {deals && (
         <PipelineView
           deals={deals}
+          customers={customers ?? []}
+          contacts={contacts ?? []}
           actions={dealActions}
           createTick={newDealTick}
           onCreate={createDeal}

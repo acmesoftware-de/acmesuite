@@ -1,9 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DealActions } from './CrmModule'
-import type { Deal, DealCreate } from './crmApi'
+import type { Contact, Customer, Deal, DealCreate } from './crmApi'
 import { TableView } from './TableView'
 import { KanbanView } from './KanbanView'
 import { FunnelView } from './FunnelView'
+
+/** Display label for a contact in a select ("Sara Mena · CTO"). */
+function contactLabel(c: Contact): string {
+  return [c.name, c.role].filter(Boolean).join(' · ')
+}
 
 export type PipelineMode = 'tabelle' | 'kanban' | 'funnel'
 
@@ -18,19 +23,23 @@ export const PIPELINE_MODES: { key: PipelineMode; label: string }[] = [
  *  header (the Tabelle/Kanban/Funnel switch lives next to the Pipeline tab). */
 export function PipelineView({
   deals,
+  customers,
+  contacts,
   actions,
   createTick,
   onCreate,
   mode,
 }: {
   deals: Deal[]
+  customers: Customer[]
+  contacts: Contact[]
   actions: DealActions
   createTick: number
   onCreate: (body: DealCreate) => Promise<void>
   mode: PipelineMode
 }) {
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState({ company: '', contact: '', value: '', owner: 'JS' })
+  const [form, setForm] = useState({ customerId: '', contactId: '', value: '', owner: 'JS' })
 
   const seen = useRef(createTick)
   useEffect(() => {
@@ -40,14 +49,25 @@ export function PipelineView({
     }
   }, [createTick, actions.canWrite])
 
+  // Contacts of the chosen company drive the dependent Kontakt select.
+  const companyContacts = useMemo(
+    () => (form.customerId ? contacts.filter((c) => c.customerId === form.customerId) : []),
+    [contacts, form.customerId],
+  )
+
   async function submit() {
+    const customer = customers.find((c) => c.id === form.customerId)
+    const contact = contacts.find((c) => c.id === form.contactId)
+    if (!customer) return
     await onCreate({
-      company: form.company.trim(),
-      contact: form.contact.trim() || null,
+      company: customer.name,
+      customerId: customer.id,
+      contact: contact ? contactLabel(contact) : null,
+      contactId: contact?.id ?? null,
       ownerInitials: form.owner,
       value: form.value ? { amount: Number(form.value.replace(/[^0-9]/g, '')), currency: 'EUR' } : undefined,
     })
-    setForm({ company: '', contact: '', value: '', owner: 'JS' })
+    setForm({ customerId: '', contactId: '', value: '', owner: 'JS' })
     setCreating(false)
   }
 
@@ -57,12 +77,31 @@ export function PipelineView({
         <div className="acme-form-card">
           <div className="acme-form-grid">
             <label className="acme-field">
-              <span className="acme-label">Firma</span>
-              <input className="acme-input" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+              <span className="acme-label">Kunde</span>
+              <select
+                className="acme-select"
+                value={form.customerId}
+                onChange={(e) => setForm({ ...form, customerId: e.target.value, contactId: '' })}
+              >
+                <option value="">— Kunde wählen —</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </label>
             <label className="acme-field">
               <span className="acme-label">Kontakt</span>
-              <input className="acme-input" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} />
+              <select
+                className="acme-select"
+                value={form.contactId}
+                disabled={!form.customerId}
+                onChange={(e) => setForm({ ...form, contactId: e.target.value })}
+              >
+                <option value="">{form.customerId ? '— optional —' : 'zuerst Kunde wählen'}</option>
+                {companyContacts.map((c) => (
+                  <option key={c.id} value={c.id}>{contactLabel(c)}</option>
+                ))}
+              </select>
             </label>
             <label className="acme-field">
               <span className="acme-label">Wert (€)</span>
@@ -79,7 +118,7 @@ export function PipelineView({
           </div>
           <div className="acme-form-actions">
             <button className="acme-btn acme-btn--ghost" onClick={() => setCreating(false)}>Abbrechen</button>
-            <button className="acme-btn" disabled={!form.company.trim()} onClick={submit}>Deal anlegen</button>
+            <button className="acme-btn" disabled={!form.customerId} onClick={submit}>Deal anlegen</button>
           </div>
         </div>
       )}
