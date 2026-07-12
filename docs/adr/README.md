@@ -5,6 +5,10 @@ Significant, hard-to-reverse decisions for ACMEsuite, one file per decision
 
 ## Log
 
+- [ADR-0008](ADR-0008-acmeassist-copilot.md) — ACMEassist, an in-app co-pilot (**Proposed**):
+  new `assist` module, tool-use over the REST contracts executed *as the signed-in user*,
+  hosted Claude + SSE, bottom-anchored panel. Includes a non-functional UI prototype
+  ([HTML](ADR-0008-acmeassist-prototype.html)).
 - [ADR-0007](ADR-0007-federated-authn-local-authz.md) — Federated authentication, local
   authorization (Base-issued session JWT; provider plugins; envelope-encrypted secrets).
 
