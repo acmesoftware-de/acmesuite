@@ -9,6 +9,8 @@ export interface Me {
   displayName: string | null
   role: AccessRole
   status: UserStatus
+  /** Orthogonal AUDIT capability (ADR-0010): may view version history. */
+  auditor: boolean
 }
 
 export interface LoginResponse {
