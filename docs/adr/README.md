@@ -11,8 +11,9 @@ Significant, hard-to-reverse decisions for ACMEsuite, one file per decision
   bottom-anchored panel. Includes a non-functional UI prototype
   ([HTML](ADR-0008-acmeassist-prototype.html)), an
   [agent catalog appendix](ADR-0008-acmeassist-agents.md), an
-  [AI governance / ISO 42001 appendix](ADR-0008-acmeassist-governance.md), and a
-  [research & sources appendix](ADR-0008-acmeassist-research.md).
+  [AI governance / ISO 42001 appendix](ADR-0008-acmeassist-governance.md), a
+  [research & sources appendix](ADR-0008-acmeassist-research.md), and a
+  [phase-1 implementation plan](ADR-0008-acmeassist-phase1-plan.md).
 - [ADR-0007](ADR-0007-federated-authn-local-authz.md) — Federated authentication, local
   authorization (Base-issued session JWT; provider plugins; envelope-encrypted secrets).
 

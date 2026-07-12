@@ -296,6 +296,10 @@ Why this slice:
 - Everything risky (mutation, confirmation, audit-of-writes, cross-module, proactivity) is
   deferred to phases 3–4 behind an already-proven authz seam.
 
+A concrete, buildable breakdown — module skeleton, `acme-assist.yaml` draft, DB schema, security
+change, the langgraph4j engine, frontend wiring, and a milestone build order with acceptance
+criteria — is in the [Phase-1 implementation plan](ADR-0008-acmeassist-phase1-plan.md).
+
 ## Agent catalog
 
 Concrete "clever agents" to design *with* the platform — scoped personas on the one engine, each
