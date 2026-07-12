@@ -65,18 +65,20 @@ Create a new Spring Modulith module `de.acmesoftware.acmesuite.assist` rather th
 | Scope | Contract domain | Cross-module (CRM/HR/Build/Supply/Base) |
 | Grounding | The passed-in text | Live data via the REST API, role-scoped |
 | Side effects | None | Reads always; writes behind confirmation |
-| Backend | Ollama/RAG (local) | Hosted Claude (tool-use + streaming) |
+| Backend | Ollama/RAG (local) | Spring AI (default self-hosted Ollama; Claude/others optional) + langgraph4j |
 
 We keep the *pattern* that makes `ai` good — a **port + a config-toggled provider + a
 deterministic stub** — and apply it to the assistant:
 
 - `assist.AssistantEngine` — the port (start a turn, stream events, run the tool loop).
-- `assist.claude.ClaudeAssistantEngine` — default provider, backed by the Anthropic **Java SDK**
-  (`com.anthropic:anthropic-java`), server-side.
+- `assist.SpringAiAssistantEngine` — default provider, implemented over **Spring AI**
+  (`ChatClient`/`ChatModel`) + a **langgraph4j** agent graph, server-side. The concrete model
+  backend is swappable by config (default **self-hosted Ollama**; Claude/OpenAI/Azure optional) —
+  see Decision 4.
 - `assist.StubAssistantEngine` — deterministic, offline, active by default so the existing test
   suite and local dev stay green (mirrors `StubContractIntelligence` and the
   `acme.base.auth.enabled=false`-by-default stance). Toggled by
-  `acme.assist.provider=stub|claude`.
+  `acme.assist.provider=stub|ollama|claude|…`.
 
 `ContractIntelligence` is **reused as one of the assistant's tools** (`summarize_contract`,
 `assess_contract_risks`), so the existing seam is a capability the agent can call, not something
@@ -126,26 +128,93 @@ the security-context semantics identical). See *Open questions* for the read-too
 This mirrors the platform's existing e-approval instinct and the design's activity-feed model
 (the assistant becomes an actor once an action is confirmed).
 
-### 4. LLM integration — hosted Claude, server-side, streamed over SSE
+### 4. LLM integration — Spring AI (provider-agnostic) + langgraph4j, default self-hosted Ollama
 
-- **Key custody.** The Anthropic API key lives only on the server (config/env, alongside the
-  Base JWT secret and the `SecretCipher` master key). It is **never** in the browser.
-- **Model.** Configurable via `acme.assist` properties. Default to a capable model
-  (`claude-opus-4-8`) for correctness on tool-use; expose `claude-haiku-4-5` /
-  `claude-sonnet-5` as cost tiers. Use adaptive thinking.
-- **Tool loop.** A manual/hooked agentic loop (not fully-automatic tool-running) so we can
-  intercept write tool-calls for the confirmation gate and stamp each call into the audit log.
+Customers need either to **use their own AI** or to have **one brought along**. That rules out a
+single hardwired hosted vendor and makes a provider abstraction the requirement, not a
+convenience. So:
+
+- **Spring AI is the abstraction.** The `AssistantEngine` port is implemented over Spring AI's
+  `ChatClient`/`ChatModel`, so the backend is swappable by configuration: `spring-ai-ollama`
+  (self-hosted), `spring-ai-anthropic` (Claude), OpenAI/Azure/Bedrock/Vertex, or a customer's own
+  endpoint — all behind one interface. This **continues the trajectory the repo already set**:
+  `ai.AiProperties` already declares `provider=stub|ollama` with the note *"tool calling +
+  structured JSON output"*. `StubAssistantEngine` stays for tests/CI.
+- **Default = self-hosted Ollama ("we bring one along").** Data stays on the customer's premises;
+  nothing egresses. This is the primary, data-sovereign default. **Claude** (and other hosted
+  providers) are opt-in for customers who accept egress and want top-tier tool-use quality; they
+  are selected via `acme.assist.provider` — the code path is identical because Spring AI abstracts
+  it. *(Model selection for the bundled default — a tool-calling LLM and a German-capable
+  embedding model, ideally CPU-only — is captured in "Model selection" below.)*
+- **Orchestration = langgraph4j.** The agent graph (tool loop, the read→answer / write→propose
+  branches, confirmation gate) is modelled explicitly in langgraph4j rather than a bespoke loop,
+  which keeps the write-interception and audit hooks first-class. It is model-agnostic — it runs
+  over whatever Spring AI `ChatModel` is wired in.
+- **Tool-calling is the hard capability requirement.** The whole design rests on function calling
+  over the REST tools. Claude and the strong hosted models do this well; **Ollama tool-calling
+  quality depends on the model** (only tool-capable models qualify). Crucially, the **guarded-write
+  + confirmation** model protects *regardless of backend strength* — a weaker local model can be
+  less useful but cannot do damage, because writes are still human-confirmed and role-checked.
+- **Key/endpoint custody.** No credential ever reaches the browser. With hosted providers this is
+  "API key server-side only"; with self-hosted Ollama it degrades gracefully to "the model
+  endpoint is server-side only" — same guarantee.
 - **Transport = SSE.** A new `POST /api/base/assist/messages` streams `text/event-stream`
   (assistant deltas, `tool_use` / `tool_result` markers, proposed-action events, terminal
-  message). This is the **first SSE endpoint** in the codebase; the stack is Spring MVC
-  (blocking `@RestController`s), so use `SseEmitter`/`ResponseBodyEmitter`, bridging Claude's
-  streamed deltas to the client.
+  message). Spring AI exposes streaming as `Flux<>`, which bridges cleanly to SSE. This is the
+  **first SSE endpoint** in the codebase; the stack is Spring MVC (blocking `@RestController`s),
+  so use `SseEmitter`/`ResponseBodyEmitter`.
   - **Browser caveat:** native `EventSource` cannot set an `Authorization` header. The frontend
     already speaks `fetch` + bearer, so consume the stream with `fetch()` + `ReadableStream`
     (not `EventSource`). Noted so we don't accidentally push the token into a URL param
     (forbidden by the security rules).
-- **No CDN.** Any bundled assets follow the self-hosted convention; the Java SDK is a normal
-  Gradle/Maven dependency.
+- **No CDN.** Ollama, the model weights, and the Java dependencies are all self-hosted; Spring AI
+  / langgraph4j are normal Gradle/Maven dependencies.
+
+> **Version due-diligence.** Confirm a Spring AI release compatible with the **Spring Boot 4.1**
+> line, and treat **langgraph4j** (a community JVM port of LangGraph) as less battle-tested than
+> its Python origin — spike both before committing phase 1. Tracked in *Risks* and *Open
+> questions*.
+
+#### Model selection (bundled default)
+
+Two Ollama models make up the "we bring one along" default: a **tool-calling LLM** (needed from
+phase 1) and — for later RAG grounding (phase 4 / the `ai` module's document Q&A) — a
+**German-capable embedding model** for vectoring. The tool-use core grounds via the REST API and
+does **not** need embeddings. Both must be CPU-runnable, permissively licensed (commercial), and
+good at German.
+
+**Recommended default pairing:**
+
+- **LLM: `qwen2.5:7b`** — Apache-2.0 (no MAU cap), carries Ollama's *Tools* badge with a reliable
+  first-party template for Spring AI / langgraph4j function-calling, best-documented German quality
+  per parameter among small models (German MMLU ≈ 68), and sits in the 7–8B **CPU sweet spot**
+  (~3.7 GB Q4 weights, ~5–7 GB resident).
+- **Embeddings: `snowflake-arctic-embed2:568m`** — Apache-2.0, the only *in-library* embedder with
+  explicit, benchmarked **German** retrieval; 1024 dims (Matryoshka-truncatable), 8K context.
+
+**Vetted alternatives** (same `AssistantEngine`, config-swappable): **IBM Granite 3.3-8B / Granite 4**
+(Apache, enterprise-tuned for function-calling; Granite-4 3B is a good CPU fast-path), **Qwen3-8B**
+(Apache, newer — but a *thinking* mode that may need disabling for the tool loop), **Mistral 7B**
+(Apache, tool-calling less turnkey). Embedding swap: **`bge-m3`** (MIT, hybrid dense+sparse).
+
+**Explicitly rejected for the default:** **Gemma 2/3** (excellent German but **no Ollama Tools
+badge** → disqualified for the agent role), **Llama 3.1/3.3** (weakest small-model German + Meta
+Community License is not OSI-open, needs legal review), **Ministral** and the German fine-tunes
+(Teuken/SauerkrautLM/DiscoLM) (non-commercial or not in the official library with no tool template).
+
+> **CPU-only reality check (honest caveat).** Single-shot Q&A/RAG at 7–8B Q4 is fine (~2–4 s on a
+> modern Xeon). But a **multi-step tool loop pays a prefill on every LLM call**, so a 3–5 step turn
+> realistically lands in the **tens of seconds** on typical server CPUs — snappy only where AMX /
+> AVX-512 is present. So "no GPU" holds for phase-1's small, single-module tool sets and for async
+> agents, but **interactive multi-step latency is the one place the no-GPU wish has a real
+> trade-off**. Mitigations: keep the model warm (`OLLAMA_KEEP_ALIVE=-1`), two-tier routing (a 3B
+> Granite/Phi-mini for easy turns, Qwen2.5-7B for hard ones), cap `num_ctx`, Q4_K_M, and minimize
+> agent steps. A modest GPU remains the clean answer for snappy interactive use — certify a minimum
+> hardware floor (open question 4).
+>
+> **Pin & re-verify at deploy:** Ollama library contents and *Tools* badges change; pin exact HF
+> revisions for licensing (e.g. avoid `qwen2.5:3b` — currently non-commercial), and validate German
+> quality on real CRM/HR content before committing.
 
 ### 5. Invocation & placement — bottom-anchored panel + ⌘K, context = module + entity
 
@@ -202,7 +271,7 @@ source and makes the assistant's behavior reviewable — a requirement for anyth
 
 | Phase | Capability | Guardrail surface | New moving parts |
 |---|---|---|---|
-| **1 (recommended slice)** | **Read-only, grounded Q&A + summarize over the active module**, streamed | Any authenticated user; read tools only → no confirmation flow, no mutation | `assist` module + `AssistantEngine` port + `ClaudeAssistantEngine` + stub; `POST /messages` SSE; read tools from GET contracts; bottom panel UI; audit (reads) |
+| **1 (recommended slice)** | **Read-only, grounded Q&A + summarize over the active module**, streamed | Any authenticated user; read tools only → no confirmation flow, no mutation | `assist` module + `AssistantEngine` port + Spring AI/langgraph4j engine (Ollama default) + stub; `POST /messages` SSE; read tools from GET contracts; bottom panel UI; audit (reads) |
 | **2** | **Draft** — compose a quote/email/summary *without persisting*; returns an editable proposal; cross-module context | Still read-only side effects; draft is inert until the user acts | Draft tool(s); richer context (lift shell state, entity signal); conversation history |
 | **3** | **Guarded ACT** — create quote, flag supplier, etc. | Write tools → **proposed action + explicit confirm**, role-checked server-side, audited | Write tools from POST/PATCH contracts; `actions/{id}/confirm`; confirmation cards; `assist_audit` writes |
 | **4** | **Command surface + proactive** — ⌘K palette across modules; proactive suggestions & activity-feed authoring; RAG grounding | Same authz model; rate/cost controls hardened | ⌘K wiring; suggestion engine; optional RAG/knowledge index |
@@ -226,6 +295,26 @@ Why this slice:
 - Everything risky (mutation, confirmation, audit-of-writes, cross-module, proactivity) is
   deferred to phases 3–4 behind an already-proven authz seam.
 
+## Agent catalog
+
+Concrete "clever agents" to design *with* the platform — scoped personas on the one engine, each
+mapped to the read/write + role + confirmation model above — are catalogued in
+[Appendix A — agent catalog](ADR-0008-acmeassist-agents.md) (18 agents across all five modules,
+plus the eight reusable agent patterns). It also raises the **service-identity** question for
+proactive agents (they have no signed-in user, so they may only read/draft).
+
+## AI governance — ISO/IEC 42001
+
+The suite must respect **ISO/IEC 42001:2023** (AI management system). That standard is mostly
+organizational (policies, roles, impact assessments, audits); the **software's job is the technical
+controls + evidence**. Encouragingly, much is **already inherent in this design** — human-in-the-loop
+confirmation, execute-as-the-user authorization, the audit spine, role-scoped data minimization,
+the on-prem Ollama default, and source citations are all 42001-aligned controls. The genuinely new
+build items (AI disclosure/labeling, model+prompt versioning in the audit, feedback/override
+metrics, a kill switch, the agent risk registry, data-boundary/redaction/retention, an in-app model
+card, and an admin governance console) plus the full mapping are in
+[Appendix B — AI governance / ISO 42001](ADR-0008-acmeassist-governance.md).
+
 ## Alternatives considered
 
 - **Extend `ai.ContractIntelligence` to become the assistant.** Rejected: it is a single-shot,
@@ -239,8 +328,15 @@ Why this slice:
   `WATCH`/`WORK` gate lives at the URL layer, not on the services — direct calls would **bypass**
   it and let a `WATCH` user's tool mutate data. Going through the HTTP surface makes the authz
   identical to a manual call and honors API-first.
-- **LLM in the browser / key in the client.** Rejected outright (prohibited): the API key must
-  never reach the browser. Hosted, server-side, key in config/env.
+- **Hardwire one hosted vendor (e.g. the Anthropic Java SDK directly).** Rejected: customers need
+  *either* their own AI *or* one we bring along, so a provider abstraction is a requirement, not a
+  nicety. Spring AI gives us that abstraction with a self-hosted-Ollama default and Claude/others
+  as opt-in — and a direct-SDK path could not offer the data-sovereign on-prem default.
+- **Bespoke agent loop instead of langgraph4j.** Viable, but langgraph4j models the tool loop and
+  the read/write branches explicitly, keeping the write-interception and audit hooks first-class.
+  Accepted its lower maturity as a tracked risk rather than reinventing the orchestration.
+- **LLM in the browser / credential in the client.** Rejected outright (prohibited): no API key or
+  model endpoint reaches the browser. Server-side only, in config/env.
 - **WebSocket transport.** Deferred: SSE is simpler, one-directional-streaming fits the
   request/stream-response shape, and it needs no new infra. Revisit only if bidirectional
   steering (interrupt mid-turn) becomes a hard requirement.
@@ -257,16 +353,31 @@ Why this slice:
   role because authorization is enforced by Spring, not the model.
 - **Over-trust of a confident answer.** Grounded answers can still be wrong. Mitigations: cite the
   source operation/records behind an answer; keep write actions human-gated; audit everything.
-- **Cost / abuse.** Hosted-LLM spend scales with use. Mitigations: per-user rate limits, a token
-  budget per turn, the cheaper model tiers, and cost/observability on the `assist_audit` trail.
+- **Local-model quality & tool-calling reliability.** The self-hosted-Ollama default trades quality
+  for sovereignty: small CPU-runnable models are weaker at German and at reliable tool-calling than
+  hosted Claude. Mitigations: pick a genuinely tool-capable model (see *Model selection*); keep
+  phase-1 tool sets small and well-described; and note that the **guarded-write model caps the
+  blast radius regardless of backend** — a weak model is less useful, not less safe. Customers who
+  want top quality switch the provider to Claude/hosted.
+- **CPU-only latency.** No-GPU inference plus a multi-step tool loop can be slow. Mitigations: SSE
+  streaming so the user sees progress; keep the model warm (Ollama `keep_alive`); modest model
+  size; size the tool loop. Quantify on target hardware during the phase-1 spike.
+- **Spring AI / langgraph4j maturity & Boot 4.1 compatibility.** Spring AI must match the Spring
+  Boot 4.1 line, and langgraph4j is a community JVM port. Mitigation: a compatibility + tool-calling
+  spike before phase-1 commit; the `AssistantEngine` port isolates the rest of the system from the
+  choice.
+- **Cost / abuse (hosted providers only).** When a customer opts into a hosted backend, spend scales
+  with use. Mitigations: per-user rate limits, a per-turn token budget, cost/observability on the
+  `assist_audit` trail. (N/A for the self-hosted default beyond compute.)
 - **Latency / UX.** Tool-loops over loopback HTTP add turns. Mitigations: SSE streaming so the
   user sees progress; keep phase-1 tool sets small and module-scoped.
 - **First SSE in the stack.** New transport in a blocking MVC app. Mitigation: `SseEmitter` with a
   bounded executor; timeouts; the stub engine to test the transport without the LLM.
 - **`useShellState` is local, no entity concept.** Rich "what am I looking at" context needs a
   refactor (lift to context, add entity signal). Phase 1 avoids it by using only module/sub-view.
-- **Secret sprawl.** One more secret (the Anthropic key) to manage until a real secret store
-  exists — same caveat ADR-0007 already carries for the JWT secret and `SecretCipher` master key.
+- **Secret custody.** Any hosted-provider key (or the Ollama endpoint) is managed server-side until
+  a real secret store exists — same caveat ADR-0007 already carries for the JWT secret and
+  `SecretCipher` master key.
 
 ## Open questions (for the team to decide before implementation)
 
@@ -279,8 +390,10 @@ Why this slice:
    better tool descriptions, fewer/clearer tools for the model.)
 3. **Contract home.** Dedicated `api/acme-assist.yaml` (recommended) vs. extend `acme-base.yaml`
    and bump Base to 0.3.0?
-4. **Model default & cost policy.** Opus for quality vs. Haiku/Sonnet for cost — and what per-user
-   rate/token budgets ship in phase 1?
+4. **Bundled model choice & hardware floor.** Which Ollama LLM (tool-capable, German, CPU-runnable)
+   and which embedding model ship as the "we bring one" default (see *Model selection*), and what
+   is the minimum customer hardware we certify (CPU/RAM)? Plus: what rate/token budgets apply when a
+   customer opts into a hosted provider?
 5. **Conversation persistence.** Stateless per-turn (context re-sent each time) for phase 1, or
    persist conversations from the start (needed for the activity-feed "Copilot erstellte…" model
    and cross-session history)?
@@ -334,8 +447,9 @@ design's `0 16px 48px var(--shadow)` elevation before any implementation begins.
 
 ## Where this would live (code) — indicative
 
-- Backend module: `assist/AssistantEngine`, `assist/claude/ClaudeAssistantEngine`,
-  `assist/StubAssistantEngine`, `assist/AssistProperties`, `assist/tools/*`,
+- Backend module: `assist/AssistantEngine`, `assist/SpringAiAssistantEngine` (Spring AI
+  `ChatClient` + langgraph4j graph), `assist/StubAssistantEngine`, `assist/AssistProperties`
+  (`provider=stub|ollama|claude|…`, model + endpoint config), `assist/tools/*`,
   `assist/AuthenticatedApiDispatcher`, `assist/web/AssistController`, `assist/audit/*`
 - Reused seam: `ai/ContractIntelligence` (as a tool)
 - Contract: `api/acme-assist.yaml` (v0.1.0)
