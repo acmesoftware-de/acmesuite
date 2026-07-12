@@ -28,6 +28,15 @@
 > deps, so the shared build is safe. The `AssistantEngine` port is unchanged, so swapping to
 > Spring AI + langgraph4j once they support Boot 4.1 is a drop-in.
 >
+> **Correction (2026-07-12, later).** The "not Boot-4-ready" claim applied only to Spring AI **1.x**.
+> Spring AI **2.0.0 is GA and targets Spring Framework 7 / Boot 4** — `spring-ai-commons:2.0.0`
+> depends on `spring-context:7.0.8` and Jackson 3 (`tools.jackson`). So the interim direct client
+> was more cautious than necessary. It stays as a working, tested fallback, but the **recommended
+> path is now to migrate the engine to Spring AI 2.0's `ChatClient`** — Ollama + Anthropic + OpenAI
+> + tool-calling + streaming out of the box, likely removing both our custom `OllamaChatClient` and
+> the need for langgraph4j for the phase-1 ReAct loop. Gate: a compile-integration spike against our
+> exact Boot 4.1.0 (Framework-version alignment) before migrating.
+>
 > **Spike #3 — part A done (local `qwen2.5:7b` on Apple M4 Pro, 2026-07-12).** Wire format,
 > tool-calling and grounding **validated end to end**: the model emits `tool_calls` in the shape
 > `RestClientOllamaChat` parses, we feed the tool result back, and it produces a correct grounded
