@@ -48,6 +48,12 @@
 > **Hardware floor:** ≥8 modern vCPU + 16–32 GB with keep-warm; prefer AVX-512/AMX (or a small GPU)
 > for snappy interactive multi-step turns. Extrapolated: a 3–5-step turn ≈ 15–40 s warm on this box
 > → simple turns usable, heavy multi-step is async territory (matches Decision 4).
+>
+> **Conclusion.** Both the Lucene search and the agents run **async**, so this CPU latency is on no
+> interactive critical path — the **embedded, self-hosted Ollama default (Decision 4) is confirmed
+> viable**, not a compromise. Hosted providers (Claude / OpenAI) stay opt-in and are directly
+> testable with API keys (server-side config, never the browser). Deeper benchmarking is deferred
+> until better data is actually needed.
 
 ## 1. Backend module layout
 
