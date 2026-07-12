@@ -216,18 +216,22 @@ call manually returns 403 here too.
 5. A tool the user is not entitled to returns 403 and the agent surfaces "nicht verfügbar", never
    fabricated data.
 
-## Open questions this raises (add to ADR-0008)
+## Decisions (resolved) & phasing
 
-- **Service identity for proactive agents.** Scheduled/event agents have no signed-in user. Do
-  they run as a constrained **read-only service principal** that can only *stage drafts* (proposed
-  default), or do we introduce an explicit "agent runs on behalf of user X" delegation with X's
-  role? This gates when the proactive tiers (7 of 18) can ship.
-- **Agent registry & governance.** Where are agent definitions declared (config vs. code vs. an
-  admin-managed registry), and can an admin enable/disable agents per tenant/role?
-- **Draft store.** Drafts (replies, digests, quotes) need somewhere to live before a human acts —
-  reuse `assist_audit`, or a dedicated `assist_draft` staging table?
-- **`UNVERIFIED` lifecycle.** What states does a staged record move through, who may promote it,
-  and what happens to rejected ones (discard vs. keep for audit)?
-- **Phasing.** Suggested: read-only agents (#4, #8, #9, #16) alongside the phase-1 slice; draft
-  agents in phase 2; propose-write and staged-write agents with phase 3; proactive agents last,
-  gated on service identity.
+*Resolved during ADR review — 2026-07-12.*
+
+- **Service identity for proactive agents — read-only service principal that only stages drafts.**
+  Scheduled/event agents have no signed-in user, so they may only read and produce drafts; every
+  resulting write waits for a human to confirm it under their own role. (No "on behalf of user X"
+  delegation for now.)
+- **Agent registry — code-defined + DB-persisted operational toggles.** Agent definitions live in
+  code (typed); an admin (`AI_ADMIN`) enables/disables agents and sets per-role/tenant availability
+  via the governance console, persisted in the DB.
+- **Draft store — a dedicated `assist_draft` table** (mutable/editable), kept separate from the
+  append-only `assist_audit` log.
+- **`UNVERIFIED` lifecycle — `DRAFT/PROPOSED → CONFIRMED` (committed) or `REJECTED`.** The
+  confirming user promotes it at the required role (analogous to e-approval); rejected records are
+  soft-deleted and retained for audit.
+- **Phasing.** Read-only agents (#4, #8, #9, #16) alongside the phase-1 slice; draft agents in
+  phase 2; propose-write and staged-write agents in phase 3; proactive agents last, on the
+  read-only service principal above.

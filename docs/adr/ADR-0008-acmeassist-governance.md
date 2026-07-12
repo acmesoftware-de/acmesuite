@@ -108,18 +108,25 @@ autonomy ladder, so the governance UI and the design language stay one system. A
 non-functional mockup of the **Agenten** screen can follow the existing prototype approach
 (`ADR-0008-acmeassist-prototype.html`) if the team wants a visual spec artifact.
 
-## New open questions (added to ADR-0008)
+## Decisions (resolved) & phasing
 
-- **Audit immutability & retention.** Is `assist_audit` append-only/tamper-evident, and what is
-  the retention window vs. GDPR deletion rights? (These pull in opposite directions — decide the
-  balance.)
-- **PII handling & redaction policy.** What is redacted in logs, and how do we treat PII in prompts
-  sent to a hosted provider vs. the local model?
-- **Impact-assessment workflow.** Is the per-agent AI impact assessment authored in the admin
-  console (G8) and versioned in-product, or kept as external documents referenced by G5?
-- ~~**Accountable AI role.**~~ **Decided:** a separate orthogonal `AI_ADMIN` grant (see *Decision*
-  above). Remaining sub-question: exact JWT claim shape (`grants[]` vs. `aiAdmin` boolean) and the
-  converter change in `BaseSecurityConfig`.
-- **Certification target.** Are we pursuing actual ISO 42001 certification (drives rigor and
-  timing), or "designed to 42001" as a diligence posture? This scopes how much of G1–G9 is phase-1
-  vs. later.
+*Resolved during ADR review — 2026-07-12.*
+
+- **Certification target — "designed to 42001".** Build cert-ready; no formal certification now.
+  This scopes the phasing: **phase 1 ships G1 (disclosure/marking), G2 (model+prompt versioning in
+  the audit), G4 (kill switch/enable flags)**; G3/G5–G9 follow as the write/proactive tiers land.
+- **Accountable AI role — a separate orthogonal `AI_ADMIN` grant**, carried as a **`grants[]`
+  array** claim (extensible), with the converter change in `BaseSecurityConfig` emitting
+  `ROLE_AI_ADMIN` (see *Decision* above).
+- **Impact-assessment workflow — authored & versioned in the admin console (G8)**, stored
+  in-product, referenced from the agent registry (G5).
+- **Audit immutability — append-only + tamper-evident** (e.g. hash-chained). Retention: keep the
+  *event*, **pseudonymize/redact the *person*** so a GDPR deletion request is satisfied without
+  destroying the audit trail.
+
+## Remaining open items (need policy/legal sign-off)
+
+- **Retention window & PII-redaction policy.** The concrete retention period, exactly what is
+  redacted in logs, and how PII in prompts is treated for a **hosted** provider vs. the **local**
+  model — all need **DPO/legal sign-off**. (Local Ollama default keeps data on-prem, which
+  simplifies this materially.)
