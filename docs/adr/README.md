@@ -5,6 +5,9 @@ Significant, hard-to-reverse decisions for ACMEsuite, one file per decision
 
 ## Log
 
+- [ADR-0009](ADR-0009-central-search-lucene.md) — Central full-text search (Lucene), fed by
+  domain events via the Modulith event publication registry (outbox); permission-filtered
+  queries; rebuildable from module `SearchableProvider`s.
 - [ADR-0008](ADR-0008-acmeassist-copilot.md) — ACMEassist, an in-app co-pilot (**Proposed**):
   new `assist` module, tool-use over the REST contracts executed *as the signed-in user*,
   Spring AI + langgraph4j (default self-hosted Ollama; Claude/others optional) over SSE,
