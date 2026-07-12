@@ -4,7 +4,9 @@ import de.acmesoftware.acmesuite.assist.AssistEvent;
 import de.acmesoftware.acmesuite.assist.AssistProperties;
 import de.acmesoftware.acmesuite.assist.AssistRequest;
 import de.acmesoftware.acmesuite.assist.AssistantEngine;
+import de.acmesoftware.acmesuite.assist.CallerContext;
 import jakarta.annotation.PreDestroy;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.security.Principal;
@@ -45,15 +47,19 @@ public class AssistController {
     }
 
     @PostMapping(value = "/messages", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter messages(@RequestBody AssistRequest request, Principal principal) {
+    public SseEmitter messages(@RequestBody AssistRequest request, HttpServletRequest http,
+            Principal principal) {
         if (!props.isEnabled()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "ACMEassist is disabled");
         }
         String user = principal == null ? "anonymous" : principal.getName();
+        // Captured on the request thread so the async turn can dispatch tools AS this user.
+        String baseUrl = http.getScheme() + "://" + http.getServerName() + ":" + http.getServerPort();
+        CallerContext caller = new CallerContext(user, http.getHeader("Authorization"), baseUrl);
         SseEmitter emitter = new SseEmitter(30_000L);
         stream.execute(() -> {
             try {
-                engine.converse(request, user, event -> emit(emitter, event));
+                engine.converse(request, caller, event -> emit(emitter, event));
                 emitter.complete();
             } catch (RuntimeException e) {
                 emitter.completeWithError(e);

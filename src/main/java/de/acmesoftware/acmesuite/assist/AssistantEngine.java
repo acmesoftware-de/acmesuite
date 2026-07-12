@@ -8,11 +8,11 @@ import java.util.function.Consumer;
  * port so the deterministic {@link StubAssistantEngine} and the later Spring AI + langgraph4j
  * engine are interchangeable without touching the web layer — mirroring {@code ai.ContractIntelligence}.
  *
- * <p>{@code user} is the caller's identity; every tool an implementation runs must be dispatched
- * <em>as that user</em> so authorization is enforced exactly as for a manual request (ADR-0008
- * Decision 2). The stub performs no real access.
+ * <p>{@code caller} carries the identity and credentials to run tools <em>as that user</em>, so
+ * authorization is enforced exactly as for a manual request (ADR-0008 Decision 2). The stub
+ * performs no real access.
  */
 public interface AssistantEngine {
 
-    void converse(AssistRequest request, String user, Consumer<AssistEvent> sink);
+    void converse(AssistRequest request, CallerContext caller, Consumer<AssistEvent> sink);
 }

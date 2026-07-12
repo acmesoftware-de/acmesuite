@@ -20,7 +20,7 @@ public class StubAssistantEngine implements AssistantEngine {
             + "Letzte Bestellung vor 6 Wochen. Empfehlung: heute eine Follow-up-Sequenz starten. [stub]";
 
     @Override
-    public void converse(AssistRequest request, String user, Consumer<AssistEvent> sink) {
+    public void converse(AssistRequest request, CallerContext caller, Consumer<AssistEvent> sink) {
         sink.accept(new AssistEvent.ToolCall("get_customer", "VELA-004"));
         for (String word : BRIEF.split(" ")) {
             sink.accept(new AssistEvent.Delta(word + " "));

@@ -20,7 +20,7 @@ class StubAssistantEngineTest {
         new StubAssistantEngine().converse(
                 new AssistRequest(null, "Wie steht es um Vela Robotics?",
                         new AssistRequest.Context("CRM", "vertrieb", null)),
-                "tester", events::add);
+                new CallerContext("tester", null, "http://localhost"), events::add);
 
         assertThat(events).first().isInstanceOf(AssistEvent.ToolCall.class);
         assertThat(events).last().isEqualTo(new AssistEvent.Done("stub-conv"));
