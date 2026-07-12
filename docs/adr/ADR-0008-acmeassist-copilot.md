@@ -216,6 +216,9 @@ Community License is not OSI-open, needs legal review), **Ministral** and the Ge
 > revisions for licensing (e.g. avoid `qwen2.5:3b` — currently non-commercial), and validate German
 > quality on real CRM/HR content before committing.
 
+**Sources & full evidence** (model shortlists, licenses, benchmarks, CPU-latency figures, and the
+provenance of every input): [Appendix C — research & sources](ADR-0008-acmeassist-research.md).
+
 ### 5. Invocation & placement — bottom-anchored panel + ⌘K, context = module + entity
 
 - **Placement.** A new `ACMEassist` component mounts as the **last child of `.acme-app`** (root is

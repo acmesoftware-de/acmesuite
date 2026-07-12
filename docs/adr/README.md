@@ -10,8 +10,9 @@ Significant, hard-to-reverse decisions for ACMEsuite, one file per decision
   Spring AI + langgraph4j (default self-hosted Ollama; Claude/others optional) over SSE,
   bottom-anchored panel. Includes a non-functional UI prototype
   ([HTML](ADR-0008-acmeassist-prototype.html)), an
-  [agent catalog appendix](ADR-0008-acmeassist-agents.md), and an
-  [AI governance / ISO 42001 appendix](ADR-0008-acmeassist-governance.md).
+  [agent catalog appendix](ADR-0008-acmeassist-agents.md), an
+  [AI governance / ISO 42001 appendix](ADR-0008-acmeassist-governance.md), and a
+  [research & sources appendix](ADR-0008-acmeassist-research.md).
 - [ADR-0007](ADR-0007-federated-authn-local-authz.md) — Federated authentication, local
   authorization (Base-issued session JWT; provider plugins; envelope-encrypted secrets).
 
