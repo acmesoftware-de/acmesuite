@@ -35,6 +35,30 @@ Rules that follow:
   crypto-shredding (destroy the key for encrypted PII) or a narrowly-scoped, audited hard-erase
   procedure — the documented exception, never the default path.
 
+## Access to versions and history
+
+Versioning is retained for everyone but *shown* to almost no one:
+
+- **Everyone with read access** sees the current record plus a **last-changed stamp** — who made
+  the last change and when (`updated_by`, `updated_at`). Nothing more.
+- **Version numbers and earlier versions** (their content and diffs) are visible **only to the
+  `AUDIT` role**.
+- `AUDIT` is **orthogonal** to the WATCH/WORK/ADMIN ranks (ADR-0007): an auditor may read history
+  without being able to write, so it is a separately-grantable capability, not a step in that
+  hierarchy. History/version endpoints require it; the exact modelling (a second role dimension vs.
+  a permission flag) is decided at implementation.
+
+## Change-history surface ("Chatter")
+
+Each entity has its own **Chatter** tab that shows the change history:
+
+- To `AUDIT`: the full versioned history — versions, diffs, and who/when for every change.
+- To everyone else: the change **activity** only (who changed it, when) — no earlier-version
+  content and no version numbers.
+
+(The Chatter starts as the change-history feed; it may later grow into a general activity/comments
+feed like the design's activity panel.)
+
 ## Mechanism (recommended, to finalize at implementation)
 
 - A shared base mapping (`@MappedSuperclass`) contributing the audit + tombstone columns, with
@@ -53,3 +77,6 @@ Rules that follow:
 - Repositories and read models must be tombstone-aware; the search integration maps
   tombstone → removed, version change → changed.
 - New modules build this in from the start (pulled into the in-flight module tracks).
+- New surfaces to build: the `AUDIT` capability (authz), history/version read endpoints gated by
+  it, and the per-entity **Chatter** tab (change-history feed) in the frontend. The last-changed
+  stamp (who/when) is exposed on every read view for all users.
