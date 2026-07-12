@@ -5,6 +5,9 @@ Significant, hard-to-reverse decisions for ACMEsuite, one file per decision
 
 ## Log
 
+- [ADR-0010](ADR-0010-versioned-tombstoned-data.md) — Versioned, tombstoned data: no hard
+  deletes (tombstone on delete), every change versioned with retained history; a cross-cutting
+  data principle for all modules.
 - [ADR-0009](ADR-0009-central-search-lucene.md) — Central full-text search (Lucene), fed by
   domain events via the Modulith event publication registry (outbox); permission-filtered
   queries; rebuildable from module `SearchableProvider`s.
