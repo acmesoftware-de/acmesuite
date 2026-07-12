@@ -11,7 +11,6 @@ import de.acmesoftware.acmesuite.TestcontainersConfig;
 import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,7 +44,7 @@ class BaseAdminTest {
 
     private void seed(String id, String username, AccessRole role) {
         users.save(new BaseUser(id, username, username + "@acme.test", username, role, UserStatus.ACTIVE,
-                "local", null, encoder.encode(username + "-pass"), false, Instant.now()));
+                "local", null, encoder.encode(username + "-pass"), false));
     }
 
     private String tokenFor(String username) throws Exception {

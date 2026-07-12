@@ -10,7 +10,6 @@ import de.acmesoftware.acmesuite.TestcontainersConfig;
 import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,7 +45,7 @@ class BaseAuthTest {
     private String seedWatchUser() {
         users.save(new BaseUser("u-watch-test-0001", "watchtester", "watch@acme.test", "Watch Tester",
                 AccessRole.WATCH, UserStatus.ACTIVE, "local", null, encoder.encode("watch-pass-123"),
-                false, Instant.now()));
+                false));
         return "watchtester";
     }
 

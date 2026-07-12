@@ -13,8 +13,9 @@ public final class AdminViews {
     }
 
     // ── Users ──
+    // Everyone may see who/when last changed a record (ADR-0010) — but never the version number.
     public record UserView(String id, String username, String email, String displayName, String role,
-            String status, String authProvider) {
+            String status, String authProvider, boolean auditor, String updatedAt, String updatedBy) {
     }
 
     public record CreateUserRequest(String username, String displayName, String email, String role) {
@@ -29,9 +30,19 @@ public final class AdminViews {
     public record StatusRequest(String status) {
     }
 
+    public record AuditorRequest(boolean auditor) {
+    }
+
+    // A single versioned revision — AUDIT only: version numbers + change type are AUDIT-visible.
+    public record HistoryEntry(long revision, String changedAt, String changedBy, String changeType,
+            String username, String email, String displayName, String role, String status,
+            boolean auditor, boolean deleted) {
+    }
+
     public static UserView user(BaseUser u) {
         return new UserView(u.getId(), u.getUsername(), u.getEmail(), u.getDisplayName(),
-                u.getRole().name(), u.getStatus().name(), u.getAuthProvider());
+                u.getRole().name(), u.getStatus().name(), u.getAuthProvider(), u.isAuditor(),
+                u.getUpdatedAt() == null ? null : u.getUpdatedAt().toString(), u.getUpdatedBy());
     }
 
     // ── Provider configuration ──

@@ -5,7 +5,6 @@ import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
 import java.security.SecureRandom;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +46,7 @@ public class UserAdminService {
         }
         String tempPassword = randomPassword();
         BaseUser user = new BaseUser(newId(), username, email, displayName, role, UserStatus.ACTIVE,
-                LocalAuthProvider.ID, null, encoder.encode(tempPassword), true, Instant.now());
+                LocalAuthProvider.ID, null, encoder.encode(tempPassword), true);
         users.save(user);
         return new Created(user, tempPassword);
     }
@@ -56,7 +55,6 @@ public class UserAdminService {
     public Optional<BaseUser> setRole(String userId, AccessRole role) {
         return users.findById(userId).map(u -> {
             u.setRole(role);
-            u.touch(Instant.now());
             return users.save(u);
         });
     }
@@ -65,7 +63,15 @@ public class UserAdminService {
     public Optional<BaseUser> setStatus(String userId, UserStatus status) {
         return users.findById(userId).map(u -> {
             u.setStatus(status);
-            u.touch(Instant.now());
+            return users.save(u);
+        });
+    }
+
+    /** Grants or revokes the AUDIT capability (may view version history; ADR-0010). */
+    @Transactional
+    public Optional<BaseUser> setAuditor(String userId, boolean auditor) {
+        return users.findById(userId).map(u -> {
+            u.setAuditor(auditor);
             return users.save(u);
         });
     }
