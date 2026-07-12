@@ -89,6 +89,12 @@ public class AuthProperties {
     /** Local break-glass admin created at first startup when no ADMIN exists. */
     public static class Bootstrap {
         private String adminUsername = "admin";
+        /**
+         * Initial admin password. If set (recommended for deployments), it is the admin's
+         * password — nothing is logged and no forced change. If blank, a random one-time password
+         * is generated and logged, and must be changed on first login.
+         */
+        private String adminPassword;
 
         public String getAdminUsername() {
             return adminUsername;
@@ -96,6 +102,14 @@ public class AuthProperties {
 
         public void setAdminUsername(String adminUsername) {
             this.adminUsername = adminUsername;
+        }
+
+        public String getAdminPassword() {
+            return adminPassword;
+        }
+
+        public void setAdminPassword(String adminPassword) {
+            this.adminPassword = adminPassword;
         }
     }
 

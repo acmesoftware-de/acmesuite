@@ -44,8 +44,11 @@ Adopt **federated authentication, local authorization**.
    federated. Downstream module APIs validate only this Base token (its `role` claim) and never
    see the external IdP. This also resolves the prior `bearerAuth`/JWT contract mismatch.
 
-3. **Local break-glass admin** is bootstrapped at first startup when no `ADMIN` exists: a
-   one-time random password is logged once and must be changed on first login.
+3. **Local break-glass admin** is bootstrapped at first startup when no `ADMIN` exists. If
+   `acme.base.auth.bootstrap.admin-password` is set (recommended for real deployments), that is
+   the admin's password — nothing secret is logged. Otherwise a one-time random password is logged
+   once and must be changed on first login (fine for local dev, but useless where the logs aren't
+   readable).
 
 4. **Identity linking**: a federated login maps its external subject (`oid`/`sub`) to a local
    user record; an unknown federated user is `PENDING` (no access) until an admin assigns a role.
