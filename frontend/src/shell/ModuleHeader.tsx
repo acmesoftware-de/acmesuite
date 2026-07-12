@@ -24,12 +24,18 @@ export function ModuleHeader({
   onNew,
   headerExtra,
 }: ModuleHeaderProps) {
+  // The active sub-view may override the large page title (e.g. CRM: Pipeline/Kunden/Kontakte).
+  const activeSub = module.subViews.find((sv) => sv.key === activeSubKey)
+  const title = activeSub?.title ?? module.title
+
   return (
     <div className="acme-modhead">
-      <div>
+      <div className="acme-modhead-lead">
         <div className="acme-eyebrow">{module.eyebrow}</div>
-        <h1 className="acme-title">{module.title}</h1>
+        <h1 className="acme-title">{title}</h1>
       </div>
+
+      {headerExtra}
 
       <div className="acme-spacer" />
 
@@ -46,8 +52,6 @@ export function ModuleHeader({
           ))}
         </div>
       )}
-
-      {headerExtra}
 
       {showNew && (
         <button className="acme-btn-new" onClick={onNew}>
