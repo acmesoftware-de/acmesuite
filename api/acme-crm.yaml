@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEcrm API
-  version: 0.2.0
+  version: 0.3.0
   description: >
     Sales system of **ACME analog Inc.** and system of record for **customers & resellers**,
     **products**, **price lists**, **quotes** and **orders** (production contracts).
@@ -20,6 +20,14 @@ info:
     `contact`, `stage`), so `PATCH /pipeline/{id}` can set the stage directly (for board
     drag-drop / inline edit) while the transactional endpoints remain the source of truth for
     quotes and orders. Read model — see each operation for the status→stage derivation.
+
+
+    **Contacts & mail.** A `Customer` is the company (system of record); `/contacts` are the
+    people at a customer (a contact may be linked to one customer). A `Deal` references both
+    its `customerId` and the `contactId` it is with, so a company/contact detail view can list
+    its opportunities (`/pipeline?customerId=…`/`?contactId=…`) alongside its correspondence
+    (`/threads?customerId=…`/`?contactId=…`). Mail threads are a lightweight overlay for the
+    CRM UI; a real mail-sync backend is future work (currently mocked, like `/pipeline`).
 
 
     Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally (quotes/orders/approval),
@@ -44,10 +52,16 @@ tags:
     description: Quotes — draft through acceptance, conversion into an order.
   - name: Orders
     description: Orders incl. e-approval (submission, approval/rejection, production, fulfillment).
+  - name: Contacts
+    description: People at a customer (company). A contact may be linked to one customer.
   - name: Pipeline
     description: >
       Sales pipeline overlay — a stage projection over leads/quotes/orders for the CRM board,
       table and funnel. Read-mostly; stage is settable for drag-drop / inline edit.
+  - name: Mail
+    description: >
+      Mail threads (correspondence) attached to a customer/contact. UI overlay — a real
+      mail-sync backend is future work (currently mocked).
 
 security:
   - bearerAuth: []
@@ -421,6 +435,8 @@ paths:
       parameters:
         - { name: stage, in: query, schema: { $ref: '#/components/schemas/PipelineStage' } }
         - { name: owner, in: query, schema: { type: string }, description: Filter by owner initials. }
+        - { name: customerId, in: query, schema: { type: string }, description: Deals of a customer. }
+        - { name: contactId, in: query, schema: { type: string }, description: Deals with a contact. }
         - { name: q, in: query, schema: { type: string }, description: Free-text over company/contact. }
       responses:
         '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
@@ -470,6 +486,86 @@ paths:
         '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Deal' } } } }
         '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
         '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  # ─────────────────────────── Contacts ───────────────────────────
+  /contacts:
+    get:
+      tags: [Contacts]
+      summary: List contacts
+      operationId: listContacts
+      x-required-role: WATCH
+      parameters:
+        - { name: customerId, in: query, schema: { type: string }, description: Contacts of a customer. }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Contacts.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Contact' } } } }
+    post:
+      tags: [Contacts]
+      summary: Create contact
+      operationId: createContact
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ContactWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Contact' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /contacts/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Contacts]
+      summary: Read contact
+      operationId: getContact
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Contact., content: { application/json: { schema: { $ref: '#/components/schemas/Contact' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Contacts]
+      summary: Update contact
+      operationId: updateContact
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ContactWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Contact' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Mail threads ───────────────────────────
+  /threads:
+    get:
+      tags: [Mail]
+      summary: List mail threads
+      description: Correspondence attached to a customer and/or contact. Filter by either.
+      operationId: listThreads
+      x-required-role: WATCH
+      parameters:
+        - { name: customerId, in: query, schema: { type: string } }
+        - { name: contactId, in: query, schema: { type: string } }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Threads (newest first).
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MailThread' } } } }
+  /threads/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Mail]
+      summary: Read a mail thread (with messages)
+      operationId: getThread
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Thread., content: { application/json: { schema: { $ref: '#/components/schemas/MailThread' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
 
 components:
   securitySchemes:
@@ -697,6 +793,7 @@ components:
         quoteId: { type: string, nullable: true }
         orderId: { type: string, nullable: true }
         customerId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true, description: The contact this deal is with. }
         company: { type: string, example: Nordwind Logistik }
         contact: { type: string, nullable: true, example: "Michael Braun · CPO" }
         stage: { $ref: '#/components/schemas/PipelineStage' }
@@ -713,6 +810,7 @@ components:
         company: { type: string }
         contact: { type: string, nullable: true }
         customerId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
         stage: { $ref: '#/components/schemas/PipelineStage' }
         value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
         ownerInitials: { type: string, nullable: true }
@@ -723,5 +821,60 @@ components:
         stage: { $ref: '#/components/schemas/PipelineStage' }
         company: { type: string }
         contact: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
         value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
         ownerInitials: { type: string, nullable: true }
+
+    # ─────────────────────────── Contacts ───────────────────────────
+    Contact:
+      description: A person at a customer (company).
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, example: contact-1001 }
+        customerId: { type: string, nullable: true, description: The company this contact belongs to. }
+        name: { type: string, example: Sara Mena }
+        role: { type: string, nullable: true, example: CTO }
+        email: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        primary: { type: boolean, default: false, description: Primary contact of the customer. }
+    ContactWrite:
+      type: object
+      required: [name]
+      properties:
+        customerId: { type: string, nullable: true }
+        name: { type: string }
+        role: { type: string, nullable: true }
+        email: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        primary: { type: boolean }
+
+    # ─────────────────────────── Mail (correspondence) ───────────────────────────
+    MailDirection:
+      type: string
+      enum: [INBOUND, OUTBOUND]
+    MailMessage:
+      type: object
+      required: [id, direction, sentAt]
+      properties:
+        id: { type: string }
+        direction: { $ref: '#/components/schemas/MailDirection' }
+        from: { type: string, nullable: true }
+        to: { type: string, nullable: true }
+        sentAt: { type: string, format: date-time }
+        snippet: { type: string, nullable: true }
+        body: { type: string, nullable: true }
+    MailThread:
+      description: A correspondence thread attached to a customer and/or contact.
+      type: object
+      required: [id, subject]
+      properties:
+        id: { type: string, example: thread-1001 }
+        subject: { type: string, example: "Angebot Rahmen XL" }
+        customerId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
+        participants: { type: array, items: { type: string } }
+        messageCount: { type: integer }
+        lastMessageAt: { type: string, format: date-time, nullable: true }
+        preview: { type: string, nullable: true, description: Snippet of the latest message. }
+        messages: { type: array, items: { $ref: '#/components/schemas/MailMessage' } }

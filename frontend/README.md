@@ -42,34 +42,49 @@ npm run build
   `ModulePlaceholder` for the modules still to come
 - `src/api/client.ts` — thin fetch wrapper (bearer auth, RFC-7807 errors)
 
-## CRM — Pipeline (data mapping)
+## CRM — Pipeline · Kunden · Kontakte (data mapping)
 
-The hi-fi design shows a sales pipeline of *deals* moving through five stages
-(`NEU · QUALIFIZIERT · ANGEBOT · VERHANDLUNG · GEWONNEN`). ACMEcrm has no "deal/stage"
-entity — it models sales as `/customers`, `/products`, `/price-lists`, `/quotes` and
-`/orders`. We therefore added a **Pipeline overlay** to the contract
-([`../api/acme-crm.yaml`](../api/acme-crm.yaml), `Pipeline` tag, bumped to **v0.2.0**):
-`GET /pipeline` projects leads/quotes/orders onto the five stages, and
-`PATCH /pipeline/{id}` sets the stage (for board drag-drop / inline edit) plus the
-sales-overlay attributes the transactional models lack (`owner`, `contact`, `stage`).
-The status→stage derivation is documented on `GET /pipeline` in the spec.
+The CRM module has three header sub-views:
 
-Probability is derived from the stage (15/35/60/80/100). Stage and owner-avatar colors
-are **theme-owned**: the views emit `data-stage` / `data-owner` attributes and
+- **Pipeline** — the sales board with a secondary Tabelle · Kanban · Funnel switch.
+- **Kunden** — companies (`/customers`), master-detail: a company's contacts, deals and
+  mail threads on the right.
+- **Kontakte** — people (`/contacts`), master-detail: a contact's deals and mail threads.
+
+The hi-fi design shows a pipeline of *deals* moving through five stages
+(`NEU · QUALIFIZIERT · ANGEBOT · VERHANDLUNG · GEWONNEN`) with a flat `company` string.
+ACMEcrm has no "deal/stage" entity and no contacts/mail — it models sales as
+`/customers`, `/products`, `/price-lists`, `/quotes`, `/orders`. We therefore extended the
+contract ([`../api/acme-crm.yaml`](../api/acme-crm.yaml), now **v0.3.0**):
+
+- **Pipeline overlay** (`Pipeline` tag) — `GET /pipeline` projects leads/quotes/orders onto
+  the five stages; `PATCH /pipeline/{id}` sets the stage (board drag-drop / inline edit) plus
+  the sales attributes the transactional models lack (`owner`, `contact`, `stage`). The
+  status→stage derivation is documented on `GET /pipeline`.
+- **Contacts** (`/contacts`) — people at a customer; a `Deal` now carries `customerId` **and**
+  `contactId`, so company/contact detail views list their opportunities via
+  `/pipeline?customerId=…`/`?contactId=…`.
+- **Mail** (`/threads`) — correspondence attached to a customer/contact
+  (`/threads?customerId=…`/`?contactId=…`).
+
+Probability is derived from the stage (15/35/60/80/100). Stage / owner-avatar / status colors
+are **theme-owned**: the views emit `data-stage` / `data-owner` / `data-status` attributes and
 `themes/base/components.css` maps them to signal tokens — no colors in `src/`.
 
-The three sub-views (Tabelle · Kanban · Funnel) live in `src/modules/crm/` and talk only
-to `crmApi` → `/crm/pipeline`. Writes (`+ DEAL`, inline company/value edit, phase select,
-Kanban drag-drop) are gated on `useAuth().canWrite` — **WATCH is read-only**.
+Everything lives in `src/modules/crm/` and talks only to `crmApi` (`/crm/pipeline`,
+`/crm/customers`, `/crm/contacts`, `/crm/threads`). Writes (`+ DEAL` / `+ KUNDE` / `+ KONTAKT`,
+inline edit, phase select, Kanban drag-drop) are gated on `useAuth().canWrite` — **WATCH is
+read-only**.
 
-> **Backend note:** the `/pipeline` projection is contract-first; the Java backend
-> implementation is still pending, so the endpoint is currently mocked for review (a
-> contract-shaped dev mock stands in for it). The existing `/crm/quotes|orders` endpoints
-> are unchanged. This is the only mocked surface.
+> **Backend note:** the `/pipeline`, `/contacts` and `/threads` surfaces are contract-first;
+> the Java backend implementations are still pending, so they are currently mocked for review
+> (a contract-shaped dev mock stands in). The existing `/crm/customers|quotes|orders`
+> endpoints are unchanged.
 
 ## Status
 
-App shell + Admin + **CRM Pipeline** (Tabelle · Kanban · Funnel) complete and matched to
-the hi-fi design: module switching with accent recolor, per-module sub-view tabs, KPI bar,
-light/dark toggle. Theming is built in from the start — the look is fully decoupled into
-`themes/` (two themes ship). Remaining module views are built next against the contracts.
+App shell + Admin + **CRM** (Pipeline · Kunden · Kontakte, with deals/mail per company &
+contact) complete and matched to the hi-fi design system: module switching with accent
+recolor, per-module sub-view tabs, KPI bar, light/dark toggle. Theming is built in from the
+start — the look is fully decoupled into `themes/` (two themes ship). Remaining module views
+are built next against the contracts.

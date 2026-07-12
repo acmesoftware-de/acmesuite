@@ -56,9 +56,9 @@ export const MODULES: ModuleDef[] = [
     title: 'Pipeline',
     newLabel: '+ DEAL',
     subViews: [
-      { key: 'tabelle', label: 'TABELLE' },
-      { key: 'kanban', label: 'KANBAN' },
-      { key: 'funnel', label: 'FUNNEL' },
+      { key: 'pipeline', label: 'PIPELINE' },
+      { key: 'kunden', label: 'KUNDEN', newLabel: '+ KUNDE', hideKpis: true },
+      { key: 'kontakte', label: 'KONTAKTE', newLabel: '+ KONTAKT', hideKpis: true },
     ],
     kpis: [
       { label: 'PIPELINE', value: '€945k', delta: '+8,2%', up: D.pos },

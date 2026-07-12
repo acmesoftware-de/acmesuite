@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../../auth/AuthContext'
-import { crmApi, type Deal, type DealCreate, type PipelineStage } from './crmApi'
+import {
+  crmApi,
+  type Contact,
+  type ContactWrite,
+  type Customer,
+  type CustomerWrite,
+  type Deal,
+  type DealCreate,
+  type MailThread,
+  type PipelineStage,
+} from './crmApi'
 import { probabilityFor } from './pipelineModel'
-import { TableView } from './TableView'
-import { KanbanView } from './KanbanView'
-import { FunnelView } from './FunnelView'
+import { PipelineView } from './PipelineView'
+import { CustomersView } from './CustomersView'
+import { ContactsView } from './ContactsView'
 
-/** Handlers the three sub-views use to mutate the shared pipeline (no-ops for WATCH). */
+/** Handlers the pipeline views use to mutate deals (no-ops for WATCH). */
 export interface DealActions {
   canWrite: boolean
   setStage: (id: string, stage: PipelineStage) => void
@@ -15,37 +25,27 @@ export interface DealActions {
 }
 
 /**
- * CRM module content — the sales Pipeline over /crm/pipeline (see api/acme-crm.yaml).
- * Owns the deal list and optimistic writes; the shell drives which sub-view shows.
- * `newDealTick` increments when the shell's "+ DEAL" button is pressed.
+ * CRM module content. Loads the shared CRM data (pipeline deals, customers, contacts, mail
+ * threads) and dispatches to the sub-view the shell selected: Pipeline · Kunden · Kontakte.
+ * `newDealTick` increments when the shell's context "+ …" button is pressed.
  */
 export function CrmModule({ subView, newDealTick }: { subView: string; newDealTick: number }) {
   const { canWrite } = useAuth()
   const [deals, setDeals] = useState<Deal[] | null>(null)
+  const [customers, setCustomers] = useState<Customer[] | null>(null)
+  const [contacts, setContacts] = useState<Contact[] | null>(null)
+  const [threads, setThreads] = useState<MailThread[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState<{ company: string; contact: string; value: string; owner: string }>({
-    company: '',
-    contact: '',
-    value: '',
-    owner: 'JS',
-  })
-
   useEffect(() => {
-    crmApi
-      .listPipeline()
-      .then(setDeals)
-      .catch(() => setError('Konnte Pipeline nicht laden.'))
+    crmApi.listPipeline().then(setDeals).catch(() => setError('Konnte Pipeline nicht laden.'))
+    crmApi.listCustomers().then(setCustomers).catch(() => undefined)
+    crmApi.listContacts().then(setContacts).catch(() => undefined)
+    crmApi.listThreads().then(setThreads).catch(() => undefined)
   }, [])
 
-  // Shell "+ DEAL" opens the create form (write-gated at the shell already).
-  useEffect(() => {
-    if (newDealTick > 0) setCreating(true)
-  }, [newDealTick])
-
-  /** Optimistically apply `local`, then persist `body`; roll back + notify on failure. */
+  /** Optimistically apply `local`, persist `body`; roll back + notify on failure. */
   const persist = useCallback(
     async (id: string, body: Parameters<typeof crmApi.updateDeal>[1], local: Partial<Deal>) => {
       setNotice(null)
@@ -65,7 +65,7 @@ export function CrmModule({ subView, newDealTick }: { subView: string; newDealTi
     [],
   )
 
-  const actions: DealActions = {
+  const dealActions: DealActions = {
     canWrite,
     setStage: (id, stage) => persist(id, { stage }, { stage, probability: probabilityFor(stage) }),
     setCompany: (id, company) => persist(id, { company }, { company }),
@@ -73,92 +73,74 @@ export function CrmModule({ subView, newDealTick }: { subView: string; newDealTi
       persist(id, { value: { amount, currency: 'EUR' } }, { value: { amount, currency: 'EUR' } }),
   }
 
-  async function submitCreate() {
-    const body: DealCreate = {
-      company: form.company.trim(),
-      contact: form.contact.trim() || null,
-      ownerInitials: form.owner,
-      value: form.value ? { amount: Number(form.value.replace(/[^0-9]/g, '')), currency: 'EUR' } : undefined,
-    }
-    try {
-      const created = await crmApi.createDeal(body)
-      setDeals((prev) => [created, ...(prev ?? [])])
-      setForm({ company: '', contact: '', value: '', owner: 'JS' })
-      setCreating(false)
-    } catch {
-      setNotice('Deal konnte nicht angelegt werden.')
-    }
+  const createDeal = useCallback(async (body: DealCreate) => {
+    const created = await crmApi.createDeal(body)
+    setDeals((prev) => [created, ...(prev ?? [])])
+  }, [])
+
+  const createCustomer = useCallback(async (body: CustomerWrite) => {
+    const created = await crmApi.createCustomer(body)
+    setCustomers((prev) => [created, ...(prev ?? [])])
+  }, [])
+
+  const createContact = useCallback(async (body: ContactWrite) => {
+    const created = await crmApi.createContact(body)
+    setContacts((prev) => [created, ...(prev ?? [])])
+  }, [])
+
+  const chrome = (
+    <>
+      {notice && <div className="acme-notice">{notice}</div>}
+      {error && <div className="acme-error">{error}</div>}
+    </>
+  )
+
+  if (subView === 'kunden') {
+    return (
+      <div className="acme-content">
+        {chrome}
+        <CustomersView
+          customers={customers}
+          contacts={contacts}
+          deals={deals}
+          threads={threads}
+          canWrite={canWrite}
+          createTick={newDealTick}
+          onCreate={createCustomer}
+        />
+      </div>
+    )
+  }
+
+  if (subView === 'kontakte') {
+    return (
+      <div className="acme-content">
+        {chrome}
+        <ContactsView
+          contacts={contacts}
+          customers={customers}
+          deals={deals}
+          threads={threads}
+          canWrite={canWrite}
+          createTick={newDealTick}
+          onCreate={createContact}
+        />
+      </div>
+    )
   }
 
   return (
     <div className="acme-content">
-      {creating && canWrite && (
-        <div className="acme-form-card">
-          <div className="acme-form-grid">
-            <label className="acme-field">
-              <span className="acme-label">Firma</span>
-              <input
-                className="acme-input"
-                value={form.company}
-                onChange={(e) => setForm({ ...form, company: e.target.value })}
-              />
-            </label>
-            <label className="acme-field">
-              <span className="acme-label">Kontakt</span>
-              <input
-                className="acme-input"
-                value={form.contact}
-                onChange={(e) => setForm({ ...form, contact: e.target.value })}
-              />
-            </label>
-            <label className="acme-field">
-              <span className="acme-label">Wert (€)</span>
-              <input
-                className="acme-input"
-                inputMode="numeric"
-                value={form.value}
-                onChange={(e) => setForm({ ...form, value: e.target.value })}
-              />
-            </label>
-            <label className="acme-field">
-              <span className="acme-label">Owner</span>
-              <select
-                className="acme-select"
-                value={form.owner}
-                onChange={(e) => setForm({ ...form, owner: e.target.value })}
-              >
-                {['JS', 'AL', 'MW'].map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="acme-form-actions">
-            <button className="acme-btn acme-btn--ghost" onClick={() => setCreating(false)}>
-              Abbrechen
-            </button>
-            <button className="acme-btn" disabled={!form.company.trim()} onClick={submitCreate}>
-              Deal anlegen
-            </button>
-          </div>
-        </div>
-      )}
-
-      {notice && <div className="acme-notice">{notice}</div>}
-      {error && <div className="acme-error">{error}</div>}
-
+      {chrome}
       {!deals && !error && <div className="acme-empty">Pipeline wird geladen…</div>}
-
-      {deals &&
-        (subView === 'kanban' ? (
-          <KanbanView deals={deals} actions={actions} />
-        ) : subView === 'funnel' ? (
-          <FunnelView deals={deals} />
-        ) : (
-          <TableView deals={deals} actions={actions} />
-        ))}
+      {deals && (
+        <PipelineView
+          deals={deals}
+          actions={dealActions}
+          createTick={newDealTick}
+          onCreate={createDeal}
+        />
+      )}
     </div>
   )
 }
