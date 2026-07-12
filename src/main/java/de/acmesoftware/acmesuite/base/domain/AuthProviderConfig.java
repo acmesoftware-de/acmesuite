@@ -1,19 +1,26 @@
 package de.acmesoftware.acmesuite.base.domain;
 
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * Admin-managed configuration of a federated auth provider (Entra, generic OIDC). Non-secret
  * fields are serialized to {@link #configJson}; secret fields (client secrets) to
- * {@link #secretsJson} envelope-encrypted. Exactly one config per provider id.
+ * {@link #secretsJson} envelope-encrypted. Exactly one live config per provider id.
+ *
+ * <p>Versioned + tombstoned (ADR-0010): audit stamps and history come from {@link AuditedEntity};
+ * {@code @SQLRestriction} hides tombstoned rows from ordinary reads; {@code @Audited} keeps history.
  */
 @Entity
+@Audited
 @Table(name = "auth_provider_config")
-public class AuthProviderConfig {
+@SQLRestriction("deleted_at is null")
+public class AuthProviderConfig extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 32)
@@ -36,25 +43,14 @@ public class AuthProviderConfig {
     @Column(name = "secrets_json")
     private String secretsJson;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
-
-    @Column(name = "updated_by", length = 64)
-    private String updatedBy;
-
     protected AuthProviderConfig() {
         // JPA
     }
 
-    public AuthProviderConfig(String id, String providerId, Instant now) {
+    public AuthProviderConfig(String id, String providerId) {
         this.id = id;
         this.providerId = providerId;
         this.enabled = false;
-        this.createdAt = now;
-        this.updatedAt = now;
     }
 
     public String getId() {
@@ -95,17 +91,5 @@ public class AuthProviderConfig {
 
     public void setSecretsJson(String secretsJson) {
         this.secretsJson = secretsJson;
-    }
-
-    public String getUpdatedBy() {
-        return updatedBy;
-    }
-
-    public void setUpdatedBy(String updatedBy) {
-        this.updatedBy = updatedBy;
-    }
-
-    public void touch(Instant now) {
-        this.updatedAt = now;
     }
 }
