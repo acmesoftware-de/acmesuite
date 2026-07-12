@@ -36,8 +36,18 @@
 > *text* instead of a structured `tool_calls` object, so our engine mis-read it as the final answer
 > (garbage output). **Hardening item (M3.1) — implemented & verified (2026-07-12):** `ToolCallRecovery`
 > re-routes JSON-tool-call-shaped content, plus a prompt nudge; after the fix, 6/6 warm re-runs
-> produced grounded answers with no garbage. **Part B (realistic CPU-only latency on a temporary
-> Hetzner box) is still pending** — same harness, tunnelled.
+> produced grounded answers with no garbage.
+>
+> **Spike #3 — part B done (Hetzner CCX33, AMD EPYC-Milan, 8 dedicated vCPU, no AVX-512/AMX,
+> CPU-only, 2026-07-12).** Warm single-tool turn (2 LLM calls): `qwen2.5:7b` **~7.3–7.5 s**,
+> `granite4:3b` **~6.4–7.4 s**; cold **~18–20 s** (≈3× warm → **keep-warm essential**). Grounding +
+> tool-calling reliable, M3.1 held (no garbage). **Finding:** the **two-tier speedup is modest** on
+> this CPU class — the 3B was barely faster for short turns (prefill-bound; Granite also generated
+> longer answers), so treat two-tier as *optional*, not assumed. **Conservative floor:** Milan has
+> no AVX-512/AMX; Zen4/Genoa (AVX-512) or Intel Sapphire Rapids (AMX) would be materially faster.
+> **Hardware floor:** ≥8 modern vCPU + 16–32 GB with keep-warm; prefer AVX-512/AMX (or a small GPU)
+> for snappy interactive multi-step turns. Extrapolated: a 3–5-step turn ≈ 15–40 s warm on this box
+> → simple turns usable, heavy multi-step is async territory (matches Decision 4).
 
 ## 1. Backend module layout
 
