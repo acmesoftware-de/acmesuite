@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEcrm API
-  version: 0.1.0
+  version: 0.2.0
   description: >
     Sales system of **ACME analog Inc.** and system of record for **customers & resellers**,
     **products**, **price lists**, **quotes** and **orders** (production contracts).
@@ -10,6 +10,16 @@ info:
     Orders are confirmed via the **e-approval system**: above defined thresholds an authorized
     signatory must approve (resolved via ACMEhr — approval limits/deputies).
     Confirmed orders (products, quantities, delivery dates) drive factory, port and treasury.
+
+
+    **Pipeline (sales overlay).** `/pipeline` is a sales-facing **projection** of the deal
+    lifecycle across leads, quotes and orders onto five ordered stages
+    (`NEU · QUALIFIZIERT · ANGEBOT · VERHANDLUNG · GEWONNEN`). A `Deal` may be a bare lead or
+    linked to its backing quote/order as it progresses; `probability` is derived from `stage`.
+    The overlay carries sales attributes the transactional models don't (assigned `owner`,
+    `contact`, `stage`), so `PATCH /pipeline/{id}` can set the stage directly (for board
+    drag-drop / inline edit) while the transactional endpoints remain the source of truth for
+    quotes and orders. Read model — see each operation for the status→stage derivation.
 
 
     Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally (quotes/orders/approval),
@@ -34,6 +44,10 @@ tags:
     description: Quotes — draft through acceptance, conversion into an order.
   - name: Orders
     description: Orders incl. e-approval (submission, approval/rejection, production, fulfillment).
+  - name: Pipeline
+    description: >
+      Sales pipeline overlay — a stage projection over leads/quotes/orders for the CRM board,
+      table and funnel. Read-mostly; stage is settable for drag-drop / inline edit.
 
 security:
   - bearerAuth: []
@@ -387,6 +401,76 @@ paths:
         '200': { description: Cancelled., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
         '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
 
+  # ─────────────────────────── Pipeline (sales overlay) ───────────────────────────
+  /pipeline:
+    get:
+      tags: [Pipeline]
+      summary: List pipeline deals
+      description: >
+        The sales pipeline as a list of `Deal`s, each projected onto one of five stages.
+
+
+        **Status → stage derivation** (for deals backed by a quote/order):
+        quote `DRAFT` → `NEU`; quote `SENT` → `QUALIFIZIERT`; quote `ACCEPTED` or order
+        `CREATED` → `ANGEBOT`; order `PENDING_APPROVAL` → `VERHANDLUNG`; order `APPROVED` or
+        `FULFILLED` → `GEWONNEN`. Lost deals (quote `REJECTED`/`EXPIRED`, order
+        `REJECTED`/`CANCELLED`) are excluded by default. Bare leads (no quote yet) sit in the
+        stage last set on them (default `NEU`).
+      operationId: listPipeline
+      x-required-role: WATCH
+      parameters:
+        - { name: stage, in: query, schema: { $ref: '#/components/schemas/PipelineStage' } }
+        - { name: owner, in: query, schema: { type: string }, description: Filter by owner initials. }
+        - { name: q, in: query, schema: { type: string }, description: Free-text over company/contact. }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Deals.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Deal' } } } }
+    post:
+      tags: [Pipeline]
+      summary: Create a pipeline deal (lead)
+      description: >
+        Adds a new deal to the pipeline. Without a `customerId`/backing quote it is a bare lead
+        (enters `NEU` by default); the sales team later attaches a quote/order as it progresses.
+      operationId: createDeal
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/DealCreate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Deal' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /pipeline/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Pipeline]
+      summary: Read a pipeline deal
+      operationId: getDeal
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Deal., content: { application/json: { schema: { $ref: '#/components/schemas/Deal' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Pipeline]
+      summary: Update a pipeline deal (stage / owner / value / contact)
+      description: >
+        Sets sales-overlay attributes. Moving `stage` reflects the board drag-drop / inline
+        edit; where a deal is backed by a quote/order the server advances the underlying
+        record along its legal transition, otherwise it records the stage on the overlay.
+      operationId: updateDeal
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/DealUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Deal' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -584,3 +668,60 @@ components:
             properties:
               productId: { type: string }
               producedQuantity: { type: integer, minimum: 0 }
+
+    # ─────────────────────────── Pipeline (sales overlay) ───────────────────────────
+    PipelineStage:
+      description: >
+        Ordered sales stage. `probability` is derived from it: NEU 15 · QUALIFIZIERT 35 ·
+        ANGEBOT 60 · VERHANDLUNG 80 · GEWONNEN 100 (%).
+      type: string
+      enum: [NEU, QUALIFIZIERT, ANGEBOT, VERHANDLUNG, GEWONNEN]
+    DealSource:
+      description: What the deal is currently backed by in the transactional model.
+      type: string
+      enum: [LEAD, QUOTE, ORDER]
+    Owner:
+      description: Sales owner assigned to a deal (avatar initials + display name).
+      type: object
+      required: [initials]
+      properties:
+        initials: { type: string, minLength: 1, maxLength: 3, example: JS }
+        name: { type: string, nullable: true, example: Jana Schmidt }
+    Deal:
+      description: A pipeline deal — a stage projection over a lead/quote/order (see `GET /pipeline`).
+      type: object
+      required: [id, source, company, stage, probability, value]
+      properties:
+        id: { type: string, example: deal-1024 }
+        source: { $ref: '#/components/schemas/DealSource' }
+        quoteId: { type: string, nullable: true }
+        orderId: { type: string, nullable: true }
+        customerId: { type: string, nullable: true }
+        company: { type: string, example: Nordwind Logistik }
+        contact: { type: string, nullable: true, example: "Michael Braun · CPO" }
+        stage: { $ref: '#/components/schemas/PipelineStage' }
+        probability: { type: integer, minimum: 0, maximum: 100, description: Derived from `stage`. }
+        value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        owner: { $ref: '#/components/schemas/Owner' }
+        lastActivity: { type: string, nullable: true, description: Human label, e.g. "Angebot gesendet · vor 18 Min". }
+        lastActivityAt: { type: string, format: date-time, nullable: true }
+        ageDays: { type: integer, nullable: true, description: Days since the deal entered its current stage. }
+    DealCreate:
+      type: object
+      required: [company]
+      properties:
+        company: { type: string }
+        contact: { type: string, nullable: true }
+        customerId: { type: string, nullable: true }
+        stage: { $ref: '#/components/schemas/PipelineStage' }
+        value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        ownerInitials: { type: string, nullable: true }
+    DealUpdate:
+      description: Partial update of a deal's sales-overlay attributes.
+      type: object
+      properties:
+        stage: { $ref: '#/components/schemas/PipelineStage' }
+        company: { type: string }
+        contact: { type: string, nullable: true }
+        value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        ownerInitials: { type: string, nullable: true }
