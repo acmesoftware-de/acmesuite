@@ -82,9 +82,10 @@ class BaseSecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/base/auth/oidc/**").permitAll()
                             // Any authenticated user may read their profile / set their own password.
                             .requestMatchers("/api/base/auth/me", "/api/base/auth/password").authenticated()
-                            // Admin surface: user/role management + provider configuration.
+                            // Admin surface: user/role management + provider configuration + reindex.
                             .requestMatchers("/api/base/users/**",
-                                    "/api/base/auth/provider-configs/**").hasRole(AccessRole.ADMIN.name())
+                                    "/api/base/auth/provider-configs/**",
+                                    "/api/search/reindex").hasRole(AccessRole.ADMIN.name())
                             // Suite APIs: read = WATCH+, write = WORK+ (ADMIN adds master-data guards).
                             .requestMatchers(HttpMethod.GET, "/api/**")
                                 .hasAnyRole(AccessRole.WATCH.name(), AccessRole.WORK.name(),
