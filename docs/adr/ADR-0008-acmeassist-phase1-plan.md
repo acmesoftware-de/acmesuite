@@ -26,8 +26,17 @@
 > M3 ships an interim `provider=ollama` engine that talks to Ollama directly (Spring `RestClient`
 > → `/api/chat`) with a hand-rolled ReAct loop over `AuthenticatedApiDispatcher`** — no heavy new
 > deps, so the shared build is safe. The `AssistantEngine` port is unchanged, so swapping to
-> Spring AI + langgraph4j once they support Boot 4.1 is a drop-in. Spike #3 (validate the Ollama
-> wire format + latency against a live server) remains open.
+> Spring AI + langgraph4j once they support Boot 4.1 is a drop-in.
+>
+> **Spike #3 — part A done (local `qwen2.5:7b` on Apple M4 Pro, 2026-07-12).** Wire format,
+> tool-calling and grounding **validated end to end**: the model emits `tool_calls` in the shape
+> `RestClientOllamaChat` parses, we feed the tool result back, and it produces a correct grounded
+> German answer. Latency (Metal, not the CPU target): **~36 s cold, ~1–4 s warm** → keep-warm is
+> essential. **Reliability finding:** in ~25–30 % of warm turns the model leaked the tool call as
+> *text* instead of a structured `tool_calls` object, so our engine mis-read it as the final answer
+> (garbage output). **Hardening item (M3.1):** detect JSON-tool-call-shaped content and re-route it
+> (and/or stricter prompt / Ollama structured-output `format` / one retry). **Part B (realistic
+> CPU-only latency on a temporary Hetzner box) is still pending** — same harness, tunnelled.
 
 ## 1. Backend module layout
 
