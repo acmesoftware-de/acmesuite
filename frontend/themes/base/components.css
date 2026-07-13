@@ -461,6 +461,32 @@
 .acme-app .acme-schema-col-name { font: 600 12px var(--font-mono); color: var(--ink); }
 .acme-app .acme-schema-col-type { font: 500 12px var(--font-mono); color: var(--dim); }
 .acme-app .acme-schema-col-null { font: 500 11px var(--font-mono); color: var(--faint); }
+.acme-app .acme-schema-rows-toggle { margin: 0 14px 14px; }
+.acme-app .acme-schema-rows { border-top: 1px solid var(--line2); padding: 4px 14px 14px; }
+.acme-app .acme-schema-rows-table { overflow-x: auto; }
+.acme-app .acme-schema-rows-table table { border-collapse: collapse; width: 100%; }
+.acme-app .acme-schema-rows-table th,
+.acme-app .acme-schema-rows-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line2);
+  font: 400 11.5px var(--font-mono);
+  color: var(--ink);
+  white-space: nowrap;
+  text-align: left;
+}
+.acme-app .acme-schema-rows-table th {
+  font: 700 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  text-transform: uppercase;
+}
+.acme-app .acme-schema-rows-pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.acme-app .acme-schema-rows-info { font: 500 11px var(--font-mono); color: var(--dim); }
 
 /* ---- Chatter: per-record change feed (ADR-0010) --------------------------- */
 .acme-app .acme-icon-btn {
