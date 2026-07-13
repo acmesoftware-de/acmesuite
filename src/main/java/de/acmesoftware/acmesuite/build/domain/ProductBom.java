@@ -8,6 +8,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +23,9 @@ import java.util.List;
  */
 @Entity
 @Table(name = "product_bom")
-public class ProductBom {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class ProductBom extends AuditedEntity {
 
     @Id
     @Column(name = "product_id", length = 48)
@@ -31,6 +37,7 @@ public class ProductBom {
     @Column(name = "energy_units", nullable = false)
     private BigDecimal energyUnits;
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "product_bom_line", joinColumns = @JoinColumn(name = "product_id"))
     private List<BomLine> lines = new ArrayList<>();

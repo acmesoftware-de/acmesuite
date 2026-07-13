@@ -12,13 +12,19 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import java.util.ArrayList;
 import java.util.List;
 
 /** Price list (list/reseller/customer-specific) with tiered line items. */
 @Entity
 @Table(name = "price_list")
-public class PriceList {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class PriceList extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)
@@ -37,6 +43,7 @@ public class PriceList {
     @Embedded
     private DateRange validity;
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "price_list_item", joinColumns = @JoinColumn(name = "price_list_id"))
     private List<PriceListItem> items = new ArrayList<>();

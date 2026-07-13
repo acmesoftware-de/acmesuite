@@ -10,6 +10,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,7 +22,9 @@ import java.util.List;
 /** Quote (ACMEcrm): draft → sent → accepted; acceptance creates an order. */
 @Entity
 @Table(name = "quote")
-public class Quote {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class Quote extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)
@@ -40,6 +46,7 @@ public class Quote {
     @Column(name = "created_on")
     private LocalDate createdOn;
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "quote_line", joinColumns = @JoinColumn(name = "quote_id"))
     private List<OrderLine> lines = new ArrayList<>();

@@ -10,13 +10,19 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import java.util.ArrayList;
 import java.util.List;
 
 /** Supply contract: supplier × material, tiered prices + lead time. */
 @Entity
 @Table(name = "supply_contract")
-public class SupplyContract {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class SupplyContract extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)
@@ -37,6 +43,7 @@ public class SupplyContract {
     @Embedded
     private DateRange validity;
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "supply_contract_tier", joinColumns = @JoinColumn(name = "contract_id"))
     private List<Tier> tiers = new ArrayList<>();
