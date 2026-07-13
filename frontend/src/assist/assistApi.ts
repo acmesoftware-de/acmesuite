@@ -22,6 +22,7 @@ interface AssistPayload {
   detail?: string
   text?: string
   sources?: string[]
+  message?: string
 }
 
 export async function streamAssist(
@@ -93,6 +94,9 @@ function dispatch(frame: string, handlers: AssistHandlers): void {
       break
     case 'message':
       handlers.onMessage?.(payload.text ?? '', payload.sources ?? [])
+      break
+    case 'error':
+      handlers.onError?.(new Error(payload.message ?? 'assist error'))
       break
     default:
       break

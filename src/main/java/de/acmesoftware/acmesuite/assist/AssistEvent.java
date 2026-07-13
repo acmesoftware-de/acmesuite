@@ -36,6 +36,14 @@ public sealed interface AssistEvent {
         }
     }
 
+    /** The turn failed (e.g. the provider was unavailable); a graceful end instead of an HTTP 500. */
+    record Error(String message) implements AssistEvent {
+        @Override
+        public String type() {
+            return "error";
+        }
+    }
+
     /** End of the turn. */
     record Done(String conversationId) implements AssistEvent {
         @Override

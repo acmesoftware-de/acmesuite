@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
@@ -29,6 +31,8 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnExpression("'${acme.assist.provider:stub}' != 'stub'")
 public class SpringAiAssistantEngine implements AssistantEngine {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringAiAssistantEngine.class);
 
     private final ChatClient chatClient;
     private final List<ToolCallback> tools;
@@ -67,20 +71,26 @@ public class SpringAiAssistantEngine implements AssistantEngine {
         toolContext.put("sources", sources);
 
         StringBuilder answer = new StringBuilder();
-        chatClient.prompt()
-                .system(Customer360Agent.SYSTEM_PROMPT)
-                .user(request.message())
-                .toolCallbacks(tools)
-                .toolContext(toolContext)
-                .stream()
-                .content()
-                .doOnNext(chunk -> {
-                    answer.append(chunk);
-                    sink.accept(new AssistEvent.Delta(chunk));
-                })
-                .blockLast();
-
-        sink.accept(new AssistEvent.Message(answer.toString(), List.copyOf(sources)));
+        try {
+            chatClient.prompt()
+                    .system(Customer360Agent.SYSTEM_PROMPT)
+                    .user(request.message())
+                    .toolCallbacks(tools)
+                    .toolContext(toolContext)
+                    .stream()
+                    .content()
+                    .doOnNext(chunk -> {
+                        answer.append(chunk);
+                        sink.accept(new AssistEvent.Delta(chunk));
+                    })
+                    .blockLast();
+            sink.accept(new AssistEvent.Message(answer.toString(), List.copyOf(sources)));
+        } catch (RuntimeException e) {
+            // A provider/tool failure becomes a graceful error event + done, not an HTTP 500.
+            LOG.warn("ACMEassist turn failed", e);
+            sink.accept(new AssistEvent.Error(
+                    "Der KI-Assistent ist derzeit nicht verfügbar. Bitte später erneut versuchen."));
+        }
         sink.accept(new AssistEvent.Done(
                 request.conversationId() == null ? "conv" : request.conversationId()));
     }
