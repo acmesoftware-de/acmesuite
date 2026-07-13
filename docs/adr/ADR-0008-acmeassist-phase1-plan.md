@@ -37,6 +37,17 @@
 > the need for langgraph4j for the phase-1 ReAct loop. Gate: a compile-integration spike against our
 > exact Boot 4.1.0 (Framework-version alignment) before migrating.
 >
+> **Migration done (2026-07-12).** Spike passed both gates: Spring AI 2.0.0 resolves against Boot
+> 4.1.0 (`spring-context:7.0.8`, no conflict) and the **full app context loads** with it active
+> (`SmokeTest` green). Migrated: `SpringAiAssistantEngine` on Spring AI's `ChatClient` **replaces**
+> the interim Ollama client — native tool-calling made **langgraph4j and the M3.1 leak guard
+> unnecessary** (both dropped). **Execute-as-user is preserved**: the tools are Spring AI
+> `ToolCallback`s that read the `CallerContext` from the per-request `ToolContext` and dispatch via
+> `AuthenticatedApiDispatcher`. **Multi-provider**: Ollama is the default; Anthropic/OpenAI are
+> opt-in by config + API key. Two config notes: the OpenAI umbrella starter's non-chat autoconfigs
+> (audio/image/moderation/embedding) are excluded, and placeholder keys let the context load
+> without real keys. **Live-verified** against local `qwen2.5:7b`: the model tool-called through
+> Spring AI → our dispatcher → the real CRM endpoint (as the user) → streamed answer over SSE.
 > **Spike #3 — part A done (local `qwen2.5:7b` on Apple M4 Pro, 2026-07-12).** Wire format,
 > tool-calling and grounding **validated end to end**: the model emits `tool_calls` in the shape
 > `RestClientOllamaChat` parses, we feed the tool result back, and it produces a correct grounded

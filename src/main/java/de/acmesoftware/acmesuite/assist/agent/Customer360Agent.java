@@ -29,12 +29,19 @@ public final class Customer360Agent {
     public static final List<AssistTool> TOOLS = List.of(
             new AssistTool("find_customers",
                     "List or search customers (optionally by name via the q query parameter).",
+                    "{\"type\":\"object\",\"properties\":{\"q\":{\"type\":\"string\","
+                            + "\"description\":\"optional name search\"}}}",
                     "/api/crm/customers"),
             new AssistTool("get_customer",
                     "Read one customer's master record by id.",
+                    "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},"
+                            + "\"required\":[\"id\"]}",
                     "/api/crm/customers/{id}"),
             new AssistTool("resolve_price",
                     "Resolve the effective price for a customer, product and quantity.",
+                    "{\"type\":\"object\",\"properties\":{\"customerId\":{\"type\":\"string\"},"
+                            + "\"productId\":{\"type\":\"string\"},\"quantity\":{\"type\":\"integer\"}},"
+                            + "\"required\":[\"customerId\",\"productId\"]}",
                     "/api/crm/price"));
 
     private Customer360Agent() {
