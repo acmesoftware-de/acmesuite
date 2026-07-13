@@ -22,6 +22,13 @@ public final class BaseViews {
     public record PasswordRequest(String newPassword) {
     }
 
+    public record ClaimAdminRequest(String username, String password) {
+    }
+
+    /** Whether the self-claim screen should be shown instead of the normal login form. */
+    public record BootstrapStatusView(boolean needsSetup) {
+    }
+
     /** A login option offered on the sign-in screen (local or a federated provider). */
     public record ProviderView(String id, String displayName, String kind) {
     }

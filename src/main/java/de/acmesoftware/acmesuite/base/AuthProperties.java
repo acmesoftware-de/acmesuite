@@ -95,6 +95,14 @@ public class AuthProperties {
          * is generated and logged, and must be changed on first login.
          */
         private String adminPassword;
+        /**
+         * When {@code true}, no admin is auto-created at startup at all; instead the first caller
+         * to reach {@code POST /api/base/auth/claim-admin} sets the initial password directly
+         * (no log-reading needed). Default {@code false} — only safe to enable on instances that
+         * are not reachable by untrusted parties before the real operator claims the account
+         * (e.g. local development). Never enable this on a network-exposed deployment.
+         */
+        private boolean allowSelfClaim = false;
 
         public String getAdminUsername() {
             return adminUsername;
@@ -110,6 +118,14 @@ public class AuthProperties {
 
         public void setAdminPassword(String adminPassword) {
             this.adminPassword = adminPassword;
+        }
+
+        public boolean isAllowSelfClaim() {
+            return allowSelfClaim;
+        }
+
+        public void setAllowSelfClaim(boolean allowSelfClaim) {
+            this.allowSelfClaim = allowSelfClaim;
         }
     }
 

@@ -1,10 +1,12 @@
 package de.acmesoftware.acmesuite.base;
 
+import de.acmesoftware.acmesuite.base.auth.LocalAuthProvider;
 import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
 import de.acmesoftware.acmesuite.base.token.SessionTokenService;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +44,34 @@ public class BaseAuthService {
 
     public Optional<BaseUser> find(String userId) {
         return users.findById(userId);
+    }
+
+    /** True while no ADMIN exists yet (the self-claim window, {@code allow-self-claim=true}). */
+    public boolean needsBootstrap() {
+        return !users.existsByRole(AccessRole.ADMIN);
+    }
+
+    /**
+     * Claims the initial admin account with an operator-chosen password (no forced change — they
+     * chose it deliberately). Succeeds exactly once: the moment any ADMIN exists (from here or the
+     * log-based fallback), this permanently stops working. This is a check-then-act guard, not a
+     * hardened mutual-exclusion lock — acceptable because the caller (AuthController) only exposes
+     * this when {@code allow-self-claim=true}, which itself must only be enabled on instances not
+     * reachable by untrusted parties before the real operator claims the account.
+     */
+    @Transactional
+    public LoginResult claimAdmin(String username, String rawPassword) {
+        if (users.existsByRole(AccessRole.ADMIN)) {
+            throw new IllegalStateException("an admin already exists");
+        }
+        BaseUser admin = new BaseUser(UUID.randomUUID().toString().replace("-", ""),
+                username, null, "Administrator", AccessRole.ADMIN, UserStatus.ACTIVE,
+                LocalAuthProvider.ID, null, encoder.encode(rawPassword), false);
+        admin.setAuditor(true); // the claimed superuser may view version history (AUDIT)
+        users.save(admin);
+        return new LoginResult(
+                tokens.issue(admin.getId(), admin.getRole().name(), admin.getDisplayName(), admin.isAuditor()),
+                false, admin);
     }
 
     /** Sets (or rotates) a local user's password and clears the must-change flag. */

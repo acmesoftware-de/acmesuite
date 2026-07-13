@@ -68,4 +68,17 @@ class BootstrapAdminInitializerTest {
 
         verify(repo, never()).save(org.mockito.ArgumentMatchers.any());
     }
+
+    @Test
+    void skipsAutoCreationWhenSelfClaimIsEnabled() {
+        BaseUserRepository repo = mock(BaseUserRepository.class);
+        when(repo.existsByRole(AccessRole.ADMIN)).thenReturn(false);
+        AuthProperties p = props("Configured-Pw-123");
+        p.getBootstrap().setAllowSelfClaim(true);
+
+        new BootstrapAdminInitializer(repo, encoder, p).run(null);
+
+        // No admin auto-created — the first caller to POST /claim-admin creates it instead.
+        verify(repo, never()).save(org.mockito.ArgumentMatchers.any());
+    }
 }

@@ -25,3 +25,8 @@ export interface ProviderOption {
   displayName: string
   kind: 'LOCAL' | 'OIDC'
 }
+
+/** From GET /api/base/auth/bootstrap-status — show the self-claim screen instead of login. */
+export interface BootstrapStatus {
+  needsSetup: boolean
+}

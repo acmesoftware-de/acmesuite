@@ -79,6 +79,10 @@ class BaseSecurityConfig {
                             // Public login surface.
                             .requestMatchers(HttpMethod.POST, "/api/base/auth/login").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/base/auth/providers").permitAll()
+                            // Bootstrap self-claim (only actually reachable when
+                            // acme.base.auth.bootstrap.allow-self-claim=true; see AuthController).
+                            .requestMatchers(HttpMethod.GET, "/api/base/auth/bootstrap-status").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/base/auth/claim-admin").permitAll()
                             // Public OIDC redirect flow (start + IdP callback).
                             .requestMatchers(HttpMethod.GET, "/api/base/auth/oidc/**").permitAll()
                             // Any authenticated user may read their profile / set their own password.

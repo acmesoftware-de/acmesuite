@@ -5,7 +5,7 @@ import type { AccessRole, Me } from './types'
 
 const TOKEN_KEY = 'acmesuite.token'
 
-type Phase = 'loading' | 'anon' | 'mustSetPassword' | 'authed'
+type Phase = 'loading' | 'needsBootstrap' | 'anon' | 'mustSetPassword' | 'authed'
 
 interface AuthContextValue {
   phase: Phase
@@ -18,6 +18,8 @@ interface AuthContextValue {
   /** Set when a federated (OIDC) sign-in returned an error/pending on redirect back. */
   oidcError: string | null
   login: (username: string, password: string) => Promise<void>
+  /** Claims the initial admin account (only reachable while phase === 'needsBootstrap'). */
+  claimAdmin: (username: string, password: string) => Promise<void>
   completeSetPassword: (newPassword: string) => Promise<void>
   logout: () => void
 }
@@ -72,7 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const token = localStorage.getItem(TOKEN_KEY)
     if (!token) {
-      setPhase('anon')
+      // No stored session — check whether this is a brand-new instance waiting to be claimed
+      // (acme.base.auth.bootstrap.allow-self-claim=true, server-side). Falls back to the normal
+      // login screen for everyone else (self-claim disabled, or an admin already exists).
+      authApi
+        .bootstrapStatus()
+        .then((s) => setPhase(s.needsSetup ? 'needsBootstrap' : 'anon'))
+        .catch(() => setPhase('anon'))
       return
     }
     setAuthToken(token)
@@ -90,6 +98,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await authApi.login(username, password)
+    persist(res.token)
+    setUser(res.user)
+    setPhase(res.mustSetPassword ? 'mustSetPassword' : 'authed')
+  }, [])
+
+  const claimAdmin = useCallback(async (username: string, password: string) => {
+    const res = await authApi.claimAdmin(username, password)
     persist(res.token)
     setUser(res.user)
     setPhase(res.mustSetPassword ? 'mustSetPassword' : 'authed')
@@ -117,10 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuditor: user?.auditor ?? false,
       oidcError,
       login,
+      claimAdmin,
       completeSetPassword,
       logout,
     }),
-    [phase, user, oidcError, login, completeSetPassword, logout],
+    [phase, user, oidcError, login, claimAdmin, completeSetPassword, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

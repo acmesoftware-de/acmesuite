@@ -1,9 +1,12 @@
 package de.acmesoftware.acmesuite.base.web;
 
+import de.acmesoftware.acmesuite.base.AuthProperties;
 import de.acmesoftware.acmesuite.base.BaseAuthService;
 import de.acmesoftware.acmesuite.base.auth.AuthProvider;
 import de.acmesoftware.acmesuite.base.auth.AuthProviderKind;
 import de.acmesoftware.acmesuite.base.auth.ProviderConfigService;
+import de.acmesoftware.acmesuite.base.web.BaseViews.BootstrapStatusView;
+import de.acmesoftware.acmesuite.base.web.BaseViews.ClaimAdminRequest;
 import de.acmesoftware.acmesuite.base.web.BaseViews.LoginRequest;
 import de.acmesoftware.acmesuite.base.web.BaseViews.LoginResponse;
 import de.acmesoftware.acmesuite.base.web.BaseViews.MeView;
@@ -31,12 +34,14 @@ public class AuthController {
     private final BaseAuthService auth;
     private final List<AuthProvider> providers;
     private final ProviderConfigService providerConfigs;
+    private final AuthProperties authProps;
 
     public AuthController(BaseAuthService auth, List<AuthProvider> providers,
-            ProviderConfigService providerConfigs) {
+            ProviderConfigService providerConfigs, AuthProperties authProps) {
         this.auth = auth;
         this.providers = providers;
         this.providerConfigs = providerConfigs;
+        this.authProps = authProps;
     }
 
     @PostMapping("/login")
@@ -45,6 +50,41 @@ public class AuthController {
                 .map(r -> ResponseEntity.ok(new LoginResponse(r.token(), r.mustSetPassword(),
                         BaseViews.me(r.user()))))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    /**
+     * Whether the self-claim screen should replace the normal login form: only when
+     * {@code acme.base.auth.bootstrap.allow-self-claim=true} AND no admin exists yet.
+     */
+    @GetMapping("/bootstrap-status")
+    public BootstrapStatusView bootstrapStatus() {
+        boolean needsSetup = authProps.getBootstrap().isAllowSelfClaim() && auth.needsBootstrap();
+        return new BootstrapStatusView(needsSetup);
+    }
+
+    /**
+     * Claims the initial admin account with an operator-chosen password. 404s unless self-claim
+     * is enabled and still needed (see {@link #bootstrapStatus()}) — same shape as a disabled
+     * feature, so it doesn't leak whether an admin already exists to an unauthenticated caller.
+     */
+    @PostMapping("/claim-admin")
+    public ResponseEntity<LoginResponse> claimAdmin(@RequestBody ClaimAdminRequest req) {
+        if (!authProps.getBootstrap().isAllowSelfClaim() || !auth.needsBootstrap()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        String pw = req.password();
+        if (pw == null || pw.length() < MIN_PASSWORD_LENGTH) {
+            return ResponseEntity.badRequest().build();
+        }
+        String username = (req.username() == null || req.username().isBlank())
+                ? authProps.getBootstrap().getAdminUsername() : req.username().trim();
+        try {
+            var result = auth.claimAdmin(username, pw);
+            return ResponseEntity.ok(new LoginResponse(result.token(), result.mustSetPassword(),
+                    BaseViews.me(result.user())));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     /** Login options for the sign-in screen: local always, federated only when enabled. */

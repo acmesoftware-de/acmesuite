@@ -12,6 +12,7 @@ import { Assist } from './assist/Assist'
 import { useTheme } from './theme/ThemeProvider'
 import { useAuth } from './auth/AuthContext'
 import { LoginScreen } from './auth/LoginScreen'
+import { ClaimAdminScreen } from './auth/ClaimAdminScreen'
 import { SetPasswordScreen } from './auth/SetPasswordScreen'
 import { versionLabel } from './version'
 
@@ -40,6 +41,8 @@ export function App() {
       data-build={versionLabel}
     >
       {auth.phase === 'loading' && <div className="acme-splash">ACMEsuite…</div>}
+
+      {auth.phase === 'needsBootstrap' && <ClaimAdminScreen />}
 
       {auth.phase === 'anon' && <LoginScreen />}
 

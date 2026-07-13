@@ -98,6 +98,42 @@ paths:
         '400': { description: Password does not meet the policy (minimum length). }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /auth/bootstrap-status:
+    get:
+      tags: [Auth]
+      summary: Whether the self-claim screen should replace the normal login form
+      description: >
+        True only when `acme.base.auth.bootstrap.allow-self-claim` is enabled server-side AND no
+        admin exists yet. Only ever enabled on instances not reachable by untrusted parties before
+        the real operator claims the account (e.g. local development) — never in a public deployment.
+      operationId: bootstrapStatus
+      security: [] # public
+      responses:
+        '200':
+          description: Bootstrap status.
+          content: { application/json: { schema: { $ref: '#/components/schemas/BootstrapStatus' } } }
+
+  /auth/claim-admin:
+    post:
+      tags: [Auth]
+      summary: Claim the initial admin account with an operator-chosen password
+      description: >
+        Only reachable while `bootstrap-status` reports `needsSetup: true`; 404s otherwise (same
+        response whether the feature is disabled or already claimed, so it never leaks state to an
+        unauthenticated caller). No forced password change — the operator chose it deliberately.
+      operationId: claimAdmin
+      security: [] # public (gated server-side, see description)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ClaimAdminRequest' } } }
+      responses:
+        '200':
+          description: Admin claimed, signed in.
+          content: { application/json: { schema: { $ref: '#/components/schemas/LoginResponse' } } }
+        '400': { description: Password does not meet the policy (minimum length). }
+        '404': { description: Self-claim not enabled, or an admin already exists. }
+        '409': { description: An admin was claimed concurrently by another caller. }
+
   # ─────────────────────────── Users (admin) ───────────────────────────
   /users:
     get:
@@ -356,6 +392,18 @@ components:
         id: { type: string }
         displayName: { type: string }
         kind: { $ref: '#/components/schemas/ProviderKind' }
+    BootstrapStatus:
+      type: object
+      properties:
+        needsSetup:
+          type: boolean
+          description: Show the self-claim screen instead of the normal login form.
+    ClaimAdminRequest:
+      type: object
+      required: [password]
+      properties:
+        username: { type: string, description: 'Defaults to the configured bootstrap admin username (usually "admin") if omitted.' }
+        password: { type: string, format: password, minLength: 10 }
 
     DirectoryUser:
       description: >
