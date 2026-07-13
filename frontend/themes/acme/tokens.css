@@ -40,6 +40,11 @@
   /* Geometry */
   --radius: 0px; /* squared corners */
   --edge: 3px; /* accent edge width */
+
+  /* Foreground on filled signal-color chips (status/match badges). Dark text on the
+     bright warning/yellow fill follows the brand's dark-on-yellow rule; white elsewhere. */
+  --on-signal: #fff;
+  --on-warning: #111;
 }
 
 /* Light mode — only surface/text tokens flip. */
