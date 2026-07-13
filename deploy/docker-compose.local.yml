@@ -32,6 +32,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://acmesuite-db:5432/acme_suite
       SPRING_DATASOURCE_USERNAME: acme
       SPRING_DATASOURCE_PASSWORD: acme
+      # Local dev only: skip the log-only bootstrap password, let the first person to open the
+      # app set the admin password directly. Never enable this on a network-reachable deployment.
+      ACME_BASE_AUTH_BOOTSTRAP_ALLOW_SELF_CLAIM: "true"
     depends_on: [acmesuite-db]
     restart: unless-stopped
 

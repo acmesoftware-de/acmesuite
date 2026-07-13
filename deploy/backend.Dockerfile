@@ -19,7 +19,8 @@ LABEL org.opencontainers.image.title="ACMEsuite" \
       org.opencontainers.image.source="https://github.com/acmesoftware-de/acmesuite"
 WORKDIR /app
 RUN groupadd --system acme \
- && useradd --system --gid acme --no-create-home acme
+ && useradd --system --gid acme --no-create-home acme \
+ && mkdir -p /app/data && chown -R acme:acme /app
 COPY --from=build /build/target/acmesuite.jar /app/app.jar
 USER acme
 EXPOSE 8080

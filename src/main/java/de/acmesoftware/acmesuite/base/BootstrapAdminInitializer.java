@@ -18,8 +18,12 @@ import org.springframework.stereotype.Component;
  * Creates a local break-glass admin at first startup when no ADMIN exists yet — the bootstrap out
  * of the chicken-and-egg (an admin is needed to assign roles, but nobody has ADMIN initially).
  *
- * <p>Two modes:
+ * <p>Three modes:
  * <ul>
+ *   <li>{@code acme.base.auth.bootstrap.allow-self-claim=true}: nothing is created here at all —
+ *       the first caller to reach {@code POST /api/base/auth/claim-admin} sets the password
+ *       directly (see {@link de.acmesoftware.acmesuite.base.web.AuthController}). Only safe when
+ *       the instance isn't reachable by untrusted parties before the real operator claims it.</li>
  *   <li>{@code acme.base.auth.bootstrap.admin-password} is set (recommended for real deployments):
  *       that is the admin's password. Nothing secret is logged, and no forced change — the operator
  *       chose it.</li>
@@ -45,6 +49,12 @@ class BootstrapAdminInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (users.existsByRole(AccessRole.ADMIN)) {
+            return;
+        }
+        if (props.getBootstrap().isAllowSelfClaim()) {
+            log.info("ACMEbase bootstrap: self-claim is enabled and no ADMIN exists yet — waiting "
+                    + "for the first operator to set the admin password via "
+                    + "POST /api/base/auth/claim-admin.");
             return;
         }
         String username = props.getBootstrap().getAdminUsername();
