@@ -1,7 +1,7 @@
 {
   "name": "acmesuite-frontend",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0-dev",
   "type": "module",
   "description": "ACMEsuite web frontend — CRM, Supply, Build, HR, Admin on the shared ACMEbase API.",
   "scripts": {

@@ -136,6 +136,7 @@ export const MODULES: ModuleDef[] = [
     subViews: [
       { key: 'nutzer', label: 'NUTZER', hideKpis: true },
       { key: 'authentifizierung', label: 'AUTHENTIFIZIERUNG', hideKpis: true },
+      { key: 'datenbank', label: 'DATENBANK', hideKpis: true },
     ],
     kpis: [],
   },

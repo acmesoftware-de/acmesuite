@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: ACMEbuild API
+  version: 0.1.0
+  description: >
+    Production system of **ACME analog Inc.** (formerly *ACMEprod*). System of record for
+    **products, bills of materials (BOM)** and **production planning**. Core capabilities:
+
+
+    * holds the BOM per product (raw materials from ACMEsupply + **labor** and **energy units/kWh**),
+
+    * forecasts the **material demand** (supply projection) from the open production contracts (ACMEcrm)
+      and the available capacity (workers/shifts, from ACMEhr),
+
+    * answers via the **feasibility API** whether a contract (products, quantities, delivery date)
+      can be fulfilled — and if not, **which resource is scarce** (worker or material).
+
+
+    Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally, `ADMIN` maintains master data
+    (products/BOM). The role required per operation is given under `x-required-role`.
+  contact:
+    name: ACME analog Inc · ACMEsuite
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://demo.acmesoftware.de/api/build
+    description: ACMEsuite API (TLS at the edge)
+tags:
+  - name: BOM
+    description: Products and their bills of materials.
+  - name: Planning
+    description: Production capacity and material demand projection.
+  - name: Feasibility
+    description: Feasibility of a contract against capacity and material availability.
+security:
+  - bearerAuth: []
+paths:
+  /boms:
+    get:
+      tags: [BOM]
+      summary: All bills of materials
+      operationId: listBoms
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Bills of materials.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ProductBom' } }
+
+  /products/{id}/bom:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string }, description: Product ID. }
+    get:
+      tags: [BOM]
+      summary: Bill of materials of a product
+      operationId: getBom
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Bill of materials.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductBom' }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    put:
+      tags: [BOM]
+      summary: Create/update bill of materials (master data)
+      operationId: upsertBom
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BomWrite' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Saved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductBom' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  /capacity:
+    get:
+      tags: [Planning]
+      summary: Current production capacity
+      description: >
+        Planned daily capacity from factory/port workers (availability from ACMEhr) and the
+        labor/port units per worker and day.
+      operationId: getCapacity
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Capacity.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Capacity' }
+
+  /supply-projection:
+    get:
+      tags: [Planning]
+      summary: Material demand projection
+      description: >
+        Aggregated material demand over the horizon, derived from the open
+        production contracts (ACMEcrm) and the BOMs. Basis for procurement in ACMEsupply.
+      operationId: getSupplyProjection
+      x-required-role: WATCH
+      parameters:
+        - name: horizonDays
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, default: 30 }
+          description: Planning horizon in days.
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Demand per material.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SupplyProjection' }
+
+  /feasibility:
+    post:
+      tags: [Feasibility]
+      summary: Can a contract be fulfilled?
+      description: >
+        Checks a contract specification (products, quantities, delivery date) against capacity and
+        material availability. Non-mutating. Returns `feasible` and — if not — the scarce
+        resources (worker or material) with the shortfall.
+      operationId: checkFeasibility
+      x-required-role: WATCH
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FeasibilityRequest' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Feasibility result.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FeasibilityResult' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT from ACMEbase auth. The bearer role (WATCH/WORK/ADMIN) must satisfy the role
+        required per operation under `x-required-role` (hierarchy ADMIN > WORK > WATCH).
+
+  schemas:
+    BomLine:
+      type: object
+      required: [materialId, quantity]
+      properties:
+        materialId: { type: string, description: ACMEsupply material ID. }
+        quantity: { type: number, description: Quantity per product piece. }
+
+    ProductBom:
+      type: object
+      required: [productId, laborUnits, energyUnits, lines]
+      properties:
+        productId: { type: string }
+        laborUnits: { type: number, description: Labor units per piece. }
+        energyUnits: { type: number, description: Energy per piece (kWh). }
+        lines:
+          type: array
+          items: { $ref: '#/components/schemas/BomLine' }
+
+    BomWrite:
+      type: object
+      required: [laborUnits, energyUnits, lines]
+      properties:
+        laborUnits: { type: number }
+        energyUnits: { type: number }
+        lines:
+          type: array
+          items: { $ref: '#/components/schemas/BomLine' }
+
+    Capacity:
+      type: object
+      required: [factoryWorkers, laborUnitsPerWorkerDay, factoryLaborUnitsPerDay, harborWorkers, harborUnitsPerWorkerDay, harborUnitsPerDay]
+      properties:
+        factoryWorkers: { type: integer, description: Available factory workers (from ACMEhr). }
+        laborUnitsPerWorkerDay: { type: number, description: Labor units per worker and day. }
+        factoryLaborUnitsPerDay: { type: number, description: Total labor capacity/day (workers × units). }
+        harborWorkers: { type: integer, description: Available port workers (shipping). }
+        harborUnitsPerWorkerDay: { type: integer, description: Shipping units per port worker and day. }
+        harborUnitsPerDay: { type: integer, description: Total shipping capacity/day. }
+
+    SupplyProjection:
+      type: object
+      required: [horizonDays, materials]
+      properties:
+        horizonDays: { type: integer }
+        materials:
+          type: array
+          items: { $ref: '#/components/schemas/SupplyProjectionItem' }
+
+    SupplyProjectionItem:
+      type: object
+      required: [materialId, requiredQuantity]
+      properties:
+        materialId: { type: string }
+        requiredQuantity: { type: number, description: Quantity required over the horizon. }
+
+    FeasibilityRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/FeasibilityItem' }
+        dueDate:
+          type: string
+          format: date
+          description: Desired delivery date (leave open = earliest possible).
+      description: Contract specification whose feasibility is checked.
+
+    FeasibilityItem:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+
+    FeasibilityResult:
+      type: object
+      required: [feasible, requiredLaborUnits, requiredMaterials, scarce]
+      properties:
+        feasible: { type: boolean }
+        earliestDate:
+          type: string
+          format: date
+          description: Earliest possible delivery date at current capacity (if computable).
+        requiredLaborUnits: { type: number, description: Total labor units required for the specification. }
+        requiredMaterials:
+          type: array
+          items: { $ref: '#/components/schemas/MaterialRequirement' }
+        scarce:
+          type: array
+          description: Scarce resources; empty when feasible=true.
+          items: { $ref: '#/components/schemas/ScarceResource' }
+
+    MaterialRequirement:
+      type: object
+      required: [materialId, requiredQuantity, availableQuantity]
+      properties:
+        materialId: { type: string }
+        requiredQuantity: { type: number }
+        availableQuantity: { type: number }
+
+    ScarceResource:
+      type: object
+      required: [resource, shortfall]
+      properties:
+        resource:
+          type: string
+          enum: [WORKER, MATERIAL]
+        reference:
+          type: string
+          description: Material ID for `MATERIAL`; for `WORKER` e.g. `labor` or `harbor`.
+        shortfall: { type: number, description: Shortfall (units or material quantity). }

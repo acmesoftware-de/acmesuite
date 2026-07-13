@@ -19,3 +19,6 @@ mesh/.mesh/
 # Claude Code local files
 .claude/settings.local.json
 .claude/worktrees/
+
+# local Lucene search index
+data/

@@ -16,6 +16,11 @@ export function setAuthToken(token: string | null): void {
   authToken = token
 }
 
+/** The current Base bearer token — for callers that bypass `request` (e.g. the SSE stream). */
+export function getAuthToken(): string | null {
+  return authToken
+}
+
 export interface ApiError extends Error {
   status: number
   /** RFC-7807 problem body, when the server returned one. */

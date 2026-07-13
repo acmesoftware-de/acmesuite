@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#c7c4bd;font-family:'Archivo',system-ui,sans-serif}
+  .dv-turn{padding:44px 48px 36px;scroll-margin-top:16px}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 22px}
+  .dv-tid{font:700 11px 'Space Mono',monospace;padding:4px 8px;background:#111;color:#fff;text-decoration:none}
+  .dv-tname{font:600 14px/1.2 'Archivo',sans-serif;color:#1a1a1a}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px}
+  .dv-oid{font:700 11px 'Space Mono',monospace;padding:3px 8px;background:rgba(0,0,0,.09);color:#1a1a1a;text-decoration:none}
+  .dv-olabel{display:flex;align-items:center;gap:9px;font:500 12.5px/1.3 'Archivo',sans-serif;color:rgba(0,0,0,.6)}
+  .dv-opt:target .dv-oid{background:#E5322A;color:#fff}
+  .dv-frame{box-shadow:0 24px 70px rgba(0,0,0,.34)}
+  .dv-next{margin:26px 0 0;font:13px/1.6 'Archivo',sans-serif;color:rgba(0,0,0,.55)}
+  .acme-app{--accent:#E5322A;--bg:#0E0F11;--panel:#17181C;--panel2:#1E2025;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.15);--ink:#F4F3EF;--dim:rgba(255,255,255,.54);--faint:rgba(255,255,255,.34);--chip:rgba(255,255,255,.05);--shadow:rgba(0,0,0,.45)}
+  .acme-app[data-mode="light"]{--bg:#F1EFE9;--panel:#FFFFFF;--panel2:#F6F4EF;--line:rgba(0,0,0,.10);--line2:rgba(0,0,0,.18);--ink:#15161A;--dim:rgba(0,0,0,.56);--faint:rgba(0,0,0,.40);--chip:rgba(0,0,0,.045);--shadow:rgba(0,0,0,.14)}
+  .acme-app ::-webkit-scrollbar{height:9px;width:9px}
+  .acme-app ::-webkit-scrollbar-thumb{background:var(--line2)}
+  .acme-app ::-webkit-scrollbar-track{background:transparent}
+  @keyframes acmefade{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  @keyframes acmepulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</helmet>
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Die anderen Seiten — navigierbare App-Shell, Reiter oben schalten das Modul (jedes Modul in seiner Farbe)</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="3a">
+      <div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>ACMEsuite — CRM · Supply · Build · HR · Admin (Reiter klicken)</div>
+      <div class="dv-frame">
+        <div class="acme-app" data-mode="{{ modeE }}" style="--accent:{{ accentE }};position:relative;width:1320px;height:840px;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border:1px solid var(--line);overflow:hidden">
+
+          <div style="display:flex;align-items:center;height:57px;flex:none;padding:0 20px;border-bottom:1px solid var(--line);background:var(--panel)">
+            <div style="display:flex;align-items:flex-end;gap:2px;height:19px">
+              <span style="width:4px;height:8px;background:#E5322A"></span>
+              <span style="width:4px;height:13px;background:#E9AE06"></span>
+              <span style="width:4px;height:19px;background:#1358D8"></span>
+              <span style="width:4px;height:11px;background:#159E5B"></span>
+            </div>
+            <span style="font:700 13px 'Archivo';letter-spacing:.06em;color:var(--ink);margin-left:9px">ACME<span style="color:var(--dim);font-weight:500">SUITE</span></span>
+            <div style="width:1px;height:22px;background:var(--line);margin:0 18px"></div>
+            <div style="display:flex;align-self:stretch;align-items:stretch">
+              <sc-for list="{{ tabsE }}" as="t" hint-placeholder-count="5">
+                <div onClick="{{ t.onClick }}" style="display:flex;align-items:center;padding:0 16px;position:relative;cursor:pointer">
+                  <span style="font:{{ t.weight }} 13px 'Archivo';color:{{ t.textcol }}">{{ t.code }}</span>
+                  <span style="position:absolute;left:0;right:0;bottom:-1px;height:3px;background:{{ t.bar }}"></span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="flex:1"></div>
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 11px;min-width:190px;border:1px solid var(--line);background:var(--bg);color:var(--dim);font-size:12.5px">
+              <span>Suchen…</span>
+              <span style="margin-left:auto;font:700 10px 'Space Mono';padding:1px 5px;border:1px solid var(--line);color:var(--faint)">⌘K</span>
+            </div>
+            <button onClick="{{ toggleThemeE }}" title="Hell / Dunkel" style="width:34px;height:34px;margin-left:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center">{{ themeIconE }}</button>
+            <div style="width:32px;height:32px;margin-left:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font:700 11px 'Space Mono'">JS</div>
+          </div>
+
+          <div style="display:flex;align-items:flex-end;gap:16px;padding:22px 24px 16px">
+            <div>
+              <div style="font:400 10px 'Space Mono';letter-spacing:.14em;color:var(--accent)">{{ modEyebrow }}</div>
+              <h1 style="font:400 40px/0.9 'Anton';color:var(--ink);margin:8px 0 0">{{ modTitle }}</h1>
+            </div>
+            <div style="flex:1"></div>
+            <sc-if value="{{ isCRM }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:0;border:1px solid var(--line2);margin-bottom:7px">
+                <button onClick="{{ setTableD }}" style="padding:8px 13px;border:none;font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ vswTable.bg }};color:{{ vswTable.col }}">TABELLE</button>
+                <button onClick="{{ setKanbanD }}" style="padding:8px 13px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ vswKanban.bg }};color:{{ vswKanban.col }}">KANBAN</button>
+                <button onClick="{{ setFunnelD }}" style="padding:8px 13px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ vswFunnel.bg }};color:{{ vswFunnel.col }}">FUNNEL</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isSUP }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:0;border:1px solid var(--line2);margin-bottom:7px">
+                <button onClick="{{ setBestand }}" style="padding:8px 13px;border:none;font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ subBestand.bg }};color:{{ subBestand.col }}">BESTÄNDE</button>
+                <button onClick="{{ setLief }}" style="padding:8px 13px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ subLief.bg }};color:{{ subLief.col }}">LIEFERANTEN</button>
+                <button onClick="{{ setRestr }}" style="padding:8px 13px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ subRestr.bg }};color:{{ subRestr.col }}">IMPORT-REGELN</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isBLD }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:0;border:1px solid var(--line2);margin-bottom:7px">
+                <button onClick="{{ setMachbar }}" style="padding:8px 12px;border:none;font:700 10px 'Space Mono';letter-spacing:.03em;cursor:pointer;background:{{ bnMachbar.bg }};color:{{ bnMachbar.col }}">MACHBARKEIT</button>
+                <button onClick="{{ setSchicht }}" style="padding:8px 12px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.03em;cursor:pointer;background:{{ bnSchicht.bg }};color:{{ bnSchicht.col }}">SCHICHTEN</button>
+                <button onClick="{{ setProdukte }}" style="padding:8px 12px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.03em;cursor:pointer;background:{{ bnProd.bg }};color:{{ bnProd.col }}">PRODUKTE</button>
+                <button onClick="{{ setAuf }}" style="padding:8px 12px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.03em;cursor:pointer;background:{{ bnAuf.bg }};color:{{ bnAuf.col }}">AUFTRÄGE</button>
+                <button onClick="{{ setMas }}" style="padding:8px 12px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.03em;cursor:pointer;background:{{ bnMas.bg }};color:{{ bnMas.col }}">MASCHINEN</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isHR }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:0;border:1px solid var(--line2);margin-bottom:7px">
+                <button onClick="{{ setTeam }}" style="padding:8px 13px;border:none;font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ hnTeam.bg }};color:{{ hnTeam.col }}">TEAM</button>
+                <button onClick="{{ setOrg }}" style="padding:8px 13px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ hnOrg.bg }};color:{{ hnOrg.col }}">ORG-CHART</button>
+                <button onClick="{{ setBewerber }}" style="padding:8px 13px;border:none;border-left:1px solid var(--line2);font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ hnBew.bg }};color:{{ hnBew.col }}">BEWERBER</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showNewBtn }}" hint-placeholder-val="{{ true }}">
+              <button style="margin-bottom:7px;padding:8px 15px;border:1px solid var(--accent);background:var(--accent);color:#fff;font:700 10px 'Space Mono';letter-spacing:.04em;cursor:pointer">{{ modNewLabel }}</button>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ showKpis }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 24px 16px;flex:none">
+              <sc-for list="{{ kpisMod }}" as="k" hint-placeholder-count="4">
+                <div style="background:var(--panel);border:1px solid var(--line);padding:13px 15px">
+                  <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">{{ k.label }}</div>
+                  <div style="display:flex;align-items:baseline;gap:8px;margin-top:9px">
+                    <span style="font:400 27px 'Anton';color:var(--ink)">{{ k.value }}</span>
+                    <span style="font:700 10.5px 'Space Mono';color:{{ k.deltaCol }}">{{ k.delta }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showBestand }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div style="flex:1;overflow-y:auto;padding:0 0 0 24px;min-width:0">
+                <div style="display:grid;grid-template-columns:2fr 108px 120px 1.3fr 118px;align-items:center;padding:0 12px;height:36px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--bg);z-index:1">
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">ARTIKEL</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">BESTAND</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">MELDEBEST.</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">FÜLLSTAND</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">STATUS</span>
+                </div>
+                <sc-for list="{{ supRowsV }}" as="r" hint-placeholder-count="8">
+                  <div style="display:grid;grid-template-columns:2fr 108px 120px 1.3fr 118px;align-items:center;padding:0 12px;height:54px;border-bottom:1px solid var(--line);background:{{ r.rowbg }}">
+                    <div style="min-width:0;padding-right:14px">
+                      <div style="font:600 13.5px 'Archivo';color:var(--ink)">{{ r.name }}</div>
+                      <div style="font:400 10.5px 'Space Mono';color:var(--faint);margin-top:1px">{{ r.sku }}</div>
+                    </div>
+                    <span style="font:700 13px 'Space Mono';color:var(--ink)">{{ r.stockFmt }}</span>
+                    <span style="font:400 12px 'Space Mono';color:var(--dim)">{{ r.reorderFmt }}</span>
+                    <div style="padding-right:20px"><div style="height:6px;background:var(--chip);overflow:hidden"><div style="height:100%;width:{{ r.barW }};background:{{ r.barC }}"></div></div></div>
+                    <div><span style="font:700 9px 'Space Mono';letter-spacing:.04em;color:#fff;background:{{ r.pillC }};padding:3px 7px">{{ r.pillL }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="width:300px;flex:none;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0">
+                <div style="display:flex;align-items:center;gap:9px;padding:16px 16px 13px;border-bottom:1px solid var(--line)">
+                  <span style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
+                  <span style="font:700 11px 'Space Mono';letter-spacing:.06em;color:var(--ink)">NACHBESTELLUNG</span>
+                </div>
+                <div style="flex:1;overflow-y:auto">
+                  <sc-for list="{{ reorderV }}" as="r" hint-placeholder-count="4">
+                    <div style="padding:13px 16px;border-bottom:1px solid var(--line)">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="font:600 12.5px 'Archivo';color:var(--ink);flex:1">{{ r.name }}</span>
+                        <span style="font:700 8px 'Space Mono';color:#fff;background:{{ r.pillC }};padding:2px 5px">{{ r.pillL }}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:9px">
+                        <span style="font:400 10px 'Space Mono';color:var(--faint);flex:1">Vorschlag: {{ r.suggestFmt }} Stk</span>
+                        <span style="font:700 9px 'Space Mono';color:#fff;background:var(--accent);padding:4px 8px;cursor:pointer">BESTELLEN</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showLieferanten }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div style="flex:1;overflow-y:auto;padding:0 0 0 24px;min-width:0">
+                <div style="display:grid;grid-template-columns:1.9fr 1fr 96px 1.3fr 1fr 120px;align-items:center;padding:0 12px;height:36px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--bg);z-index:1">
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">LIEFERANT</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">KATEGORIE</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">RISIKO</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">LIEFERTREUE</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">LETZTE PRÜFUNG</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">STATUS</span>
+                </div>
+                <sc-for list="{{ suppliersV }}" as="r" hint-placeholder-count="8">
+                  <div style="display:grid;grid-template-columns:1.9fr 1fr 96px 1.3fr 1fr 120px;align-items:center;padding:0 12px;height:56px;border-bottom:1px solid var(--line);background:{{ r.rowbg }}">
+                    <div style="display:flex;align-items:center;gap:11px;min-width:0;padding-right:12px">
+                      <span style="width:30px;height:30px;background:var(--chip);color:var(--dim);font:700 9px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none;border:1px solid var(--line2)">{{ r.ini }}</span>
+                      <div style="min-width:0"><div style="font:600 13.5px 'Archivo';color:var(--ink)">{{ r.name }}</div><div style="font:400 10.5px 'Space Mono';color:var(--faint);margin-top:1px">{{ r.land }}</div></div>
+                    </div>
+                    <span style="font:400 12px 'Archivo';color:var(--dim)">{{ r.kat }}</span>
+                    <div><span style="font:700 9px 'Space Mono';letter-spacing:.03em;color:#fff;background:{{ r.riskC }};padding:3px 7px">{{ r.riskL }}</span></div>
+                    <div style="display:flex;align-items:center;gap:9px;padding-right:18px">
+                      <div style="flex:1;height:5px;background:var(--chip);overflow:hidden"><div style="height:100%;width:{{ r.otdW }};background:{{ r.statusC }}"></div></div>
+                      <span style="font:400 10px 'Space Mono';color:var(--dim)">{{ r.otdW }}</span>
+                    </div>
+                    <span style="font:400 11px 'Space Mono';color:var(--dim)">{{ r.audit }}</span>
+                    <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:{{ r.statusC }}"></span><span style="font:400 12px 'Archivo';color:var(--ink)">{{ r.statusL }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="width:300px;flex:none;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0">
+                <div style="display:flex;align-items:center;gap:9px;padding:16px 16px 13px;border-bottom:1px solid var(--line)">
+                  <span style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
+                  <span style="font:700 11px 'Space Mono';letter-spacing:.06em;color:var(--ink)">COMPLIANCE</span>
+                </div>
+                <div style="padding:18px 16px;display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;align-items:center;gap:11px"><span style="width:10px;height:10px;background:#159E5B;flex:none"></span><span style="font:400 34px 'Anton';color:var(--ink);line-height:0.8">{{ supSum.frei }}</span><span style="font:400 12px 'Archivo';color:var(--dim)">freigegeben</span></div>
+                  <div style="display:flex;align-items:center;gap:11px"><span style="width:10px;height:10px;background:#E9AE06;flex:none"></span><span style="font:400 34px 'Anton';color:var(--ink);line-height:0.8">{{ supSum.pruef }}</span><span style="font:400 12px 'Archivo';color:var(--dim)">in Prüfung</span></div>
+                  <div style="display:flex;align-items:center;gap:11px"><span style="width:10px;height:10px;background:#E5322A;flex:none"></span><span style="font:400 34px 'Anton';color:var(--ink);line-height:0.8">{{ supSum.gesperrt }}</span><span style="font:400 12px 'Archivo';color:var(--dim)">gesperrt</span></div>
+                </div>
+                <div style="margin:2px 16px;padding:13px;border:1px solid var(--line);display:flex;gap:10px">
+                  <span style="color:var(--accent);font-size:14px;flex:none">⚠</span>
+                  <div style="font:400 11.5px/1.5 'Archivo';color:var(--dim)"><b style="color:var(--ink);font-weight:600">{{ supSum.betroffen }} Lieferanten</b> aus sanktionierten Ländern. In <b style="color:var(--ink);font-weight:600">Import-Regeln</b> prüfen.</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showRestriktion }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div style="flex:1;overflow-y:auto;padding:4px 24px 24px;min-width:0">
+                <div style="max-width:720px">
+                  <div style="margin-bottom:20px">
+                    <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint);margin-bottom:8px">REGELNAME</div>
+                    <input value="{{ impName }}" onInput="{{ onImpName }}" placeholder="z. B. EU-Sanktionen 2026" style="width:100%;border:1px solid var(--line2);background:var(--bg);color:var(--ink);font:500 14px 'Archivo';padding:11px 13px;outline:none" style-focus="border-color:var(--accent)" />
+                  </div>
+
+                  <div style="margin-bottom:20px">
+                    <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint);margin-bottom:8px">WIRKUNG BEI TREFFER</div>
+                    <div style="display:flex;gap:0;border:1px solid var(--line2);width:fit-content">
+                      <button onClick="{{ effBlk.on }}" style="padding:10px 18px;border:none;font:700 11px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ effBlk.bg }};color:{{ effBlk.col }}">⛔ BLOCKIEREN</button>
+                      <button onClick="{{ effGen.on }}" style="padding:10px 18px;border:none;border-left:1px solid var(--line2);font:700 11px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ effGen.bg }};color:{{ effGen.col }}">◷ GENEHMIGUNG</button>
+                      <button onClick="{{ effWrn.on }}" style="padding:10px 18px;border:none;border-left:1px solid var(--line2);font:700 11px 'Space Mono';letter-spacing:.04em;cursor:pointer;background:{{ effWrn.bg }};color:{{ effWrn.col }}">⚠ WARNEN</button>
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom:20px">
+                    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px"><span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">LÄNDER</span><span style="font:400 9.5px 'Space Mono';color:var(--faint)">Herkunft / Transit</span></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                      <sc-for list="{{ laenderChips }}" as="c" hint-placeholder-count="8">
+                        <button onClick="{{ c.on }}" style="font:500 11.5px 'Archivo';padding:8px 13px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.col }};cursor:pointer">{{ c.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom:20px">
+                    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px"><span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">FIRMEN</span><span style="font:400 9.5px 'Space Mono';color:var(--faint)">Denied Parties</span></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                      <sc-for list="{{ firmenChips }}" as="c" hint-placeholder-count="5">
+                        <button onClick="{{ c.on }}" style="font:500 11.5px 'Archivo';padding:8px 13px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.col }};cursor:pointer">{{ c.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom:20px">
+                    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px"><span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">GÜTER</span><span style="font:400 9.5px 'Space Mono';color:var(--faint)">Warengruppen / HS</span></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                      <sc-for list="{{ gueterChips }}" as="c" hint-placeholder-count="7">
+                        <button onClick="{{ c.on }}" style="font:500 11.5px 'Archivo';padding:8px 13px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.col }};cursor:pointer">{{ c.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-end;gap:20px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)">
+                    <div>
+                      <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint);margin-bottom:8px">GÜLTIG AB</div>
+                      <input type="date" value="{{ impDate }}" onInput="{{ onImpDate }}" style="border:1px solid var(--line2);background:var(--bg);color:var(--ink);font:500 12.5px 'Space Mono';padding:9px 11px;outline:none" style-focus="border-color:var(--accent)" />
+                    </div>
+                    <div style="flex:1"></div>
+                    <span style="font:400 11px 'Space Mono';color:var(--faint);margin-bottom:11px">{{ impCount }} Kriterien gewählt</span>
+                    <button onClick="{{ saveImp }}" style="padding:12px 22px;border:none;background:var(--accent);color:#fff;font:700 11px 'Space Mono';letter-spacing:.04em;cursor:pointer">REGEL SPEICHERN</button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="width:320px;flex:none;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0">
+                <div style="display:flex;align-items:center;gap:9px;padding:16px 16px 13px;border-bottom:1px solid var(--line)">
+                  <span style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
+                  <span style="font:700 11px 'Space Mono';letter-spacing:.06em;color:var(--ink)">AKTIVE REGELN</span>
+                </div>
+                <div style="flex:1;overflow-y:auto">
+                  <sc-for list="{{ impRulesV }}" as="r" hint-placeholder-count="3">
+                    <div style="padding:14px 16px;border-bottom:1px solid var(--line);border-left:3px solid {{ r.effC }}">
+                      <div style="display:flex;align-items:flex-start;gap:8px">
+                        <span style="font:600 13px 'Archivo';color:var(--ink);flex:1;line-height:1.2">{{ r.name }}</span>
+                        <span style="font:700 8px 'Space Mono';color:#fff;background:{{ r.effC }};padding:2px 5px;flex:none">{{ r.effL }}</span>
+                      </div>
+                      <div style="font:400 10px 'Space Mono';color:var(--faint);margin-top:7px">{{ r.scope }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showAuftraege }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-x:auto;overflow-y:hidden;padding:2px 24px 22px">
+              <div style="display:flex;gap:14px;height:100%;align-items:flex-start">
+                <sc-for list="{{ bldColsV }}" as="col" hint-placeholder-count="5">
+                  <div style="width:230px;flex:none;display:flex;flex-direction:column;gap:9px;height:100%">
+                    <div style="display:flex;align-items:center;gap:8px;padding:0 2px 2px">
+                      <span style="width:8px;height:8px;background:{{ col.dot }};flex:none"></span>
+                      <span style="font:700 10.5px 'Space Mono';letter-spacing:.06em;color:var(--dim)">{{ col.label }}</span>
+                      <span style="font:700 10px 'Space Mono';color:var(--faint);padding:0 5px;border:1px solid var(--line)">{{ col.count }}</span>
+                    </div>
+                    <div onDragOver="{{ col.onDragOver }}" onDrop="{{ col.onDrop }}" style="flex:1;display:flex;flex-direction:column;gap:9px;padding:8px;background:var(--chip);border:1px solid var(--line);overflow-y:auto">
+                      <sc-for list="{{ col.deals }}" as="d" hint-placeholder-count="2">
+                        <div draggable="true" onDragStart="{{ d.onDragStart }}" style="background:var(--panel);border:1px solid var(--line);border-left:3px solid {{ d.accent }};padding:11px 12px 10px;cursor:grab;opacity:{{ d.op }}">
+                          <div style="font:700 10px 'Space Mono';letter-spacing:.04em;color:var(--accent)">{{ d.nr }}</div>
+                          <div style="font:600 13.5px 'Archivo';color:var(--ink);margin-top:5px">{{ d.produkt }}</div>
+                          <div style="font:400 11px 'Space Mono';color:var(--dim);margin-top:2px">{{ d.menge }}</div>
+                          <div style="display:flex;align-items:center;gap:8px;margin-top:11px">
+                            <span style="font:400 10px 'Space Mono';color:var(--faint);border:1px solid var(--line);padding:2px 6px">{{ d.maschine }}</span>
+                            <span style="margin-left:auto;width:20px;height:20px;background:{{ d.ownerBg }};color:#fff;font:700 8.5px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ d.owner }}</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showMaschinen }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-y:auto;padding:2px 24px 24px">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                <sc-for list="{{ machinesV }}" as="m" hint-placeholder-count="8">
+                  <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid {{ m.statusC }};padding:14px 15px;display:flex;flex-direction:column;gap:12px;opacity:{{ m.dimOp }}">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="font:700 13px 'Space Mono';color:var(--ink)">{{ m.name }}</span>
+                      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+                        <span style="width:7px;height:7px;border-radius:50%;background:{{ m.statusC }};animation:{{ m.pulse }}"></span>
+                        <span style="font:700 9px 'Space Mono';letter-spacing:.03em;color:{{ m.statusC }}">{{ m.statusL }}</span>
+                      </div>
+                    </div>
+                    <div style="display:flex;align-items:flex-end;gap:7px">
+                      <span style="font:400 40px 'Anton';color:{{ m.oeeC }};line-height:0.78">{{ m.oeeTxt }}</span>
+                      <span style="font:700 9px 'Space Mono';color:var(--faint);margin-bottom:5px">OEE</span>
+                    </div>
+                    <div style="font:400 10.5px 'Space Mono';color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.order }}</div>
+                    <div style="display:flex;gap:7px">
+                      <div style="flex:1"><div style="font:700 8px 'Space Mono';color:var(--faint)">VERF</div><div style="height:4px;background:var(--chip);margin-top:3px"><div style="height:100%;width:{{ m.avW }};background:{{ m.statusC }}"></div></div></div>
+                      <div style="flex:1"><div style="font:700 8px 'Space Mono';color:var(--faint)">LEIST</div><div style="height:4px;background:var(--chip);margin-top:3px"><div style="height:100%;width:{{ m.leW }};background:{{ m.statusC }}"></div></div></div>
+                      <div style="flex:1"><div style="font:700 8px 'Space Mono';color:var(--faint)">QUAL</div><div style="height:4px;background:var(--chip);margin-top:3px"><div style="height:100%;width:{{ m.quW }};background:{{ m.statusC }}"></div></div></div>
+                    </div>
+                    <div>
+                      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font:700 8px 'Space Mono';color:var(--faint)">FORTSCHRITT</span><span style="font:700 9px 'Space Mono';color:var(--dim)">{{ m.progW }}</span></div>
+                      <div style="height:6px;background:var(--chip)"><div style="height:100%;width:{{ m.progW }};background:{{ m.statusC }}"></div></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showMachbar }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div style="flex:1;overflow-y:auto;padding:2px 24px 24px;min-width:0">
+                <div style="border:1px solid var(--line);border-left:4px solid {{ feas.bannerC }};background:var(--panel);padding:16px 18px;display:flex;align-items:center;gap:16px;margin-bottom:20px">
+                  <span style="width:42px;height:42px;flex:none;background:{{ feas.bannerC }};color:#fff;display:flex;align-items:center;justify-content:center;font:400 22px 'Archivo'">{{ feas.icon }}</span>
+                  <div style="min-width:0">
+                    <div style="font:400 10px 'Space Mono';letter-spacing:.08em;color:var(--accent)">AUFTRAG {{ capOrder.nr }} · {{ capOrder.produkt }} · {{ capOrder.menge }} Stk</div>
+                    <div style="font:400 24px 'Anton';color:{{ feas.bannerC }};margin-top:4px">{{ feas.banner }}</div>
+                    <div style="font:400 11px 'Space Mono';color:var(--dim);margin-top:4px">{{ feas.sub }} · Wunschtermin {{ capOrder.wunschDate }}</div>
+                  </div>
+                  <div style="margin-left:auto;display:flex;gap:22px">
+                    <div style="text-align:right"><div style="font:700 9px 'Space Mono';color:var(--faint)">BENÖTIGT</div><div style="font:400 22px 'Anton';color:var(--ink);margin-top:3px">{{ feas.reqH }}</div></div>
+                    <div style="text-align:right"><div style="font:700 9px 'Space Mono';color:var(--faint)">VERFÜGBAR</div><div style="font:400 22px 'Anton';color:var(--ink);margin-top:3px">{{ feas.availH }}</div></div>
+                    <div style="text-align:right"><div style="font:700 9px 'Space Mono';color:var(--faint)">AUSLASTUNG</div><div style="font:400 22px 'Anton';color:{{ feas.bannerC }};margin-top:3px">{{ feas.util }}</div></div>
+                  </div>
+                </div>
+                <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint);margin-bottom:6px">ENGPASS-ANALYSE · AUSLASTUNG JE RESSOURCE</div>
+                <sc-for list="{{ feas.resources }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--line)">
+                    <span style="width:196px;flex:none;font:500 12.5px 'Archivo';color:var(--ink)">{{ r.name }}</span>
+                    <div style="flex:1;height:22px;background:var(--chip);overflow:hidden"><div style="height:100%;width:{{ r.loadW }};background:{{ r.c }}"></div></div>
+                    <span style="width:52px;text-align:right;font:700 13px 'Space Mono';color:{{ r.c }}">{{ r.load }}</span>
+                    <span style="width:118px;text-align:right;font:400 10px 'Space Mono';color:var(--faint)">{{ r.reqTxt }} / {{ r.capTxt }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="width:300px;flex:none;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0">
+                <div style="display:flex;align-items:center;gap:9px;padding:16px 16px 13px;border-bottom:1px solid var(--line)">
+                  <span style="color:var(--accent);font-size:14px">✦</span>
+                  <span style="font:700 11px 'Space Mono';letter-spacing:.06em;color:var(--ink)">STELLHEBEL</span>
+                </div>
+                <sc-for list="{{ capLeversV }}" as="l" hint-placeholder-count="3">
+                  <div onClick="{{ l.toggle }}" style="display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line);cursor:pointer">
+                    <div style="flex:1;min-width:0"><div style="font:600 12.5px 'Archivo';color:var(--ink)">{{ l.label }}</div><div style="font:400 10px 'Space Mono';color:var(--faint);margin-top:2px">{{ l.desc }}</div></div>
+                    <div style="position:relative;width:36px;height:20px;background:{{ l.trackBg }};flex:none"><span style="position:absolute;top:2px;left:{{ l.knobLeft }};width:16px;height:16px;background:#fff"></span></div>
+                  </div>
+                </sc-for>
+                <div style="margin:14px 16px;padding:13px;border:1px solid var(--line);display:flex;gap:10px">
+                  <span style="color:var(--accent);font-size:14px;flex:none">✦</span>
+                  <div style="font:400 11.5px/1.5 'Archivo';color:var(--dim)">Schalter kombinieren, bis der Auftrag zum Wunschtermin machbar ist.</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showSchichten }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-y:auto;padding:4px 24px 24px">
+              <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:18px">
+                <span style="font:400 11px 'Space Mono';color:var(--dim)">KW 29 · Klick auf Zelle: Frei → Voll → Teil</span>
+                <div style="margin-left:auto;display:flex;align-items:baseline;gap:9px"><span style="font:700 9.5px 'Space Mono';letter-spacing:.06em;color:var(--faint)">KAPAZITÄT</span><span style="font:400 26px 'Anton';color:var(--ink)">{{ shiftCap }}</span><span style="font:400 11px 'Space Mono';color:var(--dim)">Schichten / Woche</span></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;gap:8px;align-items:center">
+                  <div style="width:150px;flex:none"></div>
+                  <sc-for list="{{ shiftDays }}" as="d" hint-placeholder-count="6"><div style="flex:1;text-align:center;font:700 10px 'Space Mono';letter-spacing:.04em;color:var(--faint)">{{ d }}</div></sc-for>
+                </div>
+                <sc-for list="{{ shiftMatrix }}" as="row" hint-placeholder-count="3">
+                  <div style="display:flex;gap:8px;align-items:stretch">
+                    <div style="width:150px;flex:none;display:flex;flex-direction:column;justify-content:center"><div style="font:600 12.5px 'Archivo';color:var(--ink)">{{ row.label }}</div><div style="font:400 10px 'Space Mono';color:var(--faint)">{{ row.time }} Uhr</div></div>
+                    <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="6">
+                      <div onClick="{{ c.on }}" style="flex:1;height:54px;background:{{ c.bg }};border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:{{ c.txt }};font:700 10px 'Space Mono';letter-spacing:.05em">{{ c.lbl }}</div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:18px;margin-top:20px">
+                <div style="display:flex;align-items:center;gap:7px"><span style="width:11px;height:11px;background:#159E5B"></span><span style="font:400 11px 'Space Mono';color:var(--dim)">Voll besetzt</span></div>
+                <div style="display:flex;align-items:center;gap:7px"><span style="width:11px;height:11px;background:#E9AE06"></span><span style="font:400 11px 'Space Mono';color:var(--dim)">Teilbesetzt</span></div>
+                <div style="display:flex;align-items:center;gap:7px"><span style="width:11px;height:11px;background:var(--chip);border:1px solid var(--line)"></span><span style="font:400 11px 'Space Mono';color:var(--dim)">Frei</span></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showProdukte }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div style="width:250px;flex:none;border-right:1px solid var(--line);overflow-y:auto;background:var(--panel)">
+                <div style="padding:14px 18px 10px;font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">PRODUKTE · {{ prodCount }}</div>
+                <sc-for list="{{ productsV }}" as="p" hint-placeholder-count="5">
+                  <div onClick="{{ p.onClick }}" style="padding:13px 18px;border-bottom:1px solid var(--line);border-left:3px solid {{ p.selBar }};background:{{ p.selBg }};cursor:pointer">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="font:600 13.5px 'Archivo';color:var(--ink)">{{ p.name }}</span>
+                      <sc-if value="{{ p.auslauf }}" hint-placeholder-val="{{ false }}"><span style="font:700 7.5px 'Space Mono';letter-spacing:.04em;color:var(--faint);border:1px solid var(--line2);padding:1px 4px">AUSLAUF</span></sc-if>
+                    </div>
+                    <div style="font:400 10px 'Space Mono';color:var(--faint);margin-top:2px">{{ p.art }} · {{ p.variant }}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+                <div style="display:flex;align-items:baseline;gap:14px;padding:16px 22px 12px;border-bottom:1px solid var(--line)">
+                  <span style="font:400 22px 'Anton';color:var(--ink)">{{ prodMeta.name }}</span>
+                  <span style="font:400 10.5px 'Space Mono';color:var(--faint)">{{ prodMeta.art }} · {{ prodMeta.variant }}</span>
+                  <div style="margin-left:auto;display:flex;gap:20px">
+                    <div style="text-align:right"><div style="font:700 8.5px 'Space Mono';color:var(--faint)">POSITIONEN</div><div style="font:700 14px 'Space Mono';color:var(--ink);margin-top:2px">{{ prodMeta.bomCount }}</div></div>
+                    <div style="text-align:right"><div style="font:700 8.5px 'Space Mono';color:var(--faint)">SCHRITTE</div><div style="font:700 14px 'Space Mono';color:var(--ink);margin-top:2px">{{ prodMeta.stepCount }}</div></div>
+                    <div style="text-align:right"><div style="font:700 8.5px 'Space Mono';color:var(--faint)">DURCHLAUF</div><div style="font:700 14px 'Space Mono';color:var(--accent);margin-top:2px">{{ prodMeta.totalTime }}</div></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex:1;min-height:0">
+                  <div style="flex:1;overflow-y:auto;padding:0 20px;min-width:0">
+                    <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint);padding:14px 0 8px">STÜCKLISTE</div>
+                    <div style="display:grid;grid-template-columns:48px 1fr 82px 92px 26px;align-items:center;height:32px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--bg);z-index:1">
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint);padding-left:10px">POS</span>
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint)">KOMPONENTE</span>
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint)">MENGE</span>
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint)">TYP</span>
+                      <span></span>
+                    </div>
+                    <sc-for list="{{ prodBomV }}" as="b" hint-placeholder-count="5">
+                      <div style="display:grid;grid-template-columns:48px 1fr 82px 92px 26px;align-items:center;height:42px;border-bottom:1px solid var(--line);background:{{ b.rowbg }}">
+                        <span style="font:700 9.5px 'Space Mono';color:var(--faint);padding-left:10px">{{ b.pos }}</span>
+                        <span style="font:{{ b.nameWeight }} 12.5px 'Archivo';color:var(--ink);padding-left:{{ b.indent }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+                        <span style="font:400 10.5px 'Space Mono';color:var(--dim)">{{ b.menge }} {{ b.unit }}</span>
+                        <div><span style="font:700 8.5px 'Space Mono';letter-spacing:.02em;color:{{ b.typCol }};background:{{ b.typBg }};border:1px solid {{ b.typBd }};padding:3px 6px">{{ b.typShort }}</span></div>
+                        <div style="display:flex;justify-content:center" title="{{ b.availL }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ b.availC }}"></span></div>
+                      </div>
+                    </sc-for>
+                  </div>
+
+                  <div style="width:452px;flex:none;border-left:1px solid var(--line);overflow-y:auto;padding:0 20px">
+                    <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint);padding:14px 0 8px">ARBEITSSCHRITTE</div>
+                    <div style="display:grid;grid-template-columns:44px 1fr 122px 62px;align-items:center;height:32px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--bg);z-index:1">
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint)">NR</span>
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint)">ARBEITSGANG</span>
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint)">MASCHINE</span>
+                      <span style="font:700 9px 'Space Mono';letter-spacing:.06em;color:var(--faint);text-align:right">ZEIT</span>
+                    </div>
+                    <sc-for list="{{ prodRoutingV }}" as="s" hint-placeholder-count="5">
+                      <div style="display:grid;grid-template-columns:44px 1fr 122px 62px;align-items:center;height:42px;border-bottom:1px solid var(--line);background:{{ s.rowbg }}">
+                        <span style="font:700 10px 'Space Mono';color:var(--accent)">{{ s.schritt }}</span>
+                        <span style="font:500 12.5px 'Archivo';color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px">{{ s.gang }}</span>
+                        <div><span style="font:700 9px 'Space Mono';color:{{ s.maschCol }};background:{{ s.maschBg }};border:1px solid {{ s.maschBd }};padding:3px 7px">{{ s.maschTxt }}</span></div>
+                        <span style="font:400 11px 'Space Mono';color:var(--dim);text-align:right">{{ s.zeitTxt }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showTeam }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div style="flex:1;overflow-y:auto;padding:0 0 0 24px;min-width:0">
+                <div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 110px;align-items:center;padding:0 12px;height:36px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--bg);z-index:1">
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">MITARBEITER</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">ROLLE</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">TEAM</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">STATUS</span>
+                </div>
+                <sc-for list="{{ hrRowsV }}" as="r" hint-placeholder-count="8">
+                  <div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 110px;align-items:center;padding:0 12px;height:54px;border-bottom:1px solid var(--line);background:{{ r.rowbg }}">
+                    <div style="display:flex;align-items:center;gap:11px;min-width:0">
+                      <span style="width:30px;height:30px;background:{{ r.avBg }};color:#fff;font:700 10px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ r.ini }}</span>
+                      <span style="font:600 13.5px 'Archivo';color:var(--ink)">{{ r.name }}</span>
+                    </div>
+                    <span style="font:400 12.5px 'Archivo';color:var(--dim)">{{ r.role }}</span>
+                    <span style="font:400 11px 'Space Mono';color:var(--dim)">{{ r.team }}</span>
+                    <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:{{ r.pillC }}"></span><span style="font:400 12px 'Archivo';color:var(--ink)">{{ r.pillL }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="width:300px;flex:none;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0">
+                <div style="display:flex;align-items:center;gap:9px;padding:16px 16px 13px;border-bottom:1px solid var(--line)">
+                  <span style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
+                  <span style="font:700 11px 'Space Mono';letter-spacing:.06em;color:var(--ink)">ABWESEND HEUTE</span>
+                </div>
+                <div style="flex:1;overflow-y:auto">
+                  <sc-for list="{{ absentV }}" as="a" hint-placeholder-count="2">
+                    <div style="display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1px solid var(--line)">
+                      <span style="width:30px;height:30px;background:{{ a.avBg }};color:#fff;font:700 10px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ a.ini }}</span>
+                      <div style="min-width:0;flex:1">
+                        <div style="font:600 12.5px 'Archivo';color:var(--ink)">{{ a.name }}</div>
+                        <div style="font:400 10px 'Space Mono';color:var(--faint);margin-top:1px">{{ a.role }}</div>
+                      </div>
+                      <span style="font:700 8px 'Space Mono';color:#fff;background:{{ a.pillC }};padding:2px 5px">{{ a.pillL }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showOrg }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-y:auto;padding:14px 24px 28px">
+              <div style="display:flex;flex-direction:column;align-items:center">
+                <div style="width:230px;background:{{ orgV.ceo.bg }};color:#fff;padding:16px 18px;display:flex;align-items:center;gap:12px">
+                  <span style="width:40px;height:40px;background:rgba(255,255,255,.16);color:#fff;font:700 12px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ orgV.ceo.ini }}</span>
+                  <div><div style="font:600 14px 'Archivo'">{{ orgV.ceo.name }}</div><div style="font:700 9px 'Space Mono';letter-spacing:.08em;color:rgba(255,255,255,.7);margin-top:2px">{{ orgV.ceo.role }}</div></div>
+                </div>
+                <div style="width:1px;height:26px;background:var(--line2)"></div>
+                <div style="display:flex;align-items:flex-start;gap:18px">
+                  <sc-for list="{{ orgV.reports }}" as="r" hint-placeholder-count="4">
+                    <div style="width:216px;display:flex;flex-direction:column">
+                      <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid {{ r.bg }};padding:14px 15px">
+                        <div style="display:flex;align-items:center;gap:11px">
+                          <span style="width:36px;height:36px;background:{{ r.bg }};color:#fff;font:700 11px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ r.ini }}</span>
+                          <div style="min-width:0"><div style="font:600 13.5px 'Archivo';color:var(--ink)">{{ r.name }}</div><div style="font:400 10.5px 'Space Mono';color:var(--faint);margin-top:1px">{{ r.role }}</div></div>
+                        </div>
+                        <div style="font:700 9px 'Space Mono';letter-spacing:.06em;color:{{ r.bg }};margin-top:12px;padding-top:10px;border-top:1px solid var(--line)">{{ r.team }}</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-left:12px">
+                        <sc-for list="{{ r.reports }}" as="d" hint-placeholder-count="3">
+                          <div style="font:400 11px 'Space Mono';color:var(--dim);border-left:2px solid var(--line2);padding:5px 0 5px 11px">{{ d }}</div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showBewerber }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-x:auto;overflow-y:hidden;padding:2px 24px 22px">
+              <div style="display:flex;gap:14px;height:100%;align-items:flex-start">
+                <sc-for list="{{ applicantColsV }}" as="col" hint-placeholder-count="5">
+                  <div style="width:230px;flex:none;display:flex;flex-direction:column;gap:9px;height:100%">
+                    <div style="display:flex;align-items:center;gap:8px;padding:0 2px 2px">
+                      <span style="width:8px;height:8px;background:{{ col.dot }};flex:none"></span>
+                      <span style="font:700 10.5px 'Space Mono';letter-spacing:.06em;color:var(--dim)">{{ col.label }}</span>
+                      <span style="font:700 10px 'Space Mono';color:var(--faint);padding:0 5px;border:1px solid var(--line)">{{ col.count }}</span>
+                    </div>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:9px;padding:8px;background:var(--chip);border:1px solid var(--line);overflow-y:auto">
+                      <sc-for list="{{ col.items }}" as="a" hint-placeholder-count="2">
+                        <div style="background:var(--panel);border:1px solid var(--line);padding:11px 12px 10px">
+                          <div style="display:flex;align-items:center;gap:9px">
+                            <span style="width:28px;height:28px;background:{{ a.avBg }};color:#fff;font:700 9.5px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ a.ini }}</span>
+                            <div style="min-width:0"><div style="font:600 12.5px 'Archivo';color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.name }}</div><div style="font:400 10px 'Space Mono';color:var(--faint)">{{ a.team }}</div></div>
+                          </div>
+                          <div style="font:400 11px 'Archivo';color:var(--dim);margin-top:8px">{{ a.role }}</div>
+                          <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+                            <span style="font:700 8px 'Space Mono';letter-spacing:.04em;color:#fff;background:{{ a.scoreCol }};padding:2px 5px">MATCH {{ a.scoreTxt }}</span>
+                            <span style="margin-left:auto;font:400 10px 'Space Mono';color:var(--faint)">{{ a.daysTxt }}</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isADM }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div style="flex:1;overflow-y:auto;padding:0 0 0 24px;min-width:0">
+                <div style="display:grid;grid-template-columns:2.2fr 110px 100px 1fr;align-items:center;padding:0 12px;height:36px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--bg);z-index:1">
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">NUTZER</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">ROLLE</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">STATUS</span>
+                  <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">LETZTER ZUGRIFF</span>
+                </div>
+                <sc-for list="{{ admRowsV }}" as="r" hint-placeholder-count="7">
+                  <div style="display:grid;grid-template-columns:2.2fr 110px 100px 1fr;align-items:center;padding:0 12px;height:54px;border-bottom:1px solid var(--line);background:{{ r.rowbg }}">
+                    <div style="display:flex;align-items:center;gap:11px;min-width:0">
+                      <span style="width:30px;height:30px;background:{{ r.avBg }};color:#fff;font:700 10px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ r.ini }}</span>
+                      <div style="min-width:0"><div style="font:600 13px 'Archivo';color:var(--ink)">{{ r.user }}</div><div style="font:400 10.5px 'Space Mono';color:var(--faint);margin-top:1px">{{ r.email }}</div></div>
+                    </div>
+                    <div><span style="font:700 9px 'Space Mono';letter-spacing:.03em;color:{{ r.roleCol }};background:{{ r.roleBg }};padding:3px 8px">{{ r.role }}</span></div>
+                    <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:{{ r.pillC }}"></span><span style="font:400 12px 'Archivo';color:var(--ink)">{{ r.pillL }}</span></div>
+                    <span style="font:400 11px 'Space Mono';color:var(--dim)">{{ r.last }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="width:300px;flex:none;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0">
+                <div style="display:flex;align-items:center;gap:9px;padding:16px 16px 13px;border-bottom:1px solid var(--line)">
+                  <span style="width:7px;height:7px;border-radius:50%;background:var(--accent)"></span>
+                  <span style="font:700 11px 'Space Mono';letter-spacing:.06em;color:var(--ink)">SICHERHEIT</span>
+                </div>
+                <div style="flex:1;overflow-y:auto;padding:6px 0">
+                  <sc-for list="{{ admTogglesV }}" as="t" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)">
+                      <span style="font:500 12.5px 'Archivo';color:var(--ink);flex:1">{{ t.label }}</span>
+                      <span style="font:700 8px 'Space Mono';color:var(--faint)">{{ t.stateLbl }}</span>
+                      <div style="position:relative;width:36px;height:20px;background:{{ t.trackBg }};flex:none"><span style="position:absolute;top:2px;left:{{ t.knobLeft }};width:16px;height:16px;background:#fff"></span></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showCrmKanban }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-x:auto;overflow-y:hidden;padding:2px 24px 22px">
+              <div style="display:flex;gap:14px;height:100%;align-items:flex-start">
+                <sc-for list="{{ columnsD }}" as="col" hint-placeholder-count="5">
+                  <div style="width:236px;flex:none;display:flex;flex-direction:column;gap:9px;height:100%">
+                    <div style="display:flex;align-items:center;gap:8px;padding:0 2px 2px">
+                      <span style="width:8px;height:8px;background:{{ col.dot }};flex:none"></span>
+                      <span style="font:700 10.5px 'Space Mono';letter-spacing:.07em;color:var(--dim)">{{ col.label }}</span>
+                      <span style="font:700 10px 'Space Mono';color:var(--faint);padding:0 5px;border:1px solid var(--line)">{{ col.count }}</span>
+                      <span style="margin-left:auto;font:400 10px 'Space Mono';color:var(--faint)">{{ col.sumFmt }}</span>
+                    </div>
+                    <div onDragOver="{{ col.onDragOver }}" onDrop="{{ col.onDrop }}" style="flex:1;display:flex;flex-direction:column;gap:9px;padding:8px;background:var(--chip);border:1px solid var(--line);overflow-y:auto">
+                      <sc-for list="{{ col.deals }}" as="d" hint-placeholder-count="2">
+                        <div draggable="true" onDragStart="{{ d.onDragStart }}" style="background:var(--panel);border:1px solid var(--line);border-left:3px solid {{ d.accent }};padding:11px 12px 10px;cursor:grab;opacity:{{ d.op }}">
+                          <div style="font:600 13.5px 'Archivo';color:var(--ink);line-height:1.15">{{ d.company }}</div>
+                          <div style="font:400 11.5px 'Archivo';color:var(--dim);margin-top:3px">{{ d.contact }}</div>
+                          <div style="display:flex;align-items:center;gap:8px;margin-top:11px">
+                            <span style="width:20px;height:20px;background:{{ d.ownerBg }};color:#fff;font:700 8.5px 'Space Mono';display:flex;align-items:center;justify-content:center;flex:none">{{ d.owner }}</span>
+                            <span style="font:700 12.5px 'Space Mono';color:var(--ink)">{{ d.valueFmt }}</span>
+                            <span style="margin-left:auto;font:400 10px 'Space Mono';color:var(--faint)">{{ d.days }}T</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showCrmTable }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-y:auto;padding:0 24px">
+              <div style="display:grid;grid-template-columns:26px 2fr 158px 128px 132px 1.3fr 44px;align-items:center;padding:0 12px;height:36px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--bg);z-index:1">
+                <span></span>
+                <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">FIRMA</span>
+                <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">PHASE</span>
+                <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">WERT</span>
+                <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">WAHRSCHEINL.</span>
+                <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">LETZTE AKTIVITÄT</span>
+                <span style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint);text-align:right">TEAM</span>
+              </div>
+              <sc-for list="{{ rowsD }}" as="r" hint-placeholder-count="10">
+                <div style="display:grid;grid-template-columns:26px 2fr 158px 128px 132px 1.3fr 44px;align-items:center;padding:0 12px;height:54px;border-bottom:1px solid var(--line);background:{{ r.rowbg }}" style-hover="background:var(--chip)">
+                  <span style="width:13px;height:13px;border:1px solid var(--line2)"></span>
+                  <div style="min-width:0;padding-right:14px">
+                    <div contentEditable="true" onBlur="{{ r.onCompanyBlur }}" style="font:600 13.5px 'Archivo';color:var(--ink);outline:none;cursor:text;display:inline-block;padding:1px 2px" style-focus="outline:2px solid var(--accent);background:var(--panel)">{{ r.company }}</div>
+                    <div style="font:400 11px 'Archivo';color:var(--dim);margin-top:1px">{{ r.contact }}</div>
+                  </div>
+                  <div>
+                    <select value="{{ r.stage }}" onChange="{{ r.onPhaseChange }}" style="appearance:none;-webkit-appearance:none;border:1px solid var(--line2);background:var(--chip);color:var(--ink);font:700 9.5px 'Space Mono';letter-spacing:.04em;padding:6px 22px 6px 9px;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);background-position:calc(100% - 12px) 50%,calc(100% - 8px) 50%;background-size:4px 4px,4px 4px;background-repeat:no-repeat">
+                      <sc-for list="{{ stageOptions }}" as="o" hint-placeholder-count="5">
+                        <option value="{{ o.id }}">{{ o.label }}</option>
+                      </sc-for>
+                    </select>
+                  </div>
+                  <div style="display:flex;align-items:baseline;gap:1px;font:700 13px 'Space Mono';color:var(--ink)">
+                    <span style="color:var(--dim)">€</span><span contentEditable="true" onBlur="{{ r.onValueBlur }}" style="outline:none;cursor:text;padding:1px 2px" style-focus="outline:2px solid var(--accent);background:var(--panel)">{{ r.valueEUR }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding-right:16px">
+                    <div style="flex:1;height:5px;background:var(--chip);overflow:hidden"><div style="height:100%;width:{{ r.probW }};background:var(--accent)"></div></div>
+                    <span style="font:400 10px 'Space Mono';color:var(--dim);flex:none">{{ r.prob }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                    <span style="width:6px;height:6px;border-radius:50%;background:{{ r.stageDot }};flex:none"></span>
+                    <span style="font:400 11px 'Space Mono';color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.last }}</span>
+                  </div>
+                  <div style="display:flex;justify-content:flex-end">
+                    <span style="width:24px;height:24px;background:{{ r.ownerBg }};color:#fff;font:700 9px 'Space Mono';display:flex;align-items:center;justify-content:center">{{ r.owner }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showCrmFunnel }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow-y:auto;padding:14px 24px 24px">
+              <div style="display:flex;gap:14px;align-items:stretch">
+                <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                  <sc-for list="{{ funnelD }}" as="f" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:16px">
+                      <div style="width:118px;flex:none;text-align:right">
+                        <div style="font:700 10px 'Space Mono';letter-spacing:.05em;color:var(--ink)">{{ f.label }}</div>
+                        <div style="font:400 10px 'Space Mono';color:var(--faint);margin-top:2px">{{ f.sumFmt }}</div>
+                      </div>
+                      <div style="flex:1;display:flex;justify-content:center">
+                        <div style="width:{{ f.width }};min-width:96px;background:{{ f.color }};height:74px;display:flex;align-items:center;justify-content:center;gap:12px;transition:width .35s ease">
+                          <span style="font:400 34px 'Anton';color:#fff;line-height:0.8">{{ f.count }}</span>
+                          <span style="font:700 10px 'Space Mono';color:rgba(255,255,255,.85)">DEALS</span>
+                        </div>
+                      </div>
+                      <div style="width:88px;flex:none">
+                        <div style="font:700 15px 'Space Mono';color:var(--ink)">{{ f.pct }}</div>
+                        <div style="font:400 9.5px 'Space Mono';color:var(--faint);margin-top:1px">Konv. {{ f.conv }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="width:250px;flex:none;border-left:1px solid var(--line);padding-left:20px;display:flex;flex-direction:column;gap:16px">
+                  <div>
+                    <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">GESAMT-PIPELINE</div>
+                    <div style="font:400 30px 'Anton';color:var(--ink);margin-top:8px">€945k</div>
+                  </div>
+                  <div>
+                    <div style="font:700 9.5px 'Space Mono';letter-spacing:.08em;color:var(--faint)">LEAD → ABSCHLUSS</div>
+                    <div style="font:400 30px 'Anton';color:var(--ink);margin-top:8px">38%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Nächster Schritt z. B.: „Digital-Twin-Ansicht fürs Build-Modul" · „Supply mit Lieferanten-Kanban erweitern" · „⌘K-Command-Palette über alle Module"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    modeA: 'dark', modeB: 'light', modeC: 'dark',
+    dragBoard: null, dragId: null,
+    copilotA: false, copilotC: false,
+    dealsA: [
+      { id: 1, company: 'Nordwind Logistik', contact: 'Michael Braun · CPO', value: 84000, stage: 'verhandlung', owner: 'JS', days: 3 },
+      { id: 2, company: 'Meridian Bau AG', contact: 'Karin Frei · Einkauf', value: 152000, stage: 'angebot', owner: 'AL', days: 6 },
+      { id: 3, company: 'Fensterbau Keller', contact: 'Tom Roth', value: 23500, stage: 'qual', owner: 'JS', days: 1 },
+      { id: 4, company: 'Vela Robotics', contact: 'Sara Mena · CTO', value: 240000, stage: 'verhandlung', owner: 'AL', days: 9, hot: true },
+      { id: 5, company: 'Alpin Getränke', contact: 'Peter Huber', value: 41000, stage: 'neu', owner: 'MW', days: 0 },
+      { id: 6, company: 'Kübler & Co', contact: 'Dana Sanz', value: 67000, stage: 'angebot', owner: 'MW', days: 4 },
+      { id: 7, company: 'Delta Pharma', contact: 'Rina Ito · Ops', value: 128000, stage: 'qual', owner: 'JS', days: 2, hot: true },
+      { id: 8, company: 'Hanse Textil', contact: 'Lena Vogt', value: 19000, stage: 'neu', owner: 'AL', days: 1 },
+      { id: 9, company: 'Solaris Energie', contact: 'Faruk Kaya', value: 305000, stage: 'gewonnen', owner: 'MW', days: 12 },
+      { id: 10, company: 'Brandt Maschinen', contact: 'Clara Neu', value: 58000, stage: 'neu', owner: 'JS', days: 0 },
+      { id: 11, company: 'Orbit Medien', contact: 'Nils Roos', value: 36000, stage: 'qual', owner: 'AL', days: 3 },
+      { id: 12, company: 'Terra Beton', contact: 'Gustav Falk', value: 96000, stage: 'angebot', owner: 'MW', days: 5, hot: true },
+    ],
+    activityA: [
+      { dot: '#1358D8', name: 'Amir L.', rest: 'sendete Angebot an Meridian Bau AG', time: 'vor 18 Min' },
+      { dot: '#8A8F98', name: 'System', rest: 'importierte 3 neue Leads aus dem Webformular', time: 'vor 1 Std' },
+      { dot: '#159E5B', name: 'Mara W.', rest: 'gewann Solaris Energie · €305k', time: 'vor 3 Std' },
+      { dot: '#E5322A', name: 'Copilot', rest: 'erstellte die Q3-Zusammenfassung', time: 'vor 4 Std' },
+      { dot: '#E9AE06', name: 'Jana S.', rest: 'qualifizierte Delta Pharma', time: 'gestern' },
+    ],
+    dealsC: [
+      { id: 1, company: 'Nordwind Logistik', contact: 'Michael Braun · CPO', value: 84000, stage: 'verhandlung', owner: 'JS', days: 3 },
+      { id: 2, company: 'Meridian Bau AG', contact: 'Karin Frei · Einkauf', value: 152000, stage: 'angebot', owner: 'AL', days: 6 },
+      { id: 3, company: 'Fensterbau Keller', contact: 'Tom Roth', value: 23500, stage: 'qual', owner: 'JS', days: 1 },
+      { id: 4, company: 'Vela Robotics', contact: 'Sara Mena · CTO', value: 240000, stage: 'verhandlung', owner: 'AL', days: 9, hot: true },
+      { id: 5, company: 'Alpin Getränke', contact: 'Peter Huber', value: 41000, stage: 'neu', owner: 'MW', days: 0 },
+      { id: 6, company: 'Kübler & Co', contact: 'Dana Sanz', value: 67000, stage: 'angebot', owner: 'MW', days: 4 },
+      { id: 7, company: 'Delta Pharma', contact: 'Rina Ito · Ops', value: 128000, stage: 'qual', owner: 'JS', days: 2, hot: true },
+      { id: 8, company: 'Hanse Textil', contact: 'Lena Vogt', value: 19000, stage: 'neu', owner: 'AL', days: 1 },
+      { id: 9, company: 'Solaris Energie', contact: 'Faruk Kaya', value: 305000, stage: 'gewonnen', owner: 'MW', days: 12 },
+      { id: 10, company: 'Brandt Maschinen', contact: 'Clara Neu', value: 58000, stage: 'neu', owner: 'JS', days: 0 },
+      { id: 11, company: 'Orbit Medien', contact: 'Nils Roos', value: 36000, stage: 'qual', owner: 'AL', days: 3 },
+      { id: 12, company: 'Terra Beton', contact: 'Gustav Falk', value: 96000, stage: 'angebot', owner: 'MW', days: 5, hot: true },
+    ],
+    rowsB: [
+      { id: 4, company: 'Vela Robotics', contact: 'Sara Mena', value: 240000, stage: 'verhandlung', owner: 'AL', last: 'Anruf · vor 2 Std' },
+      { id: 9, company: 'Solaris Energie', contact: 'Faruk Kaya', value: 305000, stage: 'gewonnen', owner: 'MW', last: 'Vertrag · gestern' },
+      { id: 2, company: 'Meridian Bau AG', contact: 'Karin Frei', value: 152000, stage: 'angebot', owner: 'AL', last: 'Angebot gesendet · vor 18 Min' },
+      { id: 7, company: 'Delta Pharma', contact: 'Rina Ito', value: 128000, stage: 'qual', owner: 'JS', last: 'E-Mail geöffnet · vor 5 Std' },
+      { id: 12, company: 'Terra Beton', contact: 'Gustav Falk', value: 96000, stage: 'angebot', owner: 'MW', last: 'Meeting geplant · morgen' },
+      { id: 1, company: 'Nordwind Logistik', contact: 'Michael Braun', value: 84000, stage: 'verhandlung', owner: 'JS', last: 'Nachfassen offen · vor 3 T' },
+      { id: 6, company: 'Kübler & Co', contact: 'Dana Sanz', value: 67000, stage: 'angebot', owner: 'MW', last: 'Demo · vor 1 T' },
+      { id: 10, company: 'Brandt Maschinen', contact: 'Clara Neu', value: 58000, stage: 'neu', owner: 'JS', last: 'Neuer Lead · heute' },
+      { id: 5, company: 'Alpin Getränke', contact: 'Peter Huber', value: 41000, stage: 'neu', owner: 'MW', last: 'Formular · heute' },
+      { id: 11, company: 'Orbit Medien', contact: 'Nils Roos', value: 36000, stage: 'qual', owner: 'AL', last: 'LinkedIn · vor 3 T' },
+    ],
+    rowsD: [
+      { id: 4, company: 'Vela Robotics', contact: 'Sara Mena', value: 240000, stage: 'verhandlung', owner: 'AL', days: 9, last: 'Anruf · vor 2 Std' },
+      { id: 9, company: 'Solaris Energie', contact: 'Faruk Kaya', value: 305000, stage: 'gewonnen', owner: 'MW', days: 12, last: 'Vertrag · gestern' },
+      { id: 2, company: 'Meridian Bau AG', contact: 'Karin Frei', value: 152000, stage: 'angebot', owner: 'AL', days: 6, last: 'Angebot gesendet · vor 18 Min' },
+      { id: 7, company: 'Delta Pharma', contact: 'Rina Ito', value: 128000, stage: 'qual', owner: 'JS', days: 2, last: 'E-Mail geöffnet · vor 5 Std' },
+      { id: 12, company: 'Terra Beton', contact: 'Gustav Falk', value: 96000, stage: 'angebot', owner: 'MW', days: 5, last: 'Meeting geplant · morgen' },
+      { id: 1, company: 'Nordwind Logistik', contact: 'Michael Braun', value: 84000, stage: 'verhandlung', owner: 'JS', days: 3, last: 'Nachfassen offen · vor 3 T' },
+      { id: 6, company: 'Kübler & Co', contact: 'Dana Sanz', value: 67000, stage: 'angebot', owner: 'MW', days: 4, last: 'Demo · vor 1 T' },
+      { id: 10, company: 'Brandt Maschinen', contact: 'Clara Neu', value: 58000, stage: 'neu', owner: 'JS', days: 0, last: 'Neuer Lead · heute' },
+      { id: 5, company: 'Alpin Getränke', contact: 'Peter Huber', value: 41000, stage: 'neu', owner: 'MW', days: 0, last: 'Formular · heute' },
+      { id: 11, company: 'Orbit Medien', contact: 'Nils Roos', value: 36000, stage: 'qual', owner: 'AL', days: 3, last: 'LinkedIn · vor 3 T' },
+    ],
+    viewD: 'kanban',
+    modeD: 'light',
+    activeMod: 'SUP',
+    modeE: 'light',
+    bldOrders: [
+      { id: 'b1', nr: 'FA-1042', produkt: 'Gehäuse A2', menge: '250 Stk', maschine: 'CNC-03', owner: 'MW', stage: 'arbeit' },
+      { id: 'b2', nr: 'FA-1043', produkt: 'Welle 12 mm', menge: '1.000 Stk', maschine: 'Dreh-01', owner: 'JS', stage: 'geplant' },
+      { id: 'b3', nr: 'FA-1044', produkt: 'Deckel B', menge: '500 Stk', maschine: 'Press-02', owner: 'AL', stage: 'ruesten' },
+      { id: 'b4', nr: 'FA-1045', produkt: 'Rahmen XL', menge: '80 Stk', maschine: 'Schweiß-01', owner: 'MW', stage: 'arbeit' },
+      { id: 'b5', nr: 'FA-1046', produkt: 'Halter C3', menge: '320 Stk', maschine: 'CNC-01', owner: 'JS', stage: 'pruefung' },
+      { id: 'b6', nr: 'FA-1047', produkt: 'Blende A', menge: '640 Stk', maschine: 'Laser-01', owner: 'AL', stage: 'geplant' },
+      { id: 'b7', nr: 'FA-1041', produkt: 'Gehäuse A1', menge: '250 Stk', maschine: 'CNC-03', owner: 'MW', stage: 'fertig' },
+      { id: 'b8', nr: 'FA-1048', produkt: 'Adapter M8', menge: '2.000 Stk', maschine: 'Dreh-02', owner: 'JS', stage: 'geplant' },
+      { id: 'b9', nr: 'FA-1040', produkt: 'Grundplatte', menge: '150 Stk', maschine: 'Fräs-01', owner: 'AL', stage: 'fertig' },
+      { id: 'b10', nr: 'FA-1049', produkt: 'Klemme K2', menge: '900 Stk', maschine: 'Press-02', owner: 'MW', stage: 'arbeit' },
+    ],
+    supView: 'bestand',
+    bldView: 'machbarkeit',
+    activeProduct: 'p1',
+    hrView: 'team',
+    capLevers: { zweiteSchicht: false, zusatzschicht: false, fremdvergabe: false },
+    shiftGrid: [
+      ['voll', 'voll', 'voll', 'voll', 'voll', 'frei'],
+      ['voll', 'voll', 'voll', 'voll', 'teil', 'frei'],
+      ['frei', 'frei', 'voll', 'voll', 'frei', 'frei'],
+    ],
+    impRule: { name: '', effect: 'blockieren', laender: [], firmen: [], gueter: [], validFrom: '2026-08-01' },
+    impRules: [
+      { id: 'r1', name: 'EU-Sanktionen 2026', effect: 'blockieren', laender: ['Russland', 'Belarus'], firmen: ['Volga Trading OOO'], gueter: ['Dual-Use-Güter', 'Halbleiter'], status: 'aktiv' },
+      { id: 'r2', name: 'Dual-Use Genehmigungspflicht', effect: 'genehmigung', laender: ['China'], firmen: [], gueter: ['Verschlüsselung', 'Drohnentechnik'], status: 'aktiv' },
+      { id: 'r3', name: 'Iran-Embargo', effect: 'blockieren', laender: ['Iran'], firmen: ['Pars Mfg Co'], gueter: ['Waffenteile'], status: 'aktiv' },
+    ],
+  };
+
+  moduleMeta = {
+    CRM: { name: 'CRM', eyebrow: 'MODUL 01 · VERTRIEB', title: 'Pipeline', accent: '#E5322A', newLabel: '+ DEAL' },
+    SUP: { name: 'Supply', eyebrow: 'MODUL 04 · SUPPLY CHAIN', title: 'Bestände', accent: '#159E5B', newLabel: '+ BESTELLUNG' },
+    BLD: { name: 'Build', eyebrow: 'MODUL 03 · PRODUKTION', title: 'Fertigung', accent: '#1358D8', newLabel: '+ AUFTRAG' },
+    HR: { name: 'HR', eyebrow: 'MODUL 02 · PERSONAL', title: 'Team', accent: '#E9AE06', newLabel: '+ MITARBEITER' },
+    ADM: { name: 'Admin', eyebrow: 'MODUL 05 · VERWALTUNG', title: 'System', accent: '#8A8F98', newLabel: '+ NUTZER' },
+  };
+
+  kpiMeta = {
+    CRM: [{ label: 'PIPELINE', value: '€945k', delta: '+8,2%', up: true }, { label: 'OFFENE DEALS', value: '11', delta: '+3', up: true }, { label: 'WIN-RATE', value: '38%', delta: '−2%', up: false }, { label: 'Ø ZYKLUS', value: '21 T', delta: '−4 T', up: true }],
+    SUP: [{ label: 'LAGERWERT', value: '€2,4 Mio', delta: '+1,1%', up: true }, { label: 'KRITISCHE SKUS', value: '4', delta: '+2', up: false }, { label: 'OFFENE BESTELLUNGEN', value: '12', delta: '−1', up: true }, { label: 'LIEFERTREUE', value: '96%', delta: '+0,4%', up: true }],
+    BLD: [{ label: 'AUSLASTUNG', value: '87%', delta: '+5%', up: true }, { label: 'AUFTRÄGE HEUTE', value: '10', delta: '+2', up: true }, { label: 'AUSSCHUSS', value: '1,8%', delta: '−0,3%', up: true }, { label: 'DURCHLAUFZEIT', value: '3,2 T', delta: '−0,4 T', up: true }],
+    HR: [{ label: 'MITARBEITENDE', value: '148', delta: '+6', up: true }, { label: 'OFFENE STELLEN', value: '7', delta: '+2', up: false }, { label: 'ABWESEND HEUTE', value: '9', delta: '—', up: true }, { label: 'FLUKTUATION', value: '4,2%', delta: '−0,5%', up: true }],
+    ADM: [{ label: 'NUTZER', value: '152', delta: '+4', up: true }, { label: 'ROLLEN', value: '8', delta: '0', up: true }, { label: 'AKTIVE SESSIONS', value: '37', delta: '+9', up: true }, { label: 'LIZENZEN', value: '160', delta: '8 frei', up: true }],
+  };
+
+  bldStages = [
+    { id: 'geplant', label: 'GEPLANT', dot: '#8A8F98' },
+    { id: 'ruesten', label: 'RÜSTEN', dot: '#E9AE06' },
+    { id: 'arbeit', label: 'IN ARBEIT', dot: '#1358D8' },
+    { id: 'pruefung', label: 'PRÜFUNG', dot: '#E5322A' },
+    { id: 'fertig', label: 'FERTIG', dot: '#159E5B' },
+  ];
+
+  supData = [
+    { sku: 'ACM-1001', name: 'Aluprofil 40×40', stock: 1240, reorder: 800 },
+    { sku: 'ACM-1002', name: 'Edelstahlblech 2 mm', stock: 320, reorder: 500 },
+    { sku: 'ACM-1003', name: 'Kugellager 6204', stock: 85, reorder: 400 },
+    { sku: 'ACM-1004', name: 'Schraube M6×20', stock: 12400, reorder: 5000 },
+    { sku: 'ACM-1005', name: 'Dichtung Ø30', stock: 640, reorder: 600 },
+    { sku: 'ACM-1006', name: 'Kabelkanal 60 mm', stock: 210, reorder: 300 },
+    { sku: 'ACM-1007', name: 'Motor 0,75 kW', stock: 34, reorder: 40 },
+    { sku: 'ACM-1008', name: 'Lackpulver RAL9005', stock: 1500, reorder: 700 },
+  ];
+
+  hrData = [
+    { name: 'Mara Wolf', role: 'Head of Sales', team: 'Vertrieb', status: 'aktiv' },
+    { name: 'Amir Larsson', role: 'Account Executive', team: 'Vertrieb', status: 'remote' },
+    { name: 'Jana Sommer', role: 'Sales Ops', team: 'Vertrieb', status: 'aktiv' },
+    { name: 'Timo Bäck', role: 'Fertigungsleiter', team: 'Produktion', status: 'aktiv' },
+    { name: 'Lea Frisch', role: 'Disponentin', team: 'Supply', status: 'urlaub' },
+    { name: 'Nils Ostberg', role: 'QS-Ingenieur', team: 'Produktion', status: 'krank' },
+    { name: 'Rina Ito', role: 'HR Business Partner', team: 'People', status: 'aktiv' },
+    { name: 'Paul Adler', role: 'IT-Admin', team: 'IT', status: 'remote' },
+  ];
+
+  admData = [
+    { user: 'Mara Wolf', email: 'm.wolf@acme.de', role: 'Owner', status: 'aktiv', last: 'vor 5 Min' },
+    { user: 'Amir Larsson', email: 'a.larsson@acme.de', role: 'Admin', status: 'aktiv', last: 'vor 1 Std' },
+    { user: 'Jana Sommer', email: 'j.sommer@acme.de', role: 'Editor', status: 'aktiv', last: 'vor 3 Std' },
+    { user: 'Timo Bäck', email: 't.baeck@acme.de', role: 'Editor', status: 'aktiv', last: 'gestern' },
+    { user: 'Lea Frisch', email: 'l.frisch@acme.de', role: 'Viewer', status: 'inaktiv', last: 'vor 8 T' },
+    { user: 'Paul Adler', email: 'p.adler@acme.de', role: 'Admin', status: 'aktiv', last: 'vor 12 Min' },
+    { user: 'Gast Zugang', email: 'demo@acme.de', role: 'Viewer', status: 'inaktiv', last: 'vor 30 T' },
+  ];
+
+  admToggles = [
+    { label: 'Zwei-Faktor erzwingen', on: true },
+    { label: 'Audit-Log aktiv', on: true },
+    { label: 'SSO (SAML)', on: true },
+    { label: 'Wartungsmodus', on: false },
+  ];
+
+  initials(n) { return n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
+
+  supplierData = [
+    { name: 'Nordic Steel AB', land: 'Schweden', kat: 'Rohstoffe', risk: 'low', otd: 98, audit: 'vor 2 Mon', status: 'freigegeben' },
+    { name: 'Shenzhen Micro Ltd', land: 'China', kat: 'Elektronik', risk: 'mid', otd: 91, audit: 'vor 3 Wo', status: 'freigegeben' },
+    { name: 'Volga Trading OOO', land: 'Russland', kat: 'Metalle', risk: 'high', otd: 72, audit: 'vor 6 Mon', status: 'gesperrt' },
+    { name: 'Bavaria Kunststoff', land: 'Deutschland', kat: 'Kunststoff', risk: 'low', otd: 99, audit: 'vor 1 Mon', status: 'freigegeben' },
+    { name: 'Pars Mfg Co', land: 'Iran', kat: 'Maschinen', risk: 'high', otd: 65, audit: 'ausstehend', status: 'gesperrt' },
+    { name: 'Lyon Précision SARL', land: 'Frankreich', kat: 'Präzisionsteile', risk: 'low', otd: 96, audit: 'vor 2 Mon', status: 'freigegeben' },
+    { name: 'Delta Components Inc', land: 'USA', kat: 'Elektronik', risk: 'mid', otd: 88, audit: 'vor 4 Wo', status: 'prüfung' },
+    { name: 'Ural Robotics', land: 'Russland', kat: 'Automation', risk: 'high', otd: 70, audit: 'vor 5 Mon', status: 'prüfung' },
+  ];
+
+  laenderOpts = ['Russland', 'Belarus', 'Iran', 'Nordkorea', 'Syrien', 'Myanmar', 'China', 'Kuba'];
+  firmenOpts = ['Volga Trading OOO', 'Pars Mfg Co', 'DPRK Metals', 'Ural Robotics', 'Sanction Corp'];
+  gueterOpts = ['Dual-Use-Güter', 'Halbleiter', 'Verschlüsselung', 'Chemikalien', 'Waffenteile', 'Drohnentechnik', 'Nachtsichtgeräte'];
+
+  effectMeta = { blockieren: { c: '#E5322A', l: 'BLOCKIEREN' }, genehmigung: { c: '#E9AE06', l: 'GENEHMIGUNG' }, warnen: { c: '#1358D8', l: 'WARNEN' } };
+
+  riskMeta(r) { return ({ low: { c: '#159E5B', l: 'NIEDRIG' }, mid: { c: '#E9AE06', l: 'MITTEL' }, high: { c: '#E5322A', l: 'HOCH' } })[r] || { c: '#8A8F98', l: r }; }
+  supStatusMeta(s) { return ({ freigegeben: { c: '#159E5B', l: 'Freigegeben' }, 'prüfung': { c: '#E9AE06', l: 'In Prüfung' }, gesperrt: { c: '#E5322A', l: 'Gesperrt' } })[s] || { c: '#8A8F98', l: s }; }
+
+  buildSuppliers() {
+    return this.supplierData.map((d, i) => {
+      const rk = this.riskMeta(d.risk); const st = this.supStatusMeta(d.status);
+      return { ...d, riskC: rk.c, riskL: rk.l, statusC: st.c, statusL: st.l, otdW: d.otd + '%', ini: this.initials(d.name), rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent' };
+    });
+  }
+  supSummary() {
+    const d = this.supplierData;
+    return {
+      frei: d.filter(x => x.status === 'freigegeben').length,
+      pruef: d.filter(x => x.status === 'prüfung').length,
+      gesperrt: d.filter(x => x.status === 'gesperrt').length,
+      betroffen: d.filter(x => ['Russland', 'Iran', 'Belarus'].includes(x.land)).length,
+    };
+  }
+
+  toggleImp(field, val) {
+    this.setState(s => {
+      const arr = s.impRule[field]; const has = arr.includes(val);
+      return { impRule: { ...s.impRule, [field]: has ? arr.filter(x => x !== val) : [...arr, val] } };
+    });
+  }
+  chipList(opts, field) {
+    const sel = this.state.impRule[field];
+    return opts.map(o => ({ label: o, sel: sel.includes(o), bg: sel.includes(o) ? 'var(--accent)' : 'transparent', col: sel.includes(o) ? '#fff' : 'var(--dim)', bd: sel.includes(o) ? 'var(--accent)' : 'var(--line2)', on: () => this.toggleImp(field, o) }));
+  }
+  effBtn(e) {
+    const on = this.state.impRule.effect === e; const c = this.effectMeta[e].c;
+    return { bg: on ? c : 'transparent', col: on ? (e === 'genehmigung' ? '#111' : '#fff') : 'var(--dim)', bd: on ? c : 'var(--line2)', on: () => this.setState(s => ({ impRule: { ...s.impRule, effect: e } })) };
+  }
+  saveImpRule() {
+    this.setState(s => {
+      const r = s.impRule;
+      if (!r.name.trim() || (r.laender.length + r.firmen.length + r.gueter.length === 0)) return {};
+      const rule = { id: 'r' + Date.now(), name: r.name.trim(), effect: r.effect, laender: r.laender, firmen: r.firmen, gueter: r.gueter, status: 'aktiv' };
+      return { impRules: [rule, ...s.impRules], impRule: { name: '', effect: 'blockieren', laender: [], firmen: [], gueter: [], validFrom: r.validFrom } };
+    });
+  }
+  buildImpRules() {
+    return this.state.impRules.map(r => ({
+      ...r, effC: this.effectMeta[r.effect].c, effL: this.effectMeta[r.effect].l,
+      scope: r.laender.length + ' Länder · ' + r.firmen.length + ' Firmen · ' + r.gueter.length + ' Güter',
+    }));
+  }
+  subNav(v) { const on = this.state.supView === v; return { bg: on ? 'var(--accent)' : 'transparent', col: on ? '#fff' : 'var(--dim)' }; }
+  bldNav(v) { const on = this.state.bldView === v; return { bg: on ? 'var(--accent)' : 'transparent', col: on ? '#fff' : 'var(--dim)' }; }
+  hrNav(v) { const on = this.state.hrView === v; return { bg: on ? 'var(--accent)' : 'transparent', col: on ? '#fff' : 'var(--dim)' }; }
+
+  orgTree = {
+    ceo: { name: 'Dr. Eva König', role: 'CEO', ini: 'EK', bg: '#111' },
+    reports: [
+      { name: 'Mara Wolf', role: 'Head of Sales', ini: 'MW', bg: '#E5322A', team: 'Vertrieb · 24', reports: ['Amir Larsson', 'Jana Sommer', '+ 22'] },
+      { name: 'Timo Bäck', role: 'Fertigungsleiter', ini: 'TB', bg: '#1358D8', team: 'Produktion · 61', reports: ['Nils Ostberg', 'Schichtführer', '+ 59'] },
+      { name: 'Lea Frisch', role: 'Leitung Supply', ini: 'LF', bg: '#159E5B', team: 'Supply · 18', reports: ['Disposition', 'Einkauf', '+ 16'] },
+      { name: 'Rina Ito', role: 'Head of People', ini: 'RI', bg: '#E9AE06', team: 'People & IT · 12', reports: ['Paul Adler', 'Recruiting', '+ 10'] },
+    ],
+  };
+
+  applicantData = [
+    { name: 'Sophie Berger', role: 'Account Executive', team: 'Vertrieb', stage: 'interview', score: 88, days: 2 },
+    { name: 'Jonas Weber', role: 'CNC-Techniker', team: 'Produktion', stage: 'screening', score: 74, days: 1 },
+    { name: 'Aylin Demir', role: 'Disponentin', team: 'Supply', stage: 'angebot', score: 92, days: 5 },
+    { name: 'Marco Rossi', role: 'QS-Ingenieur', team: 'Produktion', stage: 'interview', score: 81, days: 3 },
+    { name: 'Hanna Groß', role: 'People Partner', team: 'People', stage: 'neu', score: 0, days: 0 },
+    { name: 'Ben Fischer', role: 'Sales Ops', team: 'Vertrieb', stage: 'screening', score: 69, days: 4 },
+    { name: 'Clara Vogt', role: 'IT-Admin', team: 'IT', stage: 'abgelehnt', score: 55, days: 8 },
+    { name: 'Ida Nowak', role: 'Werkstudentin QS', team: 'Produktion', stage: 'angebot', score: 85, days: 6 },
+  ];
+  applicantStages = [
+    { id: 'neu', label: 'NEU', dot: '#8A8F98' },
+    { id: 'screening', label: 'SCREENING', dot: '#E9AE06' },
+    { id: 'interview', label: 'INTERVIEW', dot: '#1358D8' },
+    { id: 'angebot', label: 'ANGEBOT', dot: '#159E5B' },
+    { id: 'abgelehnt', label: 'ABGELEHNT', dot: '#E5322A' },
+  ];
+  buildApplicantCols() {
+    const st = this.state;
+    return this.applicantStages.map(stage => {
+      const items = this.applicantData.filter(a => a.stage === stage.id).map((a, i) => ({
+        ...a, ini: this.initials(a.name),
+        avBg: (['#E5322A', '#1358D8', '#159E5B', '#E9AE06'])[i % 4],
+        scoreTxt: a.score > 0 ? a.score + '%' : '—',
+        scoreCol: a.score >= 85 ? '#159E5B' : a.score >= 70 ? '#E9AE06' : a.score > 0 ? '#E5322A' : 'var(--faint)',
+        daysTxt: a.days > 0 ? a.days + 'T' : 'neu',
+      }));
+      return { id: stage.id, label: stage.label, dot: stage.dot, count: items.length, items };
+    });
+  }
+  buildOrg() {
+    return {
+      ceo: this.orgTree.ceo,
+      reports: this.orgTree.reports.map(r => ({ ...r, reportsStr: r.reports.join(' · ') })),
+    };
+  }
+
+  machinesData = [
+    { name: 'CNC-01', status: 'laeuft', oee: 91, order: 'FA-1046 · Halter C3', av: 96, le: 95, qu: 99, prog: 64 },
+    { name: 'CNC-03', status: 'laeuft', oee: 87, order: 'FA-1042 · Gehäuse A2', av: 93, le: 92, qu: 98, prog: 38 },
+    { name: 'Dreh-01', status: 'ruesten', oee: 78, order: 'FA-1043 · Welle 12 mm', av: 82, le: 96, qu: 99, prog: 0 },
+    { name: 'Dreh-02', status: 'leerlauf', oee: 0, order: '— kein Auftrag', av: 0, le: 0, qu: 0, prog: 0 },
+    { name: 'Press-02', status: 'laeuft', oee: 84, order: 'FA-1049 · Klemme K2', av: 90, le: 94, qu: 99, prog: 72 },
+    { name: 'Laser-01', status: 'laeuft', oee: 88, order: 'FA-1047 · Blende A', av: 94, le: 93, qu: 100, prog: 21 },
+    { name: 'Schweiß-01', status: 'stoerung', oee: 62, order: 'FA-1045 · Rahmen XL', av: 68, le: 92, qu: 98, prog: 45 },
+    { name: 'Fräs-01', status: 'wartung', oee: 0, order: 'Wartung bis 14:00', av: 0, le: 0, qu: 0, prog: 0 },
+  ];
+  qualityData = [
+    { fa: 'FA-1041', produkt: 'Gehäuse A1', pruefer: 'N. Ostberg', ausschuss: 0.8, ergebnis: 'pass' },
+    { fa: 'FA-1040', produkt: 'Grundplatte', pruefer: 'N. Ostberg', ausschuss: 2.4, ergebnis: 'pass' },
+    { fa: 'FA-1038', produkt: 'Deckel B', pruefer: 'L. Frisch', ausschuss: 5.1, ergebnis: 'fail' },
+    { fa: 'FA-1039', produkt: 'Welle 12 mm', pruefer: 'N. Ostberg', ausschuss: 1.2, ergebnis: 'pass' },
+    { fa: 'FA-1037', produkt: 'Halter C3', pruefer: 'T. Bäck', ausschuss: 3.6, ergebnis: 'nacharbeit' },
+    { fa: 'FA-1036', produkt: 'Blende A', pruefer: 'N. Ostberg', ausschuss: 0.4, ergebnis: 'pass' },
+  ];
+  defectData = [
+    { reason: 'Maßabweichung', pct: 38 },
+    { reason: 'Oberfläche', pct: 24 },
+    { reason: 'Grat', pct: 18 },
+    { reason: 'Materialfehler', pct: 12 },
+    { reason: 'Sonstige', pct: 8 },
+  ];
+
+  machStatusMeta(s) {
+    return ({
+      laeuft: { c: '#159E5B', l: 'Läuft', live: true }, ruesten: { c: '#E9AE06', l: 'Rüsten' },
+      stoerung: { c: '#E5322A', l: 'Störung' }, wartung: { c: '#1358D8', l: 'Wartung' }, leerlauf: { c: '#8A8F98', l: 'Leerlauf' },
+    })[s] || { c: '#8A8F98', l: s };
+  }
+  oeeColor(o) { return o >= 85 ? '#159E5B' : o >= 70 ? '#E9AE06' : o > 0 ? '#E5322A' : '#8A8F98'; }
+  buildMachines() {
+    return this.machinesData.map(m => {
+      const st = this.machStatusMeta(m.status);
+      return {
+        ...m, statusC: st.c, statusL: st.l,
+        pulse: st.live ? 'acmepulse 1.6s infinite' : 'none',
+        oeeC: this.oeeColor(m.oee), oeeTxt: m.oee > 0 ? m.oee + '%' : '—',
+        avW: m.av + '%', leW: m.le + '%', quW: m.qu + '%', progW: m.prog + '%',
+        dimOp: m.oee > 0 ? 1 : 0.6,
+      };
+    });
+  }
+  buildQuality() {
+    const meta = { pass: { c: '#159E5B', l: 'Bestanden' }, fail: { c: '#E5322A', l: 'Fehler' }, nacharbeit: { c: '#E9AE06', l: 'Nacharbeit' } };
+    return this.qualityData.map((d, i) => {
+      const m = meta[d.ergebnis] || { c: '#8A8F98', l: d.ergebnis };
+      return { ...d, ergC: m.c, ergL: m.l, ausW: Math.min(100, Math.round(d.ausschuss * 14)) + '%', ausTxt: d.ausschuss.toLocaleString('de-DE') + '%', rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent' };
+    });
+  }
+
+  capOrder = { nr: 'FA-1050', produkt: 'Rahmen XL', menge: 800, wunschAT: 6, wunschDate: 'Fr, 17.07.' };
+  capResources = [
+    { name: 'Zuschnitt · Laser-01', share: 0.18, capShare: 0.25 },
+    { name: 'CNC-Fräsen · CNC-01/03', share: 0.42, capShare: 0.30 },
+    { name: 'Schweißen · Schweiß-01', share: 0.25, capShare: 0.25 },
+    { name: 'Montage & Lack', share: 0.15, capShare: 0.20 },
+  ];
+  toggleLever(k) { this.setState(s => ({ capLevers: { ...s.capLevers, [k]: !s.capLevers[k] } })); }
+  computeFeasibility() {
+    const L = this.state.capLevers;
+    const reqH = Math.round(384 * (L.fremdvergabe ? 0.65 : 1));
+    const dailyCap = 56 * (L.zweiteSchicht ? 2 : 1);
+    const windowDays = 6 + (L.zusatzschicht ? 1 : 0);
+    const availH = dailyCap * windowDays;
+    const machbar = availH >= reqH;
+    const fehl = Math.max(0, reqH - availH);
+    const util = Math.round(reqH / availH * 100);
+    const neededDays = Math.ceil(reqH / dailyCap);
+    const resources = this.capResources.map(r => {
+      const req = Math.round(r.share * reqH), cap = Math.round(r.capShare * availH);
+      const load = Math.round(req / cap * 100);
+      return { name: r.name, reqTxt: req + ' h', capTxt: cap + ' h', load: load + ' %', loadW: Math.min(100, load) + '%', over: load > 100, c: load > 100 ? '#E5322A' : load > 85 ? '#E9AE06' : '#159E5B' };
+    });
+    return {
+      reqH: reqH + ' h', availH: availH + ' h', machbar, fehlTxt: fehl + ' h', util: util + ' %', neededDays, resources,
+      banner: machbar ? 'MACHBAR ZUM WUNSCHTERMIN' : 'NICHT MACHBAR ZUM WUNSCHTERMIN',
+      bannerC: machbar ? '#159E5B' : '#E5322A',
+      sub: machbar ? ('Prognose ' + neededDays + ' Arbeitstage · Wunsch ' + this.capOrder.wunschAT + ' AT') : (fehl + ' h Kapazität fehlen im Zeitfenster'),
+      icon: machbar ? '✓' : '✕',
+    };
+  }
+  capLeverList() {
+    const L = this.state.capLevers;
+    const defs = [
+      { key: 'zweiteSchicht', label: 'Zweite Schicht', desc: '+56 h/Tag Kapazität' },
+      { key: 'zusatzschicht', label: 'Samstagsschicht', desc: '+1 Produktionstag' },
+      { key: 'fremdvergabe', label: 'Teil-Fremdvergabe', desc: '−35 % Eigenfertigung' },
+    ];
+    return defs.map(d => ({ ...d, on: L[d.key], trackBg: L[d.key] ? '#159E5B' : 'var(--line2)', knobLeft: L[d.key] ? '17px' : '2px', toggle: () => this.toggleLever(d.key) }));
+  }
+
+  shiftRows = [{ label: 'Frühschicht', time: '06–14' }, { label: 'Spätschicht', time: '14–22' }, { label: 'Nachtschicht', time: '22–06' }];
+  shiftDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  cycleShift(r, c) {
+    this.setState(s => {
+      const g = s.shiftGrid.map(row => row.slice());
+      const cur = g[r][c];
+      g[r][c] = cur === 'frei' ? 'voll' : cur === 'voll' ? 'teil' : 'frei';
+      return { shiftGrid: g };
+    });
+  }
+  buildShiftGrid() {
+    const meta = { voll: '#159E5B', teil: '#E9AE06', frei: 'var(--chip)' };
+    return this.state.shiftGrid.map((row, r) => row.map((v, c) => ({ v, lbl: v === 'voll' ? 'Voll' : v === 'teil' ? 'Teil' : '', bg: meta[v], txt: v === 'frei' ? 'var(--faint)' : '#fff', on: () => this.cycleShift(r, c) })));
+  }
+  shiftCapacity() { let cap = 0; this.state.shiftGrid.forEach(row => row.forEach(v => { cap += v === 'voll' ? 1 : v === 'teil' ? 0.5 : 0; })); return cap; }
+  buildShiftMatrix() {
+    const meta = { voll: '#159E5B', teil: '#E9AE06', frei: 'var(--chip)' };
+    return this.shiftRows.map((row, r) => ({
+      label: row.label, time: row.time,
+      cells: this.state.shiftGrid[r].map((v, c) => ({ lbl: v === 'voll' ? 'VOLL' : v === 'teil' ? 'TEIL' : '', bg: meta[v], txt: v === 'frei' ? 'var(--faint)' : '#fff', on: () => this.cycleShift(r, c) })),
+    }));
+  }
+
+  bomData = [
+    { pos: '1', name: 'Rahmen XL — Baugruppe', lvl: 0, menge: '1', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+    { pos: '1.1', name: 'Seitenprofil links', lvl: 1, menge: '2', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+    { pos: '1.2', name: 'Seitenprofil rechts', lvl: 1, menge: '2', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+    { pos: '1.3', name: 'Aluprofil 40×40', lvl: 2, menge: '4', unit: 'm', typ: 'Zukauf', avail: 'ok' },
+    { pos: '2', name: 'Querstrebe', lvl: 0, menge: '3', unit: 'Stk', typ: 'Eigenfertigung', avail: 'low' },
+    { pos: '2.1', name: 'Edelstahlblech 2 mm', lvl: 1, menge: '1,5', unit: 'm²', typ: 'Zukauf', avail: 'low' },
+    { pos: '3', name: 'Verbindungssatz', lvl: 0, menge: '1', unit: 'Set', typ: 'Zukauf', avail: 'ok' },
+    { pos: '3.1', name: 'Schraube M6×20', lvl: 1, menge: '24', unit: 'Stk', typ: 'Zukauf', avail: 'ok' },
+    { pos: '3.2', name: 'Kugellager 6204', lvl: 1, menge: '4', unit: 'Stk', typ: 'Zukauf', avail: 'critical' },
+    { pos: '4', name: 'Motoreinheit', lvl: 0, menge: '1', unit: 'Stk', typ: 'Zukauf', avail: 'critical' },
+    { pos: '4.1', name: 'Motor 0,75 kW', lvl: 1, menge: '1', unit: 'Stk', typ: 'Zukauf', avail: 'critical' },
+    { pos: '5', name: 'Pulverbeschichtung', lvl: 0, menge: '1', unit: '—', typ: 'Eigenfertigung', avail: 'ok' },
+  ];
+  buildBom() {
+    const av = { ok: { c: '#159E5B', l: 'Verfügbar' }, low: { c: '#E9AE06', l: 'Knapp' }, critical: { c: '#E5322A', l: 'Fehlt' } };
+    return this.bomData.map((b, i) => {
+      const a = av[b.avail]; const eigen = b.typ === 'Eigenfertigung';
+      return { ...b, availC: a.c, availL: a.l, indent: (12 + b.lvl * 22) + 'px', typBg: eigen ? 'var(--chip)' : 'transparent', typCol: eigen ? 'var(--dim)' : 'var(--faint)', typBd: eigen ? 'transparent' : 'var(--line2)', nameCol: 'var(--ink)', nameWeight: b.lvl === 0 ? 700 : 400, rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent' };
+    });
+  }
+  bomShortages() {
+    const av = { low: { c: '#E9AE06', l: 'Knapp' }, critical: { c: '#E5322A', l: 'Fehlt' } };
+    return this.bomData.filter(b => b.avail !== 'ok').map(b => ({ name: b.name, menge: b.menge + ' ' + b.unit, c: av[b.avail].c, l: av[b.avail].l }));
+  }
+
+  products = [
+    { id: 'p1', name: 'Rahmen XL', art: 'ACM-RX', variant: 'Rev. 03', status: 'aktiv' },
+    { id: 'p2', name: 'Gehäuse A2', art: 'ACM-GA2', variant: 'Rev. 01', status: 'aktiv' },
+    { id: 'p3', name: 'Welle 12 mm', art: 'ACM-W12', variant: 'Serie', status: 'aktiv' },
+    { id: 'p4', name: 'Halter C3', art: 'ACM-HC3', variant: 'Rev. 02', status: 'aktiv' },
+    { id: 'p5', name: 'Klemme K2', art: 'ACM-K2', variant: 'Serie', status: 'auslauf' },
+  ];
+  bomByProduct = {
+    p1: this.bomData,
+    p2: [
+      { pos: '1', name: 'Gehäuse A2 — Baugruppe', lvl: 0, menge: '1', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+      { pos: '1.1', name: 'Blech-Unterteil', lvl: 1, menge: '1', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+      { pos: '1.2', name: 'Edelstahlblech 2 mm', lvl: 2, menge: '0,8', unit: 'm²', typ: 'Zukauf', avail: 'low' },
+      { pos: '2', name: 'Deckel', lvl: 0, menge: '1', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+      { pos: '3', name: 'Dichtung Ø30', lvl: 0, menge: '2', unit: 'Stk', typ: 'Zukauf', avail: 'ok' },
+    ],
+    p3: [
+      { pos: '1', name: 'Welle 12 mm', lvl: 0, menge: '1', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+      { pos: '1.1', name: 'Rundstahl Ø14', lvl: 1, menge: '0,3', unit: 'm', typ: 'Zukauf', avail: 'ok' },
+      { pos: '2', name: 'Kugellager 6204', lvl: 0, menge: '2', unit: 'Stk', typ: 'Zukauf', avail: 'critical' },
+    ],
+    p4: [
+      { pos: '1', name: 'Halter C3', lvl: 0, menge: '1', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+      { pos: '1.1', name: 'Aluprofil 40×40', lvl: 1, menge: '0,2', unit: 'm', typ: 'Zukauf', avail: 'ok' },
+      { pos: '2', name: 'Schraube M6×20', lvl: 0, menge: '4', unit: 'Stk', typ: 'Zukauf', avail: 'ok' },
+    ],
+    p5: [
+      { pos: '1', name: 'Klemme K2', lvl: 0, menge: '1', unit: 'Stk', typ: 'Eigenfertigung', avail: 'ok' },
+      { pos: '1.1', name: 'Federstahlband', lvl: 1, menge: '0,1', unit: 'm', typ: 'Zukauf', avail: 'low' },
+    ],
+  };
+  routingByProduct = {
+    p1: [
+      { schritt: '10', gang: 'Profile zuschneiden', maschine: 'Laser-01', zeit: 4 },
+      { schritt: '20', gang: 'Aufnahmen fräsen', maschine: 'CNC-01', zeit: 8 },
+      { schritt: '30', gang: 'Rahmen schweißen', maschine: 'Schweiß-01', zeit: 12 },
+      { schritt: '40', gang: 'Entgraten', maschine: '—', zeit: 5 },
+      { schritt: '50', gang: 'Verbindungssatz montieren', maschine: '—', zeit: 9 },
+      { schritt: '60', gang: 'Pulverbeschichtung', maschine: 'Lackieranlage', zeit: 6 },
+      { schritt: '70', gang: 'Endprüfung', maschine: 'Messplatz', zeit: 3 },
+    ],
+    p2: [
+      { schritt: '10', gang: 'Blech zuschneiden', maschine: 'Laser-01', zeit: 3 },
+      { schritt: '20', gang: 'Kanten abkanten', maschine: 'Press-02', zeit: 4 },
+      { schritt: '30', gang: 'Schweißen', maschine: 'Schweiß-01', zeit: 7 },
+      { schritt: '40', gang: 'Endprüfung', maschine: '—', zeit: 2 },
+    ],
+    p3: [
+      { schritt: '10', gang: 'Drehen', maschine: 'Dreh-01', zeit: 6 },
+      { schritt: '20', gang: 'Schleifen', maschine: 'Schleif-01', zeit: 4 },
+      { schritt: '30', gang: 'Prüfen', maschine: 'Messplatz', zeit: 2 },
+    ],
+    p4: [
+      { schritt: '10', gang: 'Fräsen', maschine: 'CNC-01', zeit: 5 },
+      { schritt: '20', gang: 'Bohren', maschine: 'CNC-01', zeit: 3 },
+      { schritt: '30', gang: 'Entgraten', maschine: '—', zeit: 2 },
+    ],
+    p5: [
+      { schritt: '10', gang: 'Stanzen', maschine: 'Press-02', zeit: 2 },
+      { schritt: '20', gang: 'Biegen', maschine: 'Press-02', zeit: 2 },
+      { schritt: '30', gang: 'Prüfen', maschine: '—', zeit: 1 },
+    ],
+  };
+  buildProducts() {
+    const a = this.state.activeProduct;
+    return this.products.map(p => ({
+      ...p, sel: p.id === a, auslauf: p.status === 'auslauf',
+      selBar: p.id === a ? 'var(--accent)' : 'transparent',
+      selBg: p.id === a ? 'var(--chip)' : 'transparent',
+      onClick: () => this.setState({ activeProduct: p.id }),
+    }));
+  }
+  buildBomArr(arr) {
+    const av = { ok: { c: '#159E5B', l: 'Verfügbar' }, low: { c: '#E9AE06', l: 'Knapp' }, critical: { c: '#E5322A', l: 'Fehlt' } };
+    return arr.map((b, i) => {
+      const a = av[b.avail]; const eigen = b.typ === 'Eigenfertigung';
+      return { ...b, availC: a.c, availL: a.l, indent: (12 + b.lvl * 20) + 'px', typShort: eigen ? 'Eigen' : 'Zukauf', typBg: eigen ? 'var(--chip)' : 'transparent', typCol: eigen ? 'var(--dim)' : 'var(--faint)', typBd: eigen ? 'transparent' : 'var(--line2)', nameWeight: b.lvl === 0 ? 700 : 400, rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent' };
+    });
+  }
+  buildProdRouting() {
+    const arr = this.routingByProduct[this.state.activeProduct] || [];
+    return arr.map((s, i) => ({
+      ...s, zeitTxt: s.zeit + ' min',
+      manuell: s.maschine === '—',
+      maschTxt: s.maschine === '—' ? 'manuell' : s.maschine,
+      maschCol: s.maschine === '—' ? 'var(--faint)' : 'var(--ink)',
+      maschBd: s.maschine === '—' ? 'transparent' : 'var(--line2)',
+      maschBg: s.maschine === '—' ? 'transparent' : 'var(--chip)',
+      rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent',
+    }));
+  }
+  prodMeta() {
+    const p = this.products.find(x => x.id === this.state.activeProduct) || this.products[0];
+    const bom = this.bomByProduct[p.id] || [];
+    const routing = this.routingByProduct[p.id] || [];
+    const total = routing.reduce((a, s) => a + s.zeit, 0);
+    return { name: p.name, art: p.art, variant: p.variant, bomCount: bom.length, stepCount: routing.length, totalTime: total + ' min/Stk' };
+  }
+
+  supStatus(d) {
+    if (d.stock < d.reorder * 0.5) return { c: '#E5322A', l: 'KRITISCH', k: 'crit' };
+    if (d.stock < d.reorder) return { c: '#E9AE06', l: 'NIEDRIG', k: 'low' };
+    return { c: '#159E5B', l: 'OK', k: 'ok' };
+  }
+  hrStatus(s) {
+    return ({ aktiv: { c: '#159E5B', l: 'Aktiv' }, remote: { c: '#1358D8', l: 'Remote' }, urlaub: { c: '#E9AE06', l: 'Urlaub' }, krank: { c: '#E5322A', l: 'Krank' } })[s] || { c: '#8A8F98', l: s };
+  }
+
+  buildSup() {
+    return this.supData.map((d, i) => {
+      const st = this.supStatus(d);
+      return {
+        ...d,
+        stockFmt: d.stock.toLocaleString('de-DE'),
+        reorderFmt: d.reorder.toLocaleString('de-DE'),
+        barW: Math.min(100, Math.round(d.stock / (d.reorder * 2) * 100)) + '%',
+        barC: st.c, pillC: st.c, pillL: st.l,
+        rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent',
+      };
+    });
+  }
+  reorderList() {
+    return this.supData.filter(d => d.stock < d.reorder).map(d => {
+      const st = this.supStatus(d);
+      const suggest = d.reorder * 2 - d.stock;
+      return { sku: d.sku, name: d.name, suggestFmt: suggest.toLocaleString('de-DE'), pillC: st.c, pillL: st.l };
+    });
+  }
+  buildBldColumns() {
+    const st = this.state;
+    return this.bldStages.map(stage => {
+      const ds = st.bldOrders.filter(d => d.stage === stage.id).map(d => ({
+        ...d,
+        ownerBg: this.ownerColor(d.owner),
+        accent: this.ownerColor(d.owner),
+        op: (st.dragBoard === 'bldOrders' && st.dragId === d.id) ? 0.4 : 1,
+        onDragStart: () => this.onDragStart('bldOrders', d.id),
+      }));
+      return {
+        id: stage.id, label: stage.label, dot: stage.dot, count: ds.length, deals: ds,
+        onDrop: () => this.onDrop('bldOrders', stage.id),
+        onDragOver: (e) => e.preventDefault(),
+      };
+    });
+  }
+  buildHr() {
+    return this.hrData.map((d, i) => {
+      const st = this.hrStatus(d.status);
+      return { ...d, ini: this.initials(d.name), avBg: (['#E5322A', '#1358D8', '#159E5B', '#E9AE06'])[i % 4], pillC: st.c, pillL: st.l, rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent' };
+    });
+  }
+  absentToday() {
+    return this.hrData.filter(d => d.status === 'urlaub' || d.status === 'krank').map((d, i) => {
+      const st = this.hrStatus(d.status);
+      return { name: d.name, ini: this.initials(d.name), role: d.role, pillC: st.c, pillL: st.l, avBg: (['#E9AE06', '#E5322A'])[i % 2] };
+    });
+  }
+  buildAdm() {
+    return this.admData.map((d, i) => {
+      const active = d.status === 'aktiv';
+      return { ...d, ini: this.initials(d.user), avBg: (['#E5322A', '#1358D8', '#159E5B', '#E9AE06', '#8A8F98'])[i % 5], pillC: active ? '#159E5B' : '#8A8F98', pillL: active ? 'Aktiv' : 'Inaktiv', roleBg: d.role === 'Owner' || d.role === 'Admin' ? 'var(--accent)' : 'var(--chip)', roleCol: d.role === 'Owner' || d.role === 'Admin' ? '#fff' : 'var(--dim)', rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent' };
+    });
+  }
+
+  stages = [
+    { id: 'neu', label: 'NEU', dot: '#8A8F98' },
+    { id: 'qual', label: 'QUALIFIZIERT', dot: '#E9AE06' },
+    { id: 'angebot', label: 'ANGEBOT', dot: '#1358D8' },
+    { id: 'verhandlung', label: 'VERHANDLUNG', dot: '#E5322A' },
+    { id: 'gewonnen', label: 'GEWONNEN', dot: '#159E5B' },
+  ];
+
+  modulesData = [
+    { code: 'CRM', short: 'Vertrieb', active: true, color: '#E5322A' },
+    { code: 'SUP', short: 'Supply', color: '#159E5B' },
+    { code: 'BLD', short: 'Build', color: '#1358D8' },
+    { code: 'HR', short: 'HR', color: '#E9AE06' },
+    { code: 'ADM', short: 'Admin', color: '#8A8F98' },
+  ];
+
+  fmtK(v) {
+    if (v >= 1000) return '€' + (v / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + 'k';
+    return '€' + v;
+  }
+  fmtMio(v) {
+    if (v >= 1e6) return '€' + (v / 1e6).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Mio';
+    return '€' + Math.round(v / 1000) + 'k';
+  }
+  ownerColor(o) { return ({ JS: '#E5322A', AL: '#1358D8', MW: '#159E5B' })[o] || '#8A8F98'; }
+  stageLabel(id) { const s = this.stages.find(x => x.id === id); return s ? s.label : id; }
+
+  onDragStart(board, id) { this.setState({ dragBoard: board, dragId: id }); }
+
+  onDrop(board, stage) {
+    this.setState(s => {
+      if (s.dragBoard !== board || s.dragId == null) return { dragBoard: null, dragId: null };
+      const arr = s[board].map(d => d.id === s.dragId ? { ...d, stage } : d);
+      const moved = arr.find(d => d.id === s.dragId);
+      let activityA = s.activityA;
+      if (board === 'dealsA' && moved && moved.stage !== (s[board].find(d => d.id === s.dragId) || {}).stage) {
+        activityA = [{ dot: '#E5322A', name: 'Du', rest: 'zogst ' + moved.company + ' → ' + this.stageLabel(stage), time: 'gerade eben', fresh: true }, ...s.activityA].slice(0, 12);
+      }
+      return { [board]: arr, activityA, dragBoard: null, dragId: null };
+    });
+  }
+
+  buildColumns(board) {
+    const st = this.state;
+    return this.stages.map(stage => {
+      const ds = st[board].filter(d => d.stage === stage.id).map(d => ({
+        ...d,
+        valueFmt: this.fmtK(d.value),
+        ownerBg: this.ownerColor(d.owner),
+        accent: this.ownerColor(d.owner),
+        op: (st.dragBoard === board && st.dragId === d.id) ? 0.4 : 1,
+        onDragStart: () => this.onDragStart(board, d.id),
+      }));
+      return {
+        id: stage.id, label: stage.label, dot: stage.dot, count: ds.length,
+        sumFmt: this.fmtK(ds.reduce((a, d) => a + d.value, 0)),
+        deals: ds,
+        onDrop: () => this.onDrop(board, stage.id),
+        onDragOver: (e) => e.preventDefault(),
+      };
+    });
+  }
+
+  kpisA() {
+    const deals = this.state.dealsA;
+    const open = deals.filter(d => d.stage !== 'gewonnen');
+    const sum = open.reduce((a, d) => a + d.value, 0);
+    const won = deals.filter(d => d.stage === 'gewonnen').length;
+    const wr = Math.round(won / deals.length * 100);
+    return [
+      { label: 'PIPELINE-WERT', value: this.fmtMio(sum), delta: '+8,2%', deltaCol: '#159E5B' },
+      { label: 'OFFENE DEALS', value: String(open.length), delta: '+3', deltaCol: '#159E5B' },
+      { label: 'WIN-RATE', value: '38%', delta: '−2%', deltaCol: '#E5322A' },
+      { label: 'Ø ZYKLUS', value: '21 T', delta: '−4 T', deltaCol: '#159E5B' },
+    ];
+  }
+
+  kpisC() {
+    const deals = this.state.dealsC;
+    const open = deals.filter(d => d.stage !== 'gewonnen');
+    const sum = open.reduce((a, d) => a + d.value, 0);
+    return [
+      { label: 'PIPELINE', value: this.fmtMio(sum), color: '#E5322A' },
+      { label: 'OFFEN', value: String(open.length), color: '#E9AE06' },
+      { label: 'WIN-RATE', value: '38%', color: '#1358D8' },
+      { label: 'Ø ZYKLUS', value: '21T', color: '#159E5B' },
+    ];
+  }
+
+  tabs(active) {
+    return this.modulesData.map(m => ({
+      code: m.code === 'CRM' ? 'CRM' : m.short,
+      color: m.color,
+      textcol: m.code === active ? 'var(--ink)' : 'var(--dim)',
+      bar: m.code === active ? m.color : 'transparent',
+      weight: m.code === active ? 700 : 500,
+    }));
+  }
+
+  probByStage(id) { return ({ neu: 15, qual: 35, angebot: 60, verhandlung: 80, gewonnen: 100 })[id] || 0; }
+
+  editRowB(id, field, val) {
+    this.setState(s => ({ rowsB: s.rowsB.map(r => r.id === id ? { ...r, [field]: val } : r) }));
+  }
+
+  editRow(board, id, field, val) {
+    this.setState(s => ({ [board]: s[board].map(r => r.id === id ? { ...r, [field]: val } : r) }));
+  }
+
+  buildRowsD() {
+    return this.state.rowsD.map((r, i) => {
+      const prob = this.probByStage(r.stage);
+      return {
+        ...r,
+        valueFmt: this.fmtK(r.value),
+        valueEUR: r.value.toLocaleString('de-DE'),
+        ownerBg: this.ownerColor(r.owner),
+        stageDot: (this.stages.find(x => x.id === r.stage) || {}).dot,
+        prob: prob + '%',
+        probW: prob + '%',
+        rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent',
+        onCompanyBlur: (e) => this.editRow('rowsD', r.id, 'company', e.target.textContent.trim() || r.company),
+        onValueBlur: (e) => {
+          const n = parseInt(String(e.target.textContent).replace(/[^0-9]/g, ''), 10);
+          this.editRow('rowsD', r.id, 'value', isNaN(n) ? r.value : n);
+        },
+        onPhaseChange: (e) => this.editRow('rowsD', r.id, 'stage', e.target.value),
+      };
+    });
+  }
+
+  funnelD() {
+    const rows = this.state.rowsD;
+    const total = rows.length || 1;
+    const per = this.stages.map(st => {
+      const items = rows.filter(r => r.stage === st.id);
+      return { id: st.id, label: st.label, color: st.dot, count: items.length, sum: items.reduce((a, r) => a + r.value, 0) };
+    });
+    const maxC = Math.max(1, ...per.map(p => p.count));
+    return per.map((p, i) => ({
+      ...p,
+      sumFmt: this.fmtK(p.sum),
+      width: Math.round(Math.max(24, p.count / maxC * 100)) + '%',
+      pct: Math.round(p.count / total * 100) + '%',
+      conv: i === 0 ? '—' : (per[i - 1].count ? Math.round(p.count / per[i - 1].count * 100) + '%' : '0%'),
+    }));
+  }
+
+  vswStyle(view) {
+    const on = this.state.viewD === view;
+    return { bg: on ? 'var(--accent)' : 'transparent', col: on ? '#fff' : 'var(--dim)' };
+  }
+
+  buildRowsB() {
+    return this.state.rowsB.map((r, i) => {
+      const prob = this.probByStage(r.stage);
+      return {
+        ...r,
+        valueFmt: this.fmtK(r.value),
+        valueEUR: r.value.toLocaleString('de-DE'),
+        ownerBg: this.ownerColor(r.owner),
+        stageLbl: this.stageLabel(r.stage),
+        stageDot: (this.stages.find(x => x.id === r.stage) || {}).dot,
+        prob: prob + '%',
+        probW: prob + '%',
+        rowbg: i % 2 === 1 ? 'var(--panel2)' : 'transparent',
+        onCompanyBlur: (e) => this.editRowB(r.id, 'company', e.target.textContent.trim() || r.company),
+        onValueBlur: (e) => {
+          const n = parseInt(String(e.target.textContent).replace(/[^0-9]/g, ''), 10);
+          this.editRowB(r.id, 'value', isNaN(n) ? r.value : n);
+        },
+        onPhaseChange: (e) => this.editRowB(r.id, 'stage', e.target.value),
+      };
+    });
+  }
+
+  modules() {
+    return this.modulesData.map(m => {
+      const active = !!m.active;
+      const yellow = m.color === '#E9AE06';
+      return {
+        code: m.code, short: m.short,
+        bg: active ? m.color : 'transparent',
+        fg: active ? (yellow ? '#111' : '#fff') : m.color,
+        border: active ? m.color : 'var(--line2)',
+        labelcol: active ? 'var(--ink)' : 'var(--faint)',
+      };
+    });
+  }
+
+  renderVals() {
+    const am = this.state.activeMod, sv = this.state.supView, meta = this.moduleMeta[am];
+    let modTitle = meta.title, modNewLabel = meta.newLabel, showNewBtn = true;
+    if (am === 'SUP') {
+      if (sv === 'lieferanten') { modTitle = 'Lieferanten'; modNewLabel = '+ LIEFERANT'; }
+      else if (sv === 'restriktion') { modTitle = 'Import-Regeln'; showNewBtn = false; }
+      else { modTitle = 'Bestände'; modNewLabel = '+ BESTELLUNG'; }
+    }
+    const bv = this.state.bldView;
+    if (am === 'BLD') {
+      if (bv === 'maschinen') modTitle = 'Maschinen';
+      else if (bv === 'schichten') modTitle = 'Schichtplan';
+      else if (bv === 'produkte') modTitle = 'Produkte';
+      else if (bv === 'auftraege') modTitle = 'Aufträge';
+      else modTitle = 'Machbarkeit';
+      modNewLabel = '+ AUFTRAG';
+    }
+    const hv = this.state.hrView;
+    if (am === 'HR') {
+      if (hv === 'orgchart') { modTitle = 'Org-Chart'; showNewBtn = false; }
+      else if (hv === 'bewerber') { modTitle = 'Bewerber'; modNewLabel = '+ BEWERBER'; }
+      else modTitle = 'Team';
+    }
+    return {
+      modeA: this.state.modeA,
+      themeIconA: this.state.modeA === 'dark' ? '◐' : '◑',
+      modules: this.modules(),
+      columnsA: this.buildColumns('dealsA'),
+      kpis: this.kpisA(),
+      openCount: this.state.dealsA.filter(d => d.stage !== 'gewonnen').length,
+      activityA: this.state.activityA.map(a => ({ ...a, anim: a.fresh ? 'acmefade .45s ease both' : 'none' })),
+      copilotA: this.state.copilotA,
+      toggleCopilotA: () => this.setState(s => ({ copilotA: !s.copilotA })),
+      toggleThemeA: () => this.setState(s => ({ modeA: s.modeA === 'dark' ? 'light' : 'dark' })),
+      copilotSuggest: ['Forecast Q3', 'Nächste Aktionen', 'Top-Konten', 'Verlorene Deals'],
+      copilotAnswer: '3 Deals über €80k stagnieren seit mehr als 7 Tagen: Vela Robotics, Nordwind Logistik und Terra Beton. Empfehlung: heute eine Follow-up-Sequenz starten.',
+
+      modeB: this.state.modeB,
+      themeIconB: this.state.modeB === 'dark' ? '◐' : '◑',
+      toggleThemeB: () => this.setState(s => ({ modeB: s.modeB === 'dark' ? 'light' : 'dark' })),
+      tabsB: this.tabs('CRM'),
+      rowsB: this.buildRowsB(),
+      stageOptions: this.stages.map(s => ({ id: s.id, label: s.label })),
+
+      modeC: this.state.modeC,
+      themeIconC: this.state.modeC === 'dark' ? '◐' : '◑',
+      toggleThemeC: () => this.setState(s => ({ modeC: s.modeC === 'dark' ? 'light' : 'dark' })),
+      tabsC: this.tabs('CRM'),
+      columnsC: this.buildColumns('dealsC'),
+      kpisC: this.kpisC(),
+
+      modeE: this.state.modeE,
+      themeIconE: this.state.modeE === 'dark' ? '◐' : '◑',
+      toggleThemeE: () => this.setState(s => ({ modeE: s.modeE === 'dark' ? 'light' : 'dark' })),
+      accentE: meta.accent,
+      modEyebrow: meta.eyebrow,
+      modTitle: modTitle,
+      modNewLabel: modNewLabel,
+      showNewBtn: showNewBtn,
+      kpisMod: this.kpiMeta[this.state.activeMod].map(k => ({ ...k, deltaCol: k.up ? '#159E5B' : '#E5322A' })),
+      tabsE: this.modulesData.map(m => ({
+        code: m.code === 'CRM' ? 'CRM' : m.short,
+        active: m.code === this.state.activeMod,
+        bar: m.code === this.state.activeMod ? m.color : 'transparent',
+        textcol: m.code === this.state.activeMod ? 'var(--ink)' : 'var(--dim)',
+        weight: m.code === this.state.activeMod ? 700 : 500,
+        onClick: () => this.setState({ activeMod: m.code }),
+      })),
+      isCRM: this.state.activeMod === 'CRM',
+      isSUP: this.state.activeMod === 'SUP',
+      isBLD: this.state.activeMod === 'BLD',
+      isHR: this.state.activeMod === 'HR',
+      isADM: this.state.activeMod === 'ADM',
+      supRowsV: this.buildSup(),
+      reorderV: this.reorderList(),
+      bldColsV: this.buildBldColumns(),
+      hrRowsV: this.buildHr(),
+      absentV: this.absentToday(),
+      hrView: hv,
+      showTeam: am === 'HR' && hv === 'team',
+      showOrg: am === 'HR' && hv === 'orgchart',
+      showBewerber: am === 'HR' && hv === 'bewerber',
+      hnTeam: this.hrNav('team'), hnOrg: this.hrNav('orgchart'), hnBew: this.hrNav('bewerber'),
+      setTeam: () => this.setState({ hrView: 'team' }),
+      setOrg: () => this.setState({ hrView: 'orgchart' }),
+      setBewerber: () => this.setState({ hrView: 'bewerber' }),
+      orgV: this.buildOrg(),
+      applicantColsV: this.buildApplicantCols(),
+      admRowsV: this.buildAdm(),
+      admTogglesV: this.admToggles.map(t => ({ label: t.label, trackBg: t.on ? '#159E5B' : 'var(--line2)', knobLeft: t.on ? '17px' : '2px', stateLbl: t.on ? 'AN' : 'AUS' })),
+      supView: sv,
+      showKpis: !(am === 'SUP' && sv === 'restriktion'),
+      showBestand: am === 'SUP' && sv === 'bestand',
+      showLieferanten: am === 'SUP' && sv === 'lieferanten',
+      showRestriktion: am === 'SUP' && sv === 'restriktion',
+      subBestand: this.subNav('bestand'), subLief: this.subNav('lieferanten'), subRestr: this.subNav('restriktion'),
+      setBestand: () => this.setState({ supView: 'bestand' }),
+      setLief: () => this.setState({ supView: 'lieferanten' }),
+      setRestr: () => this.setState({ supView: 'restriktion' }),
+      suppliersV: this.buildSuppliers(),
+      supSum: this.supSummary(),
+      impName: this.state.impRule.name,
+      impDate: this.state.impRule.validFrom,
+      onImpName: (e) => this.setState(s => ({ impRule: { ...s.impRule, name: e.target.value } })),
+      onImpDate: (e) => this.setState(s => ({ impRule: { ...s.impRule, validFrom: e.target.value } })),
+      laenderChips: this.chipList(this.laenderOpts, 'laender'),
+      firmenChips: this.chipList(this.firmenOpts, 'firmen'),
+      gueterChips: this.chipList(this.gueterOpts, 'gueter'),
+      effBlk: this.effBtn('blockieren'), effGen: this.effBtn('genehmigung'), effWrn: this.effBtn('warnen'),
+      impRulesV: this.buildImpRules(),
+      saveImp: () => this.saveImpRule(),
+      impCount: this.state.impRule.laender.length + this.state.impRule.firmen.length + this.state.impRule.gueter.length,
+      bldView: bv,
+      showMachbar: am === 'BLD' && bv === 'machbarkeit',
+      showSchichten: am === 'BLD' && bv === 'schichten',
+      showProdukte: am === 'BLD' && bv === 'produkte',
+      showAuftraege: am === 'BLD' && bv === 'auftraege',
+      showMaschinen: am === 'BLD' && bv === 'maschinen',
+      bnMachbar: this.bldNav('machbarkeit'), bnSchicht: this.bldNav('schichten'), bnProd: this.bldNav('produkte'), bnAuf: this.bldNav('auftraege'), bnMas: this.bldNav('maschinen'),
+      setMachbar: () => this.setState({ bldView: 'machbarkeit' }),
+      setSchicht: () => this.setState({ bldView: 'schichten' }),
+      setProdukte: () => this.setState({ bldView: 'produkte' }),
+      setAuf: () => this.setState({ bldView: 'auftraege' }),
+      setMas: () => this.setState({ bldView: 'maschinen' }),
+      machinesV: this.buildMachines(),
+      feas: this.computeFeasibility(),
+      capLeversV: this.capLeverList(),
+      capOrder: this.capOrder,
+      shiftDays: this.shiftDays,
+      shiftMatrix: this.buildShiftMatrix(),
+      shiftCap: this.shiftCapacity(),
+      productsV: this.buildProducts(),
+      prodCount: this.products.length,
+      prodBomV: this.buildBomArr(this.bomByProduct[this.state.activeProduct] || []),
+      prodRoutingV: this.buildProdRouting(),
+      prodMeta: this.prodMeta(),
+      showCrmTable: am === 'CRM' && this.state.viewD === 'tabelle',
+      showCrmKanban: am === 'CRM' && this.state.viewD === 'kanban',
+      showCrmFunnel: am === 'CRM' && this.state.viewD === 'funnel',
+
+      modeD: this.state.modeD,
+      themeIconD: this.state.modeD === 'dark' ? '◐' : '◑',
+      toggleThemeD: () => this.setState(s => ({ modeD: s.modeD === 'dark' ? 'light' : 'dark' })),
+      tabsD: this.tabs('CRM'),
+      rowsD: this.buildRowsD(),
+      columnsD: this.buildColumns('rowsD'),
+      funnelD: this.funnelD(),
+      isTableD: this.state.viewD === 'tabelle',
+      isKanbanD: this.state.viewD === 'kanban',
+      isFunnelD: this.state.viewD === 'funnel',
+      setTableD: () => this.setState({ viewD: 'tabelle' }),
+      setKanbanD: () => this.setState({ viewD: 'kanban' }),
+      setFunnelD: () => this.setState({ viewD: 'funnel' }),
+      vswTable: this.vswStyle('tabelle'),
+      vswKanban: this.vswStyle('kanban'),
+      vswFunnel: this.vswStyle('funnel'),
+      viewHintD: this.state.viewD === 'tabelle' ? '✎ Zellen direkt editierbar' : (this.state.viewD === 'kanban' ? '↔ Deals per Drag & Drop verschieben' : 'Konversion je Phase'),
+    };
+  }
+}
+</script>
+</body>
+</html>

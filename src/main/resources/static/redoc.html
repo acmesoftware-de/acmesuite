@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ACMEsuite API — Redoc</title>
+    <style>
+      body { margin: 0; }
+      .docs-nav {
+        display: flex; align-items: center; gap: 16px;
+        padding: 10px 16px; background: #17181c; color: #f4f3ef;
+        font: 13px/1 -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+      .docs-nav strong { letter-spacing: .04em; }
+      .docs-nav a { color: #9aa4b2; text-decoration: none; }
+      .docs-nav a:hover { color: #fff; }
+      .docs-nav a.active { color: #6e56cf; font-weight: 700; }
+      .docs-nav .spacer { flex: 1; }
+    </style>
+  </head>
+  <body>
+    <nav class="docs-nav">
+      <strong>ACMEsuite API</strong>
+      <a href="/swagger.html">Swagger UI</a>
+      <a class="active" href="/redoc.html">Redoc</a>
+      <span class="spacer"></span>
+      <!-- Redoc shows one spec at a time; ACMEhr by default — switch via these links. -->
+      <a href="/openapi/acme-hr.yaml">ACMEhr</a>
+      <a href="/openapi/acme-crm.yaml">ACMEcrm</a>
+      <a href="/openapi/acme-supply.yaml">ACMEsupply</a>
+      <a href="/openapi/acme-build.yaml">ACMEbuild</a>
+      <a href="/">&larr; App</a>
+    </nav>
+    <redoc spec-url="/openapi/acme-hr.yaml"></redoc>
+    <!-- Self-contained bundle served from the jar (webjar), no CDN. -->
+    <script src="/webjars/redoc/2.5.0/bundles/redoc.standalone.js"></script>
+  </body>
+</html>
