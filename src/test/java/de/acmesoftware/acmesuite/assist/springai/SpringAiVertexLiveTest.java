@@ -8,32 +8,36 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
 /**
- * Opt-in live smoke test of the hosted <b>Google Gemini</b> provider (AI Studio / Developer API):
- * with {@code acme.assist.provider=google} the real {@link SpringAiAssistantEngine} drives Spring
- * AI's ChatClient against Gemini, its Customer-360 tools hit the real CRM endpoints (as the user),
- * and the answer streams over SSE. Skips (does not fail) when {@code GOOGLE_API_KEY} is absent, so
- * CI stays green.
+ * Opt-in live smoke test of Google <b>Vertex AI</b> Gemini (GCP project + Application Default
+ * Credentials), as opposed to the AI-Studio API-key path in {@link SpringAiGoogleLiveTest}. Enabled
+ * only when {@code GOOGLE_CLOUD_PROJECT} is set and ADC exists — otherwise it skips and the config
+ * defaults keep the context in (harmless) API-key mode, so CI stays green.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "acme.assist.provider=google",
-                "spring.ai.google.genai.chat.options.model=gemini-2.5-flash"
+                "spring.ai.google.genai.vertex-ai=${GOOGLE_GENAI_VERTEX:false}",
+                "spring.ai.google.genai.project-id=${GOOGLE_CLOUD_PROJECT:}",
+                "spring.ai.google.genai.location=${GOOGLE_CLOUD_LOCATION:global}",
+                "spring.ai.google.genai.chat.options.model=${GOOGLE_GENAI_MODEL:gemini-2.5-flash}"
         })
 @Import(TestcontainersConfig.class)
-class SpringAiGoogleLiveTest {
+class SpringAiVertexLiveTest {
 
     @Value("${local.server.port}")
     int port;
 
     @Test
-    void liveGeminiTurnStreamsOverSse() throws Exception {
-        assumeTrue(keyPresent("GOOGLE_API_KEY"), "GOOGLE_API_KEY not set — skipping live Gemini test");
+    void liveVertexGeminiTurnStreamsOverSse() throws Exception {
+        assumeTrue(vertexConfigured(), "GOOGLE_CLOUD_PROJECT / ADC not set — skipping live Vertex test");
 
         HttpRequest request = HttpRequest.newBuilder(
                         URI.create("http://localhost:" + port + "/api/base/assist/messages"))
@@ -46,15 +50,17 @@ class SpringAiGoogleLiveTest {
         HttpResponse<String> response = HttpClient.newHttpClient()
                 .send(request, HttpResponse.BodyHandlers.ofString());
 
-        System.out.println("[springai-google-live] status=" + response.statusCode() + "\n" + response.body());
+        System.out.println("[springai-vertex-live] status=" + response.statusCode() + "\n" + response.body());
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).contains("event:message");
         assertThat(response.body()).contains("event:done");
     }
 
-    private static boolean keyPresent(String var) {
-        String value = System.getenv(var);
-        return value != null && !value.isBlank() && !value.equals("not-set");
+    private static boolean vertexConfigured() {
+        String project = System.getenv("GOOGLE_CLOUD_PROJECT");
+        Path adc = Path.of(System.getProperty("user.home"), ".config", "gcloud",
+                "application_default_credentials.json");
+        return project != null && !project.isBlank() && Files.exists(adc);
     }
 }
