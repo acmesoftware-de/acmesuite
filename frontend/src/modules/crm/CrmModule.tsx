@@ -96,6 +96,16 @@ export function CrmModule({
     setContacts((prev) => [created, ...(prev ?? [])])
   }, [])
 
+  const updateCustomer = useCallback(async (id: string, body: CustomerWrite) => {
+    const updated = await crmApi.updateCustomer(id, body)
+    setCustomers((prev) => prev?.map((c) => (c.id === id ? updated : c)) ?? prev)
+  }, [])
+
+  const updateContact = useCallback(async (id: string, body: ContactWrite) => {
+    const updated = await crmApi.updateContact(id, body)
+    setContacts((prev) => prev?.map((c) => (c.id === id ? updated : c)) ?? prev)
+  }, [])
+
   const chrome = (
     <>
       {notice && <div className="acme-notice">{notice}</div>}
@@ -115,6 +125,7 @@ export function CrmModule({
           canWrite={canWrite}
           createTick={newDealTick}
           onCreate={createCustomer}
+          onUpdate={updateCustomer}
         />
       </div>
     )
@@ -132,6 +143,7 @@ export function CrmModule({
           canWrite={canWrite}
           createTick={newDealTick}
           onCreate={createContact}
+          onUpdate={updateContact}
         />
       </div>
     )

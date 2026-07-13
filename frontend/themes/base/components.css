@@ -662,6 +662,26 @@
 .acme-app .acme-detail-sub { font: 400 11.5px var(--font-mono); color: var(--dim); margin-top: 6px; }
 .acme-app .acme-detail-section { margin-bottom: 20px; }
 .acme-app .acme-detail-section .acme-section-label { display: block; margin-bottom: 10px; }
+.acme-app .acme-detail-head-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+
+/* Read-mode field grid + inline chips */
+.acme-app .acme-detail-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+.acme-app .acme-field-ro { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.acme-app .acme-field-val { font: 500 13px var(--font-ui); color: var(--ink); overflow-wrap: anywhere; }
+.acme-app .acme-tag-chip {
+  font: 700 8.5px var(--font-mono);
+  letter-spacing: 0.06em;
+  padding: 3px 6px;
+  color: var(--info);
+  border: 1px solid var(--info);
+  flex: none;
+}
+
+/* Checkbox row (contact edit form) */
+.acme-app .acme-check-row { display: flex; flex-wrap: wrap; gap: 20px; }
+.acme-app .acme-check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.acme-app .acme-check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+.acme-app .acme-check-label { font: 500 12.5px var(--font-ui); color: var(--ink); }
 
 .acme-app .acme-contact-mini-list,
 .acme-app .acme-deal-mini-list { display: flex; flex-direction: column; }
