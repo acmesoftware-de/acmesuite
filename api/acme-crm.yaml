@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEcrm API
-  version: 0.1.0
+  version: 0.4.0
   description: >
     Sales system of **ACME analog Inc.** and system of record for **customers & resellers**,
     **products**, **price lists**, **quotes** and **orders** (production contracts).
@@ -10,6 +10,33 @@ info:
     Orders are confirmed via the **e-approval system**: above defined thresholds an authorized
     signatory must approve (resolved via ACMEhr — approval limits/deputies).
     Confirmed orders (products, quantities, delivery dates) drive factory, port and treasury.
+
+
+    **Pipeline (sales overlay).** `/pipeline` is a sales-facing **projection** of the deal
+    lifecycle across leads, quotes and orders onto five ordered stages
+    (`NEU · QUALIFIZIERT · ANGEBOT · VERHANDLUNG · GEWONNEN`). A `Deal` may be a bare lead or
+    linked to its backing quote/order as it progresses; `probability` is derived from `stage`.
+    The overlay carries sales attributes the transactional models don't (assigned `owner`,
+    `contact`, `stage`), so `PATCH /pipeline/{id}` can set the stage directly (for board
+    drag-drop / inline edit) while the transactional endpoints remain the source of truth for
+    quotes and orders. Read model — see each operation for the status→stage derivation.
+
+
+    **Contacts & mail.** A `Customer` is the company (system of record); `/contacts` are the
+    people at a customer (a contact may be linked to one customer). A `Deal` references both
+    its `customerId` and the `contactId` it is with, so a company/contact detail view can list
+    its opportunities (`/pipeline?customerId=…`/`?contactId=…`) alongside its correspondence
+    (`/threads?customerId=…`/`?contactId=…`). Mail threads are a lightweight overlay for the
+    CRM UI; a real mail-sync backend is future work (currently mocked, like `/pipeline`).
+
+
+    **Web forms & newsletter.** `/forms` are lead-capture forms / newsletter signups. Their
+    layout (fields, required flags) **and** the actions a valid submission triggers
+    (send email · create contact/opportunity · schedule appointment · newsletter
+    subscribe/unsubscribe) are maintained in the Admin area. `POST /forms/{id}/submit` is the
+    **public** (unauthenticated) submission tool: it validates the required fields, stores the
+    submission on success and runs the configured actions. Captured submissions are readable
+    by CRM users via `/forms/{id}/submissions`.
 
 
     Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally (quotes/orders/approval),
@@ -34,6 +61,20 @@ tags:
     description: Quotes — draft through acceptance, conversion into an order.
   - name: Orders
     description: Orders incl. e-approval (submission, approval/rejection, production, fulfillment).
+  - name: Contacts
+    description: People at a customer (company). A contact may be linked to one customer.
+  - name: Pipeline
+    description: >
+      Sales pipeline overlay — a stage projection over leads/quotes/orders for the CRM board,
+      table and funnel. Read-mostly; stage is settable for drag-drop / inline edit.
+  - name: Mail
+    description: >
+      Mail threads (correspondence) attached to a customer/contact. UI overlay — a real
+      mail-sync backend is future work (currently mocked).
+  - name: Forms
+    description: >
+      Web forms / newsletter signups. Layout and trigger actions are configured in Admin;
+      `POST /forms/{id}/submit` is the public submission tool (validate → store → trigger).
 
 security:
   - bearerAuth: []
@@ -387,6 +428,240 @@ paths:
         '200': { description: Cancelled., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
         '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
 
+  # ─────────────────────────── Pipeline (sales overlay) ───────────────────────────
+  /pipeline:
+    get:
+      tags: [Pipeline]
+      summary: List pipeline deals
+      description: >
+        The sales pipeline as a list of `Deal`s, each projected onto one of five stages.
+
+
+        **Status → stage derivation** (for deals backed by a quote/order):
+        quote `DRAFT` → `NEU`; quote `SENT` → `QUALIFIZIERT`; quote `ACCEPTED` or order
+        `CREATED` → `ANGEBOT`; order `PENDING_APPROVAL` → `VERHANDLUNG`; order `APPROVED` or
+        `FULFILLED` → `GEWONNEN`. Lost deals (quote `REJECTED`/`EXPIRED`, order
+        `REJECTED`/`CANCELLED`) are excluded by default. Bare leads (no quote yet) sit in the
+        stage last set on them (default `NEU`).
+      operationId: listPipeline
+      x-required-role: WATCH
+      parameters:
+        - { name: stage, in: query, schema: { $ref: '#/components/schemas/PipelineStage' } }
+        - { name: owner, in: query, schema: { type: string }, description: Filter by owner initials. }
+        - { name: customerId, in: query, schema: { type: string }, description: Deals of a customer. }
+        - { name: contactId, in: query, schema: { type: string }, description: Deals with a contact. }
+        - { name: q, in: query, schema: { type: string }, description: Free-text over company/contact. }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Deals.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Deal' } } } }
+    post:
+      tags: [Pipeline]
+      summary: Create a pipeline deal (lead)
+      description: >
+        Adds a new deal to the pipeline. Without a `customerId`/backing quote it is a bare lead
+        (enters `NEU` by default); the sales team later attaches a quote/order as it progresses.
+      operationId: createDeal
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/DealCreate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Deal' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /pipeline/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Pipeline]
+      summary: Read a pipeline deal
+      operationId: getDeal
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Deal., content: { application/json: { schema: { $ref: '#/components/schemas/Deal' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Pipeline]
+      summary: Update a pipeline deal (stage / owner / value / contact)
+      description: >
+        Sets sales-overlay attributes. Moving `stage` reflects the board drag-drop / inline
+        edit; where a deal is backed by a quote/order the server advances the underlying
+        record along its legal transition, otherwise it records the stage on the overlay.
+      operationId: updateDeal
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/DealUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Deal' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  # ─────────────────────────── Contacts ───────────────────────────
+  /contacts:
+    get:
+      tags: [Contacts]
+      summary: List contacts
+      operationId: listContacts
+      x-required-role: WATCH
+      parameters:
+        - { name: customerId, in: query, schema: { type: string }, description: Contacts of a customer. }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Contacts.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Contact' } } } }
+    post:
+      tags: [Contacts]
+      summary: Create contact
+      operationId: createContact
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ContactWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Contact' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /contacts/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Contacts]
+      summary: Read contact
+      operationId: getContact
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Contact., content: { application/json: { schema: { $ref: '#/components/schemas/Contact' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Contacts]
+      summary: Update contact
+      operationId: updateContact
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ContactWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Contact' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Mail threads ───────────────────────────
+  /threads:
+    get:
+      tags: [Mail]
+      summary: List mail threads
+      description: Correspondence attached to a customer and/or contact. Filter by either.
+      operationId: listThreads
+      x-required-role: WATCH
+      parameters:
+        - { name: customerId, in: query, schema: { type: string } }
+        - { name: contactId, in: query, schema: { type: string } }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Threads (newest first).
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MailThread' } } } }
+  /threads/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Mail]
+      summary: Read a mail thread (with messages)
+      operationId: getThread
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Thread., content: { application/json: { schema: { $ref: '#/components/schemas/MailThread' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Web forms (lead capture / newsletter) ───────────────────────────
+  /forms:
+    get:
+      tags: [Forms]
+      summary: List web forms
+      description: Configured web forms / newsletter signups (definition maintained in Admin).
+      operationId: listForms
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Forms.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/WebForm' } } } }
+    post:
+      tags: [Forms]
+      summary: Create a web form (Admin)
+      operationId: createForm
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/WebFormWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/WebForm' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /forms/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Forms]
+      summary: Read a web form (definition)
+      operationId: getForm
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Form., content: { application/json: { schema: { $ref: '#/components/schemas/WebForm' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Forms]
+      summary: Update a web form (Admin — fields, required flags, trigger actions)
+      operationId: updateForm
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/WebFormWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/WebForm' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /forms/{id}/submit:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Forms]
+      summary: Submit a web form (public)
+      description: >
+        Public submission tool for the embedded web form / newsletter signup — **no auth**
+        (overrides the global bearer security). Validates the submitted values against the
+        form's required fields (`422` listing the offending fields on failure); on success
+        stores the submission and runs the configured trigger actions (send email, create
+        contact/opportunity, schedule appointment, newsletter subscribe/unsubscribe). Returns
+        the stored submission incl. which actions were triggered.
+      operationId: submitForm
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/FormSubmitRequest' } } }
+      responses:
+        '201': { description: Accepted & stored., content: { application/json: { schema: { $ref: '#/components/schemas/FormSubmission' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /forms/{id}/submissions:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Forms]
+      summary: List captured submissions of a form
+      operationId: listFormSubmissions
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Submissions (newest first).
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/FormSubmission' } } } }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -584,3 +859,207 @@ components:
             properties:
               productId: { type: string }
               producedQuantity: { type: integer, minimum: 0 }
+
+    # ─────────────────────────── Pipeline (sales overlay) ───────────────────────────
+    PipelineStage:
+      description: >
+        Ordered sales stage. `probability` is derived from it: NEU 15 · QUALIFIZIERT 35 ·
+        ANGEBOT 60 · VERHANDLUNG 80 · GEWONNEN 100 (%).
+      type: string
+      enum: [NEU, QUALIFIZIERT, ANGEBOT, VERHANDLUNG, GEWONNEN]
+    DealSource:
+      description: What the deal is currently backed by in the transactional model.
+      type: string
+      enum: [LEAD, QUOTE, ORDER]
+    Owner:
+      description: Sales owner assigned to a deal (avatar initials + display name).
+      type: object
+      required: [initials]
+      properties:
+        initials: { type: string, minLength: 1, maxLength: 3, example: JS }
+        name: { type: string, nullable: true, example: Jana Schmidt }
+    Deal:
+      description: A pipeline deal — a stage projection over a lead/quote/order (see `GET /pipeline`).
+      type: object
+      required: [id, source, company, stage, probability, value]
+      properties:
+        id: { type: string, example: deal-1024 }
+        source: { $ref: '#/components/schemas/DealSource' }
+        quoteId: { type: string, nullable: true }
+        orderId: { type: string, nullable: true }
+        customerId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true, description: The contact this deal is with. }
+        company: { type: string, example: Nordwind Logistik }
+        contact: { type: string, nullable: true, example: "Michael Braun · CPO" }
+        stage: { $ref: '#/components/schemas/PipelineStage' }
+        probability: { type: integer, minimum: 0, maximum: 100, description: Derived from `stage`. }
+        value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        owner: { $ref: '#/components/schemas/Owner' }
+        lastActivity: { type: string, nullable: true, description: Human label, e.g. "Angebot gesendet · vor 18 Min". }
+        lastActivityAt: { type: string, format: date-time, nullable: true }
+        ageDays: { type: integer, nullable: true, description: Days since the deal entered its current stage. }
+    DealCreate:
+      type: object
+      required: [company]
+      properties:
+        company: { type: string }
+        contact: { type: string, nullable: true }
+        customerId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
+        stage: { $ref: '#/components/schemas/PipelineStage' }
+        value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        ownerInitials: { type: string, nullable: true }
+    DealUpdate:
+      description: Partial update of a deal's sales-overlay attributes.
+      type: object
+      properties:
+        stage: { $ref: '#/components/schemas/PipelineStage' }
+        company: { type: string }
+        contact: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
+        value: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        ownerInitials: { type: string, nullable: true }
+
+    # ─────────────────────────── Contacts ───────────────────────────
+    Contact:
+      description: A person at a customer (company).
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, example: contact-1001 }
+        customerId: { type: string, nullable: true, description: The company this contact belongs to. }
+        name: { type: string, example: Sara Mena }
+        role: { type: string, nullable: true, example: CTO }
+        email: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        primary: { type: boolean, default: false, description: Primary contact of the customer. }
+        newsletter: { type: boolean, default: false, description: Newsletter opt-in (set by form newsletter actions). }
+    ContactWrite:
+      type: object
+      required: [name]
+      properties:
+        customerId: { type: string, nullable: true }
+        name: { type: string }
+        role: { type: string, nullable: true }
+        email: { type: string, format: email, nullable: true }
+        phone: { type: string, nullable: true }
+        primary: { type: boolean }
+        newsletter: { type: boolean }
+
+    # ─────────────────────────── Mail (correspondence) ───────────────────────────
+    MailDirection:
+      type: string
+      enum: [INBOUND, OUTBOUND]
+    MailMessage:
+      type: object
+      required: [id, direction, sentAt]
+      properties:
+        id: { type: string }
+        direction: { $ref: '#/components/schemas/MailDirection' }
+        from: { type: string, nullable: true }
+        to: { type: string, nullable: true }
+        sentAt: { type: string, format: date-time }
+        snippet: { type: string, nullable: true }
+        body: { type: string, nullable: true }
+    MailThread:
+      description: A correspondence thread attached to a customer and/or contact.
+      type: object
+      required: [id, subject]
+      properties:
+        id: { type: string, example: thread-1001 }
+        subject: { type: string, example: "Angebot Rahmen XL" }
+        customerId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
+        participants: { type: array, items: { type: string } }
+        messageCount: { type: integer }
+        lastMessageAt: { type: string, format: date-time, nullable: true }
+        preview: { type: string, nullable: true, description: Snippet of the latest message. }
+        messages: { type: array, items: { $ref: '#/components/schemas/MailMessage' } }
+
+    # ─────────────────────────── Web forms (lead capture / newsletter) ───────────────────────────
+    FormFieldType:
+      type: string
+      enum: [TEXT, EMAIL, PHONE, NUMBER, TEXTAREA, CHECKBOX, SELECT, DATE]
+    FormField:
+      description: One field of a web form.
+      type: object
+      required: [key, label, type]
+      properties:
+        key: { type: string, example: email, description: Unique within the form; keys the submission values. }
+        label: { type: string, example: "E-Mail" }
+        type: { $ref: '#/components/schemas/FormFieldType' }
+        required: { type: boolean, default: false }
+        placeholder: { type: string, nullable: true }
+        options: { type: array, items: { type: string }, nullable: true, description: Choices for SELECT. }
+    FormActionType:
+      description: >
+        What a valid submission triggers (configured in Admin): send an email, create a contact
+        or opportunity (deal), schedule an appointment, or subscribe/unsubscribe the submitter
+        from the newsletter.
+      type: string
+      enum: [SEND_EMAIL, CREATE_CONTACT, CREATE_OPPORTUNITY, SCHEDULE_APPOINTMENT, NEWSLETTER_SUBSCRIBE, NEWSLETTER_UNSUBSCRIBE]
+    FormAction:
+      description: A trigger configured in Admin, run on a valid submission.
+      type: object
+      required: [type]
+      properties:
+        type: { $ref: '#/components/schemas/FormActionType' }
+        config:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: >
+            Action-specific settings, e.g. template + recipient for SEND_EMAIL, target
+            stage/owner for CREATE_OPPORTUNITY, calendar/slot for SCHEDULE_APPOINTMENT, list id
+            for NEWSLETTER_*.
+    WebForm:
+      description: A web form / newsletter signup. Layout and trigger actions are maintained in Admin.
+      type: object
+      required: [id, name, slug, fields]
+      properties:
+        id: { type: string, example: form-lead }
+        name: { type: string, example: "Kontaktformular" }
+        slug: { type: string, example: kontakt, description: Public identifier used to embed the form. }
+        description: { type: string, nullable: true }
+        enabled: { type: boolean, default: true }
+        fields: { type: array, items: { $ref: '#/components/schemas/FormField' } }
+        actions: { type: array, items: { $ref: '#/components/schemas/FormAction' }, description: Triggered on a valid submission. }
+        createdOn: { type: string, format: date, nullable: true }
+    WebFormWrite:
+      type: object
+      required: [name, slug, fields]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        enabled: { type: boolean }
+        fields: { type: array, items: { $ref: '#/components/schemas/FormField' } }
+        actions: { type: array, items: { $ref: '#/components/schemas/FormAction' } }
+    FormSubmitRequest:
+      description: A public submission — field values keyed by `FormField.key`.
+      type: object
+      required: [values]
+      properties:
+        values:
+          type: object
+          additionalProperties: true
+          example: { name: "Sara Mena", email: "sara@example.com", newsletter: true }
+    TriggeredAction:
+      description: Outcome of one configured action after a submission.
+      type: object
+      required: [type, status]
+      properties:
+        type: { $ref: '#/components/schemas/FormActionType' }
+        status: { type: string, enum: [DONE, SKIPPED, FAILED, PENDING] }
+        detail: { type: string, nullable: true }
+        ref: { type: string, nullable: true, description: Id of a created contact/deal/appointment, if any. }
+    FormSubmission:
+      description: A stored form submission and the outcome of its trigger actions.
+      type: object
+      required: [id, formId, values, submittedAt]
+      properties:
+        id: { type: string }
+        formId: { type: string }
+        values: { type: object, additionalProperties: true }
+        submittedAt: { type: string, format: date-time }
+        triggered: { type: array, items: { $ref: '#/components/schemas/TriggeredAction' } }
