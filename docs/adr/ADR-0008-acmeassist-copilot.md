@@ -462,6 +462,6 @@ design's `0 16px 48px var(--shadow)` elevation before any implementation begins.
 - Reused seam: `ai/ContractIntelligence` (as a tool)
 - Contract: `api/acme-assist.yaml` (v0.1.0)
 - Security: matcher additions in `base/BaseSecurityConfig`
-- Schema: `V23__assist_audit.sql`
+- Schema: `V28__assist_audit.sql`
 - Frontend: `frontend/src/assist/*` (component + `assistApi.ts` + fetch/SSE client),
   classes in `frontend/themes/base/components.css`
