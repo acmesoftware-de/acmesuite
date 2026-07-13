@@ -39,6 +39,10 @@
   /* Geometry — rounded. */
   --radius: 6px;
   --edge: 3px;
+
+  /* Foreground on filled signal-color chips (status/match badges). */
+  --on-signal: #fff;
+  --on-warning: #23201b;
 }
 
 /* Light mode — warm paper. */

@@ -6,6 +6,7 @@ import { ModulePlaceholder } from './modules/ModulePlaceholder'
 import { AdminModule } from './modules/admin/AdminModule'
 import { CrmModule } from './modules/crm/CrmModule'
 import { PIPELINE_MODES, type PipelineMode } from './modules/crm/PipelineView'
+import { HrModule } from './modules/hr/HrModule'
 import { useShellState } from './shell/useShellState'
 import { Assist } from './assist/Assist'
 import { useTheme } from './theme/ThemeProvider'
@@ -91,6 +92,8 @@ export function App() {
               newDealTick={newDealTick}
               pipelineMode={pipelineMode}
             />
+          ) : module.id === 'HR' ? (
+            <HrModule subView={shell.activeSubKey} canWrite={auth.canWrite} />
           ) : (
             <ModulePlaceholder module={module} activeSub={shell.activeSub} />
           )}
