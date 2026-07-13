@@ -3,7 +3,6 @@ package de.acmesoftware.acmesuite.base;
 import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
-import java.time.Instant;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,8 +28,7 @@ public class FederatedIdentityService {
                 .orElseGet(() -> users.save(new BaseUser(
                         UUID.randomUUID().toString().replace("-", ""),
                         null, email, displayName,
-                        AccessRole.WATCH, UserStatus.PENDING, providerId, subject, null, false,
-                        Instant.now())));
+                        AccessRole.WATCH, UserStatus.PENDING, providerId, subject, null, false)));
     }
 
     private BaseUser refresh(BaseUser user, String email, String displayName) {
@@ -44,7 +42,6 @@ public class FederatedIdentityService {
             dirty = true;
         }
         if (dirty) {
-            user.touch(Instant.now());
             users.save(user);
         }
         return user;

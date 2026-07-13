@@ -74,8 +74,7 @@ class OidcLoginTest {
 
     private String configureIdp(String issuer) {
         configs.upsert("oidc", true, Map.of(
-                "issuerUri", issuer, "clientId", CID, "clientSecret", "s3cr3t", "redirectUri", REDIRECT),
-                "test");
+                "issuerUri", issuer, "clientId", CID, "clientSecret", "s3cr3t", "redirectUri", REDIRECT));
         Map<String, Object> discovery = Map.of(
                 "issuer", issuer,
                 "authorization_endpoint", issuer + "/authorize",
@@ -144,7 +143,7 @@ class OidcLoginTest {
         String issuer = configureIdp("https://idp.test/active");
         String subject = "subject-active";
         users.save(new BaseUser(UUID.randomUUID().toString().replace("-", ""), null, "alice@test",
-                "Alice", AccessRole.WORK, UserStatus.ACTIVE, "oidc", subject, null, false, Instant.now()));
+                "Alice", AccessRole.WORK, UserStatus.ACTIVE, "oidc", subject, null, false));
 
         Map<String, String> q = query(oidc.startLogin("oidc"));
         stubToken(issuer, q.get("nonce"), subject);

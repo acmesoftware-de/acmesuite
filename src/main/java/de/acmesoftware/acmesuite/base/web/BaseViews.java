@@ -14,8 +14,9 @@ public final class BaseViews {
     public record LoginResponse(String token, boolean mustSetPassword, MeView user) {
     }
 
+    // `auditor` = the orthogonal AUDIT capability (ADR-0010) so the UI can offer version history.
     public record MeView(String id, String username, String email, String displayName, String role,
-            String status) {
+            String status, boolean auditor) {
     }
 
     public record PasswordRequest(String newPassword) {
@@ -27,6 +28,6 @@ public final class BaseViews {
 
     public static MeView me(BaseUser u) {
         return new MeView(u.getId(), u.getUsername(), u.getEmail(), u.getDisplayName(),
-                u.getRole().name(), u.getStatus().name());
+                u.getRole().name(), u.getStatus().name(), u.isAuditor());
     }
 }

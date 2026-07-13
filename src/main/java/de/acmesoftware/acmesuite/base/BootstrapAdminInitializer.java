@@ -5,7 +5,6 @@ import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
 import java.security.SecureRandom;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -17,8 +16,16 @@ import org.springframework.stereotype.Component;
 
 /**
  * Creates a local break-glass admin at first startup when no ADMIN exists yet — the bootstrap out
- * of the chicken-and-egg (an admin is needed to assign roles, but nobody has ADMIN initially). A
- * random one-time password is logged once; the admin is forced to change it on first login.
+ * of the chicken-and-egg (an admin is needed to assign roles, but nobody has ADMIN initially).
+ *
+ * <p>Two modes:
+ * <ul>
+ *   <li>{@code acme.base.auth.bootstrap.admin-password} is set (recommended for real deployments):
+ *       that is the admin's password. Nothing secret is logged, and no forced change — the operator
+ *       chose it.</li>
+ *   <li>unset (zero-config dev): a random one-time password is logged once and must be changed on
+ *       first login.</li>
+ * </ul>
  */
 @Component
 class BootstrapAdminInitializer implements ApplicationRunner {
@@ -41,23 +48,35 @@ class BootstrapAdminInitializer implements ApplicationRunner {
             return;
         }
         String username = props.getBootstrap().getAdminUsername();
-        String tempPassword = randomPassword();
+        String configured = props.getBootstrap().getAdminPassword();
+        boolean generated = configured == null || configured.isBlank();
+        String password = generated ? randomPassword() : configured;
+
         BaseUser admin = new BaseUser(
                 UUID.randomUUID().toString().replace("-", ""),
                 username, null, "Administrator",
                 AccessRole.ADMIN, UserStatus.ACTIVE, LocalAuthProvider.ID, null,
-                encoder.encode(tempPassword), true, Instant.now());
+                // Force a change only for the generated temporary password.
+                encoder.encode(password), generated);
+        admin.setAuditor(true); // the bootstrap superuser may view version history (AUDIT)
         users.save(admin);
 
-        log.warn("""
+        if (generated) {
+            log.warn("""
 
-                ==================================================================
-                 ACMEbase bootstrap admin created (no ADMIN existed).
-                   username:            {}
-                   temporary password:  {}
-                 You must change this password on first login.
-                ==================================================================""",
-                username, tempPassword);
+                    ==================================================================
+                     ACMEbase bootstrap admin created (no ADMIN existed).
+                       username:            {}
+                       temporary password:  {}
+                     You must change this password on first login.
+                     Set acme.base.auth.bootstrap.admin-password to avoid the log-only
+                     password in deployments where you cannot read the logs.
+                    ==================================================================""",
+                    username, password);
+        } else {
+            log.info("ACMEbase bootstrap admin '{}' created from the configured password "
+                    + "(acme.base.auth.bootstrap.admin-password).", username);
+        }
     }
 
     private static String randomPassword() {

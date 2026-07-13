@@ -4,7 +4,6 @@ import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
 import de.acmesoftware.acmesuite.base.token.SessionTokenService;
-import java.time.Instant;
 import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,7 +36,7 @@ public class BaseAuthService {
                 .filter(u -> u.getStatus() == UserStatus.ACTIVE)
                 .filter(u -> u.getPasswordHash() != null && encoder.matches(rawPassword, u.getPasswordHash()))
                 .map(u -> new LoginResult(
-                        tokens.issue(u.getId(), u.getRole().name(), u.getDisplayName()),
+                        tokens.issue(u.getId(), u.getRole().name(), u.getDisplayName(), u.isAuditor()),
                         u.isMustSetPassword(), u));
     }
 
@@ -52,7 +51,6 @@ public class BaseAuthService {
                 .orElseThrow(() -> new IllegalArgumentException("unknown user"));
         user.setPasswordHash(encoder.encode(newPassword));
         user.setMustSetPassword(false);
-        user.touch(Instant.now());
         users.save(user);
     }
 
