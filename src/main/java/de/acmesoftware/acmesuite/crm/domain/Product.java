@@ -8,11 +8,16 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /** Product in the ACME catalog (analog goods made by the factory). */
 @Entity
 @Table(name = "product")
-public class Product {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class Product extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)

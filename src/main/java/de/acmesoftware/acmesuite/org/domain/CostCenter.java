@@ -11,6 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * Cost center. Attached to an organizational unit and has an annual budget; the
@@ -18,7 +21,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "cost_center")
-public class CostCenter {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class CostCenter extends AuditedEntity {
 
     /** Cost center code, e.g. "CC-2000". */
     @Id

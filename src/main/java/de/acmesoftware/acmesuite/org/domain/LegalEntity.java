@@ -9,6 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * Legal entity of the group (e.g. the holding or an operating GmbH/AG).
@@ -19,7 +22,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "legal_entity")
-public class LegalEntity {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class LegalEntity extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 64)

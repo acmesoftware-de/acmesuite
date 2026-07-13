@@ -9,6 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * Organizational unit (department tree) within a legal entity.
@@ -16,7 +19,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "org_unit")
-public class OrgUnit {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class OrgUnit extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 96)

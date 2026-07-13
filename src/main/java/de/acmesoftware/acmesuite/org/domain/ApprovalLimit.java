@@ -12,6 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * Explicitly maintained approval limit of a person (ACMEhr). Overrides the limit
@@ -19,7 +22,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "approval_limit")
-public class ApprovalLimit {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class ApprovalLimit extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 64)

@@ -6,11 +6,16 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /** Raw material or energy in the procurement catalog. */
 @Entity
 @Table(name = "material")
-public class Material {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class Material extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)

@@ -6,6 +6,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * Business role (e.g. "Head of Procurement", "Legal Counsel", "Managing Director").
@@ -13,7 +16,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "role")
-public class Role {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class Role extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 64)

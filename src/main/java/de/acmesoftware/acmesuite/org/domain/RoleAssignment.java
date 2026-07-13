@@ -9,6 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * Assignment of a {@link Role} to a {@link Person}, optionally within a specific
@@ -16,7 +19,9 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "role_assignment")
-public class RoleAssignment {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class RoleAssignment extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)

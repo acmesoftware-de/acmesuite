@@ -6,11 +6,16 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /** Supplier of ACME analog Inc. (ACMEsupply SoR). */
 @Entity
 @Table(name = "supplier")
-public class Supplier {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class Supplier extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)

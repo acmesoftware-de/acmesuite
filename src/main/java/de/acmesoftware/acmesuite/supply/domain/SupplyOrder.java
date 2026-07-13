@@ -14,6 +14,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,7 +26,9 @@ import java.util.List;
 /** Procurement (ACMEsupply): goes through the approval process; goods receipt feeds warehouse/power plants. */
 @Entity
 @Table(name = "supply_order")
-public class SupplyOrder {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class SupplyOrder extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 48)
@@ -70,6 +76,7 @@ public class SupplyOrder {
     @Column(name = "approval_comment", length = 512)
     private String approvalComment;
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "supply_order_line", joinColumns = @JoinColumn(name = "order_id"))
     private List<SupplyLine> lines = new ArrayList<>();

@@ -4,6 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 import java.math.BigDecimal;
 
 /**
@@ -12,7 +15,9 @@ import java.math.BigDecimal;
  */
 @Entity
 @Table(name = "material_stock")
-public class MaterialStock {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class MaterialStock extends AuditedEntity {
 
     @Id
     @Column(name = "material_id", length = 48)
