@@ -20,6 +20,11 @@ spring:
       api-key: ${OPENAI_API_KEY:not-set}
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:not-set}
+    google:
+      genai:
+        # Gemini Developer API (AI Studio) — API-key mode, like the others. Vertex AI (GCP
+        # project + credentials) is the alternative; not used here. Only when provider=google.
+        api-key: ${GOOGLE_API_KEY:not-set}
     ollama:
       # Self-hosted default (base-url defaults to http://localhost:11434).
       chat:

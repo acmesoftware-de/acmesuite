@@ -47,6 +47,7 @@ public class SpringAiAssistantEngine implements AssistantEngine {
             case "ollama" -> "ollamaChatModel";
             case "claude", "anthropic" -> "anthropicChatModel";
             case "openai" -> "openAiChatModel";
+            case "google", "gemini" -> "googleGenAiChatModel";
             default -> throw new IllegalStateException("unknown acme.assist.provider: " + provider);
         };
         ChatModel model = chatModels.get(beanName);
