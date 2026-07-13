@@ -1,6 +1,35 @@
 spring:
   application:
     name: acmesuite
+  # Spring AI: keep only the CHAT autoconfigs. The OpenAI umbrella starter also brings
+  # embedding/image/audio/moderation autoconfigs that instantiate eagerly and require an API key —
+  # which would break the context when no key is set (CI, and the Ollama-only default). Chat only.
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiImageAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioTranscriptionAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiModerationAutoConfiguration
+  ai:
+    # Hosted providers are opt-in (default is self-hosted Ollama / the stub). Spring AI's OpenAI and
+    # Anthropic chat-model beans require a non-empty credential at construction, so a placeholder
+    # lets the context load without real keys; a real key (env) is only needed when
+    # acme.assist.provider=openai|claude.
+    openai:
+      api-key: ${OPENAI_API_KEY:not-set}
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:not-set}
+    google:
+      genai:
+        # Gemini Developer API (AI Studio) — API-key mode, like the others. Vertex AI (GCP
+        # project + credentials) is the alternative; not used here. Only when provider=google.
+        api-key: ${GOOGLE_API_KEY:not-set}
+    ollama:
+      # Self-hosted default (base-url defaults to http://localhost:11434).
+      chat:
+        options:
+          model: qwen2.5:7b
   datasource:
     # docker compose up -d acmesuite-db  →  Postgres on :5545 (does not collide with :5544)
     url: jdbc:postgresql://localhost:5545/acme_suite

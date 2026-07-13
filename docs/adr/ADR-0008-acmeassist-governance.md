@@ -59,17 +59,74 @@ owner), competence/training, the written AI system impact assessments per agent,
 diligence for any hosted provider, internal audit, and management review. The software features
 above (esp. G5, G7, G8) *feed* these processes with evidence but do not replace them.
 
-## New open questions (added to ADR-0008)
+## Decision — a separate `AI_ADMIN` role (orthogonal grant)
 
-- **Audit immutability & retention.** Is `assist_audit` append-only/tamper-evident, and what is
-  the retention window vs. GDPR deletion rights? (These pull in opposite directions — decide the
-  balance.)
-- **PII handling & redaction policy.** What is redacted in logs, and how do we treat PII in prompts
-  sent to a hosted provider vs. the local model?
-- **Impact-assessment workflow.** Is the per-agent AI impact assessment authored in the admin
-  console (G8) and versioned in-product, or kept as external documents referenced by G5?
-- **Accountable AI role.** Do we add an explicit AI-governance capability to the role model (an
-  "AI admin" beyond `ADMIN`), or fold it into `ADMIN`?
-- **Certification target.** Are we pursuing actual ISO 42001 certification (drives rigor and
-  timing), or "designed to 42001" as a diligence posture? This scopes how much of G1–G9 is phase-1
-  vs. later.
+ISO 42001 wants an **accountable AI role with separation of duties**. We therefore add a **distinct
+`AI_ADMIN` grant** rather than folding AI governance into the business `ADMIN`.
+
+**Orthogonal, not a fourth hierarchy level.** The business roles are a linear hierarchy
+(`ADMIN > WORK > WATCH`, ADR-0007) over `/api/**`. AI governance is a *different axis*: an AI-Admin
+governs the assistant but is not necessarily a business master-data admin, and a business ADMIN is
+not automatically the AI owner. So `AI_ADMIN` is a **capability a user holds beside** their access
+role — e.g. a `WORK` user can be the AI-Admin without gaining business-ADMIN rights.
+
+| Aspect | Design |
+|--------|--------|
+| **Model** | A grant orthogonal to `WATCH/WORK/ADMIN`; a user has an access role **and optionally** `AI_ADMIN`. |
+| **Token (extends ADR-0007)** | The Base JWT gains a second grant (e.g. `grants:["AI_ADMIN"]` / `aiAdmin:true`). `BaseSecurityConfig`'s converter — today one authority from `role` — additionally emits `ROLE_AI_ADMIN`. A deliberate, documented departure from "single role claim". |
+| **Authorization** | `/api/base/assist/admin/**` requires `hasRole('AI_ADMIN')`. Conversation endpoints stay `WATCH`+; business `/api/**` rules are untouched. |
+| **Who grants it** | The business `ADMIN` assigns/revokes `AI_ADMIN` via the existing user-admin surface. **SoD:** ADMIN decides *who* governs the AI; the AI-Admin *operates* governance and **cannot** grant business roles, escalate business access, or grant `AI_ADMIN` to themselves. |
+| **What it governs** | Enable/disable agents + per-role/tenant availability (G4/G5), provider/model config + allowlist + data-boundary (G6), view/export the assist audit (G2/G8), author impact assessments + risk tiers (G5), the kill switch (G4), monitoring (G9), model-card content (G7). It grants **no** business write access. |
+| **Bootstrap** | The break-glass `ADMIN` (ADR-0007) holds `AI_ADMIN` at first run and delegates it; no separate break-glass path needed. |
+
+## Agent admin UI (G8 — the governance console)
+
+A dedicated, **`AI_ADMIN`-gated** surface — its own top-level tab (so separation of duties is
+*visible*, not buried inside business Admin). It follows the module-registry pattern (a new
+`ModuleDef` with an `aiAdminOnly` gate mirroring the existing `adminOnly`) and the theme
+**class-contract** (new `acme-*` classes in `themes/base/components.css`, tokens only, no inline
+styles, no CDN). Five sub-views:
+
+1. **Agenten** *(default)* — a table of every agent from the registry. Columns: **Agent · Modul ·
+   Autonomie-Stufe** (a badge reusing the ladder colors — read=green, draft=blue, write=amber) **·
+   Min-Rolle · Status** (Ein/Aus, per Rolle/Tenant) **· Risiko-Tier · Override-Rate · zuletzt
+   genutzt**. Row → **detail drawer**: toolset + endpoints, the (versioned, read-only) system
+   prompt, the AI impact assessment (edit), an availability matrix (roles × tenants), and the
+   enable/disable toggle. This is the operational heart — enabling/disabling an agent is one click.
+2. **Provider & Modell** — active provider (Ollama default / Claude / …), model id **+ version**,
+   endpoint, the approved-model allowlist, data-boundary controls (hosted opt-in · no-training ·
+   retention · PII-redaction), and the **global kill switch**.
+3. **Audit** — the `assist_audit` trail with filters (user / agent / date / outcome); a turn opens
+   to show prompt, tool calls, model+version, and the confirming human; **export** for evidence.
+4. **Monitoring** — a KPI bar (override rate · error/refusal rate · avg latency); drift once RAG
+   lands. Reuses the existing `acme-kpi` pattern.
+5. **Model-Card** — edit the in-app documentation (capabilities · limits · intended use · current
+   model), which the concierge (agent #16) also surfaces to end users.
+
+The autonomy-tier badge and the read/draft/write coloring are shared with the agent catalog's
+autonomy ladder, so the governance UI and the design language stay one system. A thin,
+non-functional mockup of the **Agenten** screen can follow the existing prototype approach
+(`ADR-0008-acmeassist-prototype.html`) if the team wants a visual spec artifact.
+
+## Decisions (resolved) & phasing
+
+*Resolved during ADR review — 2026-07-12.*
+
+- **Certification target — "designed to 42001".** Build cert-ready; no formal certification now.
+  This scopes the phasing: **phase 1 ships G1 (disclosure/marking), G2 (model+prompt versioning in
+  the audit), G4 (kill switch/enable flags)**; G3/G5–G9 follow as the write/proactive tiers land.
+- **Accountable AI role — a separate orthogonal `AI_ADMIN` grant**, carried as a **`grants[]`
+  array** claim (extensible), with the converter change in `BaseSecurityConfig` emitting
+  `ROLE_AI_ADMIN` (see *Decision* above).
+- **Impact-assessment workflow — authored & versioned in the admin console (G8)**, stored
+  in-product, referenced from the agent registry (G5).
+- **Audit immutability — append-only + tamper-evident** (e.g. hash-chained). Retention: keep the
+  *event*, **pseudonymize/redact the *person*** so a GDPR deletion request is satisfied without
+  destroying the audit trail.
+
+## Remaining open items (need policy/legal sign-off)
+
+- **Retention window & PII-redaction policy.** The concrete retention period, exactly what is
+  redacted in logs, and how PII in prompts is treated for a **hosted** provider vs. the **local**
+  model — all need **DPO/legal sign-off**. (Local Ollama default keeps data on-prem, which
+  simplifies this materially.)

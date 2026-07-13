@@ -202,19 +202,20 @@ badge** → disqualified for the agent role), **Llama 3.1/3.3** (weakest small-m
 Community License is not OSI-open, needs legal review), **Ministral** and the German fine-tunes
 (Teuken/SauerkrautLM/DiscoLM) (non-commercial or not in the official library with no tool template).
 
-> **CPU-only reality check (honest caveat).** Single-shot Q&A/RAG at 7–8B Q4 is fine (~2–4 s on a
-> modern Xeon). But a **multi-step tool loop pays a prefill on every LLM call**, so a 3–5 step turn
-> realistically lands in the **tens of seconds** on typical server CPUs — snappy only where AMX /
-> AVX-512 is present. So "no GPU" holds for phase-1's small, single-module tool sets and for async
-> agents, but **interactive multi-step latency is the one place the no-GPU wish has a real
-> trade-off**. Mitigations: keep the model warm (`OLLAMA_KEEP_ALIVE=-1`), two-tier routing (a 3B
-> Granite/Phi-mini for easy turns, Qwen2.5-7B for hard ones), cap `num_ctx`, Q4_K_M, and minimize
-> agent steps. A modest GPU remains the clean answer for snappy interactive use — certify a minimum
-> hardware floor (open question 4).
+> **CPU-only, two-tier (decided — no GPU).** Single-shot Q&A/RAG at 7–8B Q4 is fine (~2–4 s on a
+> modern Xeon), but a multi-step tool loop pays a prefill on every LLM call, so a 3–5 step turn
+> lands in the **tens of seconds** on typical CPUs — snappy only where AMX/AVX-512 is present.
+> Decision: **no GPU required; two-tier CPU routing** — a ~3B model (Granite/Phi) handles easy turns
+> snappily, the 7B runs on demand for hard ones. Plus keep the model warm (`OLLAMA_KEEP_ALIVE=-1`),
+> cap `num_ctx`, Q4_K_M, and minimize agent steps. Honest limit: **heavy 7B multi-step turns stay
+> slow on CPU** (async-friendly); size the hardware floor per target CPU (AVX-512/AMX decisive).
 >
 > **Pin & re-verify at deploy:** Ollama library contents and *Tools* badges change; pin exact HF
 > revisions for licensing (e.g. avoid `qwen2.5:3b` — currently non-commercial), and validate German
 > quality on real CRM/HR content before committing.
+
+**Sources & full evidence** (model shortlists, licenses, benchmarks, CPU-latency figures, and the
+provenance of every input): [Appendix C — research & sources](ADR-0008-acmeassist-research.md).
 
 ### 5. Invocation & placement — bottom-anchored panel + ⌘K, context = module + entity
 
@@ -294,6 +295,10 @@ Why this slice:
   engine keeps CI green; the class-contract keeps the UI themeable.
 - Everything risky (mutation, confirmation, audit-of-writes, cross-module, proactivity) is
   deferred to phases 3–4 behind an already-proven authz seam.
+
+A concrete, buildable breakdown — module skeleton, `acme-assist.yaml` draft, DB schema, security
+change, the langgraph4j engine, frontend wiring, and a milestone build order with acceptance
+criteria — is in the [Phase-1 implementation plan](ADR-0008-acmeassist-phase1-plan.md).
 
 ## Agent catalog
 
@@ -379,33 +384,36 @@ card, and an admin governance console) plus the full mapping are in
   a real secret store exists — same caveat ADR-0007 already carries for the JWT secret and
   `SecretCipher` master key.
 
-## Open questions (for the team to decide before implementation)
+## Decisions (resolved open questions)
 
-1. **Read-tool authorization granularity.** URL rules give `WATCH` read across all `/api/**`. Is
-   "the assistant can read anything the user could read via any GET" acceptable, or do we want a
-   per-tool allowlist narrower than the user's raw role (e.g. exclude some endpoints from the
-   agent surface)?
-2. **Tool surface generation.** Generate tool schemas from the OpenAPI specs at build time, or
-   hand-curate a smaller, assistant-friendly tool set? (Generated = always in sync; curated =
-   better tool descriptions, fewer/clearer tools for the model.)
-3. **Contract home.** Dedicated `api/acme-assist.yaml` (recommended) vs. extend `acme-base.yaml`
-   and bump Base to 0.3.0?
-4. **Bundled model choice & hardware floor.** Which Ollama LLM (tool-capable, German, CPU-runnable)
-   and which embedding model ship as the "we bring one" default (see *Model selection*), and what
-   is the minimum customer hardware we certify (CPU/RAM)? Plus: what rate/token budgets apply when a
-   customer opts into a hosted provider?
-5. **Conversation persistence.** Stateless per-turn (context re-sent each time) for phase 1, or
-   persist conversations from the start (needed for the activity-feed "Copilot erstellte…" model
-   and cross-session history)?
-6. **Loopback vs. internal dispatch.** Start with real loopback HTTP (simplest, most obviously
-   correct authz) and optimize to internal servlet dispatch later — or invest in the dispatcher
-   up front?
-7. **Localization.** The design UI is German. Is the assistant German-first, user-locale-driven,
-   or bilingual? (Affects system prompt, suggestion chips, and confirmation copy.)
-8. **Command surface unification (internal).** Should ⌘K and the bottom panel share one
-   component/state from phase 1? This is purely an ACMEsuite question — there is no requirement to
-   align with any other product. (ACMEmailtrap, a separate product, is noted below as external
-   prior art only, with no binding force.)
+*Resolved during ADR review — 2026-07-12.*
+
+1. **Read-tool authorization — role ceiling + per-agent toolset.** The assistant may read whatever
+   the user's role allows via GET, narrowed in practice by each agent's small, explicit toolset
+   (no separate global allowlist). Consistent with execute-as-the-user.
+2. **Tool surface — generated + curated.** Tool schemas are generated from the OpenAPI specs (stay
+   in sync) and hand-curated per agent (selection + descriptions).
+3. **Contract home — a dedicated `api/acme-assist.yaml`** (v0.1.0), referencing base components.
+4. **Models & hardware — `qwen2.5:7b` + `snowflake-arctic-embed2`, two-tier CPU routing, no GPU
+   required.** A small model (Granite/Phi ~3B) handles easy turns snappily; the 7B runs on demand
+   for hard ones. Hosted providers get a configurable per-user token/rate budget. *(Heavy
+   multi-step turns on the 7B stay tens-of-seconds on CPU — async-friendly; the hardware floor is
+   sized per target CPU, AVX-512/AMX decisive — see Model selection.)*
+5. **Conversation persistence — persist from the start** (required anyway for audit G2 and the
+   activity-feed provenance).
+6. **Loopback first.** In-process loopback HTTP behind `AuthenticatedApiDispatcher`; the seam
+   allows switching to internal servlet dispatch later for performance.
+7. **Localization — bilingual DE/EN from the start** (system prompts, suggestion chips, and
+   confirmation copy in both; locale-selected at runtime).
+8. **Command surface — one component/state from phase 1.** ⌘K focuses the same assistant; the
+   bottom panel is its home. (Internal ACMEsuite decision; no cross-product requirement.)
+
+## Remaining open items
+
+- **Hardware floor to certify** — the concrete minimum CPU/RAM profile (and the two-tier model
+  pair) to validate on a target server before the phase-1 commit.
+- **AI-governance policy sign-offs** — audit retention window, PII redaction, and the GDPR balance
+  need DPO/legal sign-off (see [Appendix B](ADR-0008-acmeassist-governance.md)).
 
 ## Cross-reference — ACMEmailtrap (external prior art only)
 

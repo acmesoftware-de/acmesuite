@@ -92,6 +92,11 @@ class BaseSecurityConfig {
                                     "/api/base/auth/provider-configs/**",
                                     "/api/base/db/**",
                                     "/api/search/reindex").hasRole(AccessRole.ADMIN.name())
+                            // ACMEassist: any authenticated user may converse (WATCH+); write
+                            // safety is enforced at the tool layer, not here (ADR-0008).
+                            .requestMatchers(HttpMethod.POST, "/api/base/assist/messages")
+                                .hasAnyRole(AccessRole.WATCH.name(), AccessRole.WORK.name(),
+                                        AccessRole.ADMIN.name())
                             // Suite APIs: read = WATCH+, write = WORK+ (ADMIN adds master-data guards).
                             .requestMatchers(HttpMethod.GET, "/api/**")
                                 .hasAnyRole(AccessRole.WATCH.name(), AccessRole.WORK.name(),

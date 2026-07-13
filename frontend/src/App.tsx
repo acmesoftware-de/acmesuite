@@ -7,6 +7,7 @@ import { AdminModule } from './modules/admin/AdminModule'
 import { CrmModule } from './modules/crm/CrmModule'
 import { PIPELINE_MODES, type PipelineMode } from './modules/crm/PipelineView'
 import { useShellState } from './shell/useShellState'
+import { Assist } from './assist/Assist'
 import { useTheme } from './theme/ThemeProvider'
 import { useAuth } from './auth/AuthContext'
 import { LoginScreen } from './auth/LoginScreen'
@@ -93,6 +94,8 @@ export function App() {
           ) : (
             <ModulePlaceholder module={module} activeSub={shell.activeSub} />
           )}
+
+          <Assist module={shell.activeMod} subView={shell.activeSubKey} />
         </>
       )}
     </div>
