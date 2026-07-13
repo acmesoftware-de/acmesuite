@@ -11,6 +11,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -25,7 +29,9 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "person")
-public class Person {
+@Audited
+@SQLRestriction("deleted_at is null")
+public class Person extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 32)
@@ -73,16 +79,19 @@ public class Person {
     @JoinColumn(name = "manager_id")
     private Person manager;
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "person_delegate", joinColumns = @JoinColumn(name = "person_id"))
     @Column(name = "delegate_id", length = 32)
     private Set<String> delegateIds = new LinkedHashSet<>();
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "person_assistant", joinColumns = @JoinColumn(name = "person_id"))
     @Column(name = "assistant_id", length = 32)
     private Set<String> assistantIds = new LinkedHashSet<>();
 
+    @NotAudited
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "person_secondary_unit", joinColumns = @JoinColumn(name = "person_id"))
     @Column(name = "unit_id", length = 96)
