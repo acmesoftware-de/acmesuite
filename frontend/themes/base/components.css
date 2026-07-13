@@ -578,6 +578,301 @@
 .acme-app .acme-tl-summary { font: 400 11.5px var(--font-ui); color: var(--dim); margin-top: 3px; }
 .acme-app .acme-tl-time { font: 400 10px var(--font-mono); color: var(--faint); margin-top: 3px; }
 
+/* ===========================================================================
+   CRM — Pipeline (Tabelle · Kanban · Funnel)
+
+   Stage and owner colors are theme-owned: the CRM views only emit data-stage /
+   data-owner attributes, and these rules resolve them to signal tokens fed into
+   --stage / --owner. No literal colors here — pure token mapping.
+   =========================================================================== */
+.acme-app [data-stage]                  { --stage: var(--neutral); }
+.acme-app [data-stage='QUALIFIZIERT']   { --stage: var(--warning); }
+.acme-app [data-stage='ANGEBOT']        { --stage: var(--info); }
+.acme-app [data-stage='VERHANDLUNG']    { --stage: var(--danger); }
+.acme-app [data-stage='GEWONNEN']       { --stage: var(--success); }
+
+.acme-app [data-owner]        { --owner: var(--neutral); }
+.acme-app [data-owner='JS']   { --owner: var(--danger); }
+.acme-app [data-owner='AL']   { --owner: var(--info); }
+.acme-app [data-owner='MW']   { --owner: var(--success); }
+
+.acme-app .acme-form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ---- CRM: shared inline-edit affordance ----------------------------------- */
+.acme-app .acme-editable { outline: none; cursor: text; border-radius: var(--radius); }
+.acme-app .acme-editable:focus { outline: 2px solid var(--accent); background: var(--panel); }
+.acme-app .acme-editable[contenteditable='false'] { cursor: default; }
+
+/* ---- CRM: Tabelle --------------------------------------------------------- */
+.acme-app .acme-tbl-head,
+.acme-app .acme-tbl-row {
+  display: grid;
+  grid-template-columns: 26px 2fr 158px 128px 132px 1.3fr 44px;
+  align-items: center;
+  padding: 0 12px;
+}
+.acme-app .acme-tbl-head {
+  height: 36px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+  border-top: 1px solid var(--line2);
+  border-bottom: 1px solid var(--line2);
+}
+.acme-app .acme-th--right { text-align: right; }
+.acme-app .acme-tbl-row { height: 54px; border-bottom: 1px solid var(--line); }
+.acme-app .acme-tbl-row:nth-child(odd) { background: var(--panel2); }
+
+.acme-app .acme-checkbox { width: 13px; height: 13px; border: 1px solid var(--line2); }
+.acme-app .acme-tbl-company { min-width: 0; padding-right: 14px; }
+.acme-app .acme-company-name { display: inline-block; font: 600 13.5px var(--font-ui); color: var(--ink); padding: 1px 2px; }
+.acme-app .acme-company-contact { font: 400 11px var(--font-ui); color: var(--dim); margin-top: 1px; }
+
+.acme-app .acme-phase-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  background-color: var(--chip);
+  color: var(--ink);
+  font: 700 9.5px var(--font-mono);
+  letter-spacing: 0.04em;
+  padding: 6px 22px 6px 9px;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--dim) 50%),
+    linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position: calc(100% - 12px) 50%, calc(100% - 8px) 50%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
+.acme-app .acme-phase-select:disabled { cursor: default; }
+
+.acme-app .acme-value { display: flex; align-items: baseline; gap: 1px; font: 700 13px var(--font-mono); color: var(--ink); }
+.acme-app .acme-value-cur { color: var(--dim); }
+
+.acme-app .acme-prob { display: flex; align-items: center; gap: 8px; padding-right: 16px; }
+.acme-app .acme-prob-track { flex: 1; height: 5px; background: var(--chip); overflow: hidden; }
+.acme-app .acme-prob-fill { height: 100%; background: var(--accent); }
+.acme-app .acme-prob-pct { flex: none; font: 400 10px var(--font-mono); color: var(--dim); }
+
+.acme-app .acme-activity { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.acme-app .acme-stage-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--stage); flex: none; }
+.acme-app .acme-activity-text {
+  font: 400 11px var(--font-mono);
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.acme-app .acme-team { display: flex; justify-content: flex-end; }
+.acme-app .acme-avatar--deal { width: 24px; height: 24px; margin: 0; font-size: 9px; background: var(--owner); color: var(--on-accent); }
+
+/* ---- CRM: Kanban ---------------------------------------------------------- */
+.acme-app .acme-board {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.acme-app .acme-kan-col { width: 236px; flex: none; display: flex; flex-direction: column; gap: 9px; height: 100%; min-height: 0; }
+.acme-app .acme-kan-head { display: flex; align-items: center; gap: 8px; padding: 0 2px 2px; }
+.acme-app .acme-kan-dot { width: 8px; height: 8px; background: var(--stage); flex: none; }
+.acme-app .acme-kan-label { font: 700 10.5px var(--font-mono); letter-spacing: 0.07em; color: var(--dim); }
+.acme-app .acme-kan-count { font: 700 10px var(--font-mono); color: var(--faint); padding: 0 5px; border: 1px solid var(--line); }
+.acme-app .acme-kan-sum { margin-left: auto; font: 400 10px var(--font-mono); color: var(--faint); }
+.acme-app .acme-kan-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 8px;
+  background: var(--chip);
+  border: 1px solid var(--line);
+  overflow-y: auto;
+}
+.acme-app .acme-kan-body.is-over { border-color: var(--accent); }
+.acme-app .acme-kan-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: var(--edge) solid var(--owner);
+  padding: 11px 12px 10px;
+  cursor: grab;
+}
+.acme-app .acme-kan-card.is-dragging { opacity: 0.4; }
+.acme-app .acme-kan-company { font: 600 13.5px var(--font-ui); color: var(--ink); line-height: 1.15; }
+.acme-app .acme-kan-contact { font: 400 11.5px var(--font-ui); color: var(--dim); margin-top: 3px; }
+.acme-app .acme-kan-meta { display: flex; align-items: center; gap: 8px; margin-top: 11px; }
+.acme-app .acme-avatar--card { width: 20px; height: 20px; margin: 0; font-size: 8.5px; background: var(--owner); color: var(--on-accent); flex: none; }
+.acme-app .acme-kan-value { font: 700 12.5px var(--font-mono); color: var(--ink); }
+.acme-app .acme-kan-age { margin-left: auto; font: 400 10px var(--font-mono); color: var(--faint); }
+
+/* ---- CRM: Funnel ---------------------------------------------------------- */
+.acme-app .acme-fun { display: flex; gap: 14px; align-items: stretch; padding-top: 14px; }
+.acme-app .acme-fun-rows { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.acme-app .acme-fun-row { display: flex; align-items: center; gap: 16px; }
+.acme-app .acme-fun-side { width: 118px; flex: none; text-align: right; }
+.acme-app .acme-fun-label { font: 700 10px var(--font-mono); letter-spacing: 0.05em; color: var(--ink); }
+.acme-app .acme-fun-sum { font: 400 10px var(--font-mono); color: var(--faint); margin-top: 2px; }
+.acme-app .acme-fun-track { flex: 1; display: flex; justify-content: center; }
+.acme-app .acme-fun-bar {
+  min-width: 96px;
+  height: 74px;
+  background: var(--stage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: width 0.35s ease;
+}
+.acme-app .acme-fun-count { font: 400 34px/0.8 var(--font-display); color: var(--on-accent); }
+.acme-app .acme-fun-unit { font: 700 10px var(--font-mono); color: var(--on-accent); opacity: 0.85; }
+.acme-app .acme-fun-conv { width: 88px; flex: none; }
+.acme-app .acme-fun-pct { font: 700 15px var(--font-mono); color: var(--ink); }
+.acme-app .acme-fun-conv-sub { font: 400 9.5px var(--font-mono); color: var(--faint); margin-top: 1px; }
+.acme-app .acme-fun-totals {
+  width: 250px;
+  flex: none;
+  border-left: 1px solid var(--line);
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.acme-app .acme-fun-total-value { font: 400 30px var(--font-display); color: var(--ink); margin-top: 8px; }
+
+/* ---- CRM: Pipeline sub-view (Tabelle/Kanban/Funnel switch lives in the header) --- */
+.acme-app .acme-pipeline { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.acme-app .acme-pipeline-body { flex: 1; min-height: 0; overflow-y: auto; }
+.acme-app .acme-pipeline-body--board { overflow: hidden; }
+
+/* ---- CRM: master-detail (Kunden · Kontakte) ------------------------------- */
+.acme-app .acme-md { display: flex; height: 100%; min-height: 0; }
+.acme-app .acme-md-list {
+  width: 320px;
+  flex: none;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  padding-right: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.acme-app .acme-md-detail { flex: 1; min-height: 0; overflow-y: auto; padding-left: 20px; }
+
+.acme-app .acme-md-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 10px 10px 8px;
+  border: none;
+  border-left: var(--edge) solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.acme-app .acme-md-item:hover { background: var(--chip); }
+.acme-app .acme-md-item.is-active { background: var(--chip); border-left-color: var(--accent); }
+.acme-app .acme-md-item-main { flex: 1; min-width: 0; }
+.acme-app .acme-md-item-title {
+  font: 600 13px var(--font-ui);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.acme-app .acme-md-item-sub {
+  font: 400 10.5px var(--font-mono);
+  color: var(--faint);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acme-app .acme-status-chip {
+  --sc: var(--neutral);
+  font: 700 8.5px var(--font-mono);
+  letter-spacing: 0.06em;
+  padding: 3px 6px;
+  color: var(--sc);
+  border: 1px solid var(--sc);
+  flex: none;
+}
+.acme-app .acme-status-chip[data-status='ACTIVE'] { --sc: var(--success); }
+.acme-app .acme-status-chip[data-status='PROSPECT'] { --sc: var(--warning); }
+.acme-app .acme-status-chip[data-status='BLOCKED'] { --sc: var(--danger); }
+
+/* ---- CRM: detail pane (header + sections) --------------------------------- */
+.acme-app .acme-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.acme-app .acme-detail-title { font: 400 26px var(--font-display); color: var(--ink); }
+.acme-app .acme-detail-sub { font: 400 11.5px var(--font-mono); color: var(--dim); margin-top: 6px; }
+.acme-app .acme-detail-section { margin-bottom: 20px; }
+.acme-app .acme-detail-section .acme-section-label { display: block; margin-bottom: 10px; }
+
+.acme-app .acme-contact-mini-list,
+.acme-app .acme-deal-mini-list { display: flex; flex-direction: column; }
+.acme-app .acme-contact-mini { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
+.acme-app .acme-deal-mini { display: flex; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px solid var(--line); }
+.acme-app .acme-deal-mini-main { flex: 1; min-width: 0; }
+.acme-app .acme-deal-mini-title { font: 600 12.5px var(--font-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acme-app .acme-deal-mini-sub { font: 400 10.5px var(--font-mono); color: var(--faint); margin-top: 1px; }
+.acme-app .acme-deal-mini-value { font: 700 12px var(--font-mono); color: var(--ink); flex: none; }
+.acme-app .acme-stage-chip {
+  font: 700 8.5px var(--font-mono);
+  letter-spacing: 0.05em;
+  padding: 3px 7px;
+  color: var(--on-accent);
+  background: var(--stage);
+  flex: none;
+}
+
+/* ---- CRM: mail threads ---------------------------------------------------- */
+.acme-app .acme-thread-list { display: flex; flex-direction: column; gap: 8px; }
+.acme-app .acme-thread { border: 1px solid var(--line); background: var(--panel); }
+.acme-app .acme-thread-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 11px 13px;
+}
+.acme-app .acme-thread-subject { font: 600 12.5px var(--font-ui); color: var(--ink); }
+.acme-app .acme-thread-meta { margin-left: auto; flex: none; font: 400 9.5px var(--font-mono); color: var(--faint); }
+.acme-app .acme-thread-preview {
+  flex-basis: 100%;
+  font: 400 11px var(--font-ui);
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.acme-app .acme-thread-messages { border-top: 1px solid var(--line); padding: 6px 13px 12px; display: flex; flex-direction: column; gap: 10px; }
+.acme-app .acme-msg { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; background: var(--chip); border-left: 2px solid var(--line2); }
+.acme-app .acme-msg--outbound { border-left-color: var(--accent); }
+.acme-app .acme-msg--inbound { border-left-color: var(--info); }
+.acme-app .acme-msg-head { display: flex; justify-content: space-between; gap: 8px; }
+.acme-app .acme-msg-from { font: 700 10px var(--font-mono); color: var(--dim); }
+.acme-app .acme-msg-time { font: 400 9.5px var(--font-mono); color: var(--faint); }
+.acme-app .acme-msg-body { font: 400 12px var(--font-ui); color: var(--ink); line-height: 1.4; }
+
 /* ---- ACMEassist (bottom-anchored co-pilot, ADR-0008) --------------------- */
 .acme-app .acme-assist {
   position: absolute;

@@ -9,6 +9,8 @@ export interface SubView {
   key: string
   /** Uppercase tab label (Space Mono). */
   label: string
+  /** Large page title when this sub-view is active (defaults to the module title). */
+  title?: string
   /** Hide the KPI bar on pure form/board views (e.g. Supply → Import-Regeln). */
   hideKpis?: boolean
   /** Override the module's "+ NEU" button label on this view (e.g. HR → + BEWERBER). */
@@ -56,9 +58,9 @@ export const MODULES: ModuleDef[] = [
     title: 'Pipeline',
     newLabel: '+ DEAL',
     subViews: [
-      { key: 'tabelle', label: 'TABELLE' },
-      { key: 'kanban', label: 'KANBAN' },
-      { key: 'funnel', label: 'FUNNEL' },
+      { key: 'pipeline', label: 'PIPELINE', title: 'Pipeline' },
+      { key: 'kunden', label: 'KUNDEN', title: 'Kunden', newLabel: '+ KUNDE', hideKpis: true },
+      { key: 'kontakte', label: 'KONTAKTE', title: 'Kontakte', newLabel: '+ KONTAKT', hideKpis: true },
     ],
     kpis: [
       { label: 'PIPELINE', value: '€945k', delta: '+8,2%', up: D.pos },
