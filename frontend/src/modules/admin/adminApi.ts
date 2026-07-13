@@ -70,6 +70,15 @@ export interface DbTable {
   columns: DbColumn[]
 }
 
+export interface DbRowPage {
+  table: string
+  page: number
+  size: number
+  totalRows: number
+  columns: string[]
+  rows: Record<string, unknown>[]
+}
+
 /** ACMEbase admin endpoints (ADMIN only). */
 export const adminApi = {
   listUsers: () => api.get<AdminUser[]>('/base/users'),
@@ -89,4 +98,6 @@ export const adminApi = {
 
   /** DB schema browser — information_schema introspection of the app's own Postgres schema. */
   getDbSchema: () => api.get<DbTable[]>('/base/db/schema'),
+  getDbRows: (table: string, page: number, size: number) =>
+    api.get<DbRowPage>(`/base/db/tables/${encodeURIComponent(table)}/rows?page=${page}&size=${size}`),
 }

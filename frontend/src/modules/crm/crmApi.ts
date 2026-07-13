@@ -113,6 +113,8 @@ export interface CustomerWrite {
   status?: CustomerStatus
   email?: string | null
   country?: string | null
+  parentResellerId?: string | null
+  priceListId?: string | null
 }
 
 export interface DealUpdate {
@@ -141,11 +143,13 @@ export const crmApi = {
   // Customers (companies) — /customers is master data in the contract.
   listCustomers: (filter: { q?: string } = {}) => api.get<Customer[]>(`/crm/customers${query(filter)}`),
   createCustomer: (body: CustomerWrite) => api.post<Customer>('/crm/customers', body),
+  updateCustomer: (id: string, body: CustomerWrite) => api.patch<Customer>(`/crm/customers/${id}`, body),
 
   // Contacts (people at a customer)
   listContacts: (filter: { customerId?: string; q?: string } = {}) =>
     api.get<Contact[]>(`/crm/contacts${query(filter)}`),
   createContact: (body: ContactWrite) => api.post<Contact>('/crm/contacts', body),
+  updateContact: (id: string, body: ContactWrite) => api.patch<Contact>(`/crm/contacts/${id}`, body),
 
   // Mail threads (correspondence overlay)
   listThreads: (filter: { customerId?: string; contactId?: string } = {}) =>

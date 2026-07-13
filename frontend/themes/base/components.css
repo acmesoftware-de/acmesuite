@@ -461,6 +461,32 @@
 .acme-app .acme-schema-col-name { font: 600 12px var(--font-mono); color: var(--ink); }
 .acme-app .acme-schema-col-type { font: 500 12px var(--font-mono); color: var(--dim); }
 .acme-app .acme-schema-col-null { font: 500 11px var(--font-mono); color: var(--faint); }
+.acme-app .acme-schema-rows-toggle { margin: 0 14px 14px; }
+.acme-app .acme-schema-rows { border-top: 1px solid var(--line2); padding: 4px 14px 14px; }
+.acme-app .acme-schema-rows-table { overflow-x: auto; }
+.acme-app .acme-schema-rows-table table { border-collapse: collapse; width: 100%; }
+.acme-app .acme-schema-rows-table th,
+.acme-app .acme-schema-rows-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line2);
+  font: 400 11.5px var(--font-mono);
+  color: var(--ink);
+  white-space: nowrap;
+  text-align: left;
+}
+.acme-app .acme-schema-rows-table th {
+  font: 700 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  text-transform: uppercase;
+}
+.acme-app .acme-schema-rows-pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.acme-app .acme-schema-rows-info { font: 500 11px var(--font-mono); color: var(--dim); }
 
 /* ---- Chatter: per-record change feed (ADR-0010) --------------------------- */
 .acme-app .acme-icon-btn {
@@ -821,6 +847,26 @@
 .acme-app .acme-detail-sub { font: 400 11.5px var(--font-mono); color: var(--dim); margin-top: 6px; }
 .acme-app .acme-detail-section { margin-bottom: 20px; }
 .acme-app .acme-detail-section .acme-section-label { display: block; margin-bottom: 10px; }
+.acme-app .acme-detail-head-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+
+/* Read-mode field grid + inline chips */
+.acme-app .acme-detail-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+.acme-app .acme-field-ro { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.acme-app .acme-field-val { font: 500 13px var(--font-ui); color: var(--ink); overflow-wrap: anywhere; }
+.acme-app .acme-tag-chip {
+  font: 700 8.5px var(--font-mono);
+  letter-spacing: 0.06em;
+  padding: 3px 6px;
+  color: var(--info);
+  border: 1px solid var(--info);
+  flex: none;
+}
+
+/* Checkbox row (contact edit form) */
+.acme-app .acme-check-row { display: flex; flex-wrap: wrap; gap: 20px; }
+.acme-app .acme-check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.acme-app .acme-check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+.acme-app .acme-check-label { font: 500 12.5px var(--font-ui); color: var(--ink); }
 
 .acme-app .acme-contact-mini-list,
 .acme-app .acme-deal-mini-list { display: flex; flex-direction: column; }
@@ -1024,3 +1070,252 @@
   letter-spacing: 0.03em;
   color: var(--faint);
 }
+
+/* =============================================================================
+   HR — "Team" module (design module 02). Team roster, org chart, recruiting board.
+   ============================================================================= */
+.acme-app .acme-hr-module { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.acme-app .acme-hr-module > .acme-error { padding: 24px; }
+.acme-app .acme-hr-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 11px var(--font-mono);
+  letter-spacing: 0.14em;
+  color: var(--faint);
+}
+
+/* ---- Shared: initials avatar (rotating brand palette) --------------------- */
+.acme-app .acme-hr-av {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  font: 700 10px var(--font-mono);
+}
+.acme-app .acme-hr-av--sm { width: 28px; height: 28px; font-size: 9.5px; }
+.acme-app .acme-hr-av--0 { background: var(--accent-crm); color: var(--on-signal); }
+.acme-app .acme-hr-av--1 { background: var(--accent-bld); color: var(--on-signal); }
+.acme-app .acme-hr-av--2 { background: var(--accent-sup); color: var(--on-signal); }
+.acme-app .acme-hr-av--3 { background: var(--accent-hr); color: var(--on-warning); }
+
+/* ---- Team roster ---------------------------------------------------------- */
+.acme-app .acme-hr-team { display: flex; flex: 1; min-height: 0; }
+.acme-app .acme-hr-table { flex: 1; min-width: 0; overflow-y: auto; padding-left: 24px; }
+.acme-app .acme-hr-thead,
+.acme-app .acme-hr-row {
+  display: grid;
+  grid-template-columns: 2fr 1.4fr 1fr 110px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+}
+.acme-app .acme-hr-thead {
+  height: 36px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+  border-top: 1px solid var(--line2);
+  border-bottom: 1px solid var(--line2);
+}
+.acme-app .acme-hr-row { height: 54px; border-bottom: 1px solid var(--line); }
+.acme-app .acme-hr-row.is-zebra { background: var(--panel2); }
+.acme-app .acme-hr-emp { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.acme-app .acme-hr-name { font: 600 13.5px var(--font-ui); color: var(--ink); }
+.acme-app .acme-hr-role { font: 400 12.5px var(--font-ui); color: var(--dim); }
+.acme-app .acme-hr-team-cell { font: 400 11px var(--font-mono); color: var(--dim); }
+.acme-app .acme-hr-status { display: flex; align-items: center; gap: 7px; }
+.acme-app .acme-hr-status-label { font: 400 12px var(--font-ui); color: var(--ink); }
+.acme-app .acme-hr-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.acme-app .acme-hr-dot--aktiv { background: var(--success); }
+.acme-app .acme-hr-dot--remote { background: var(--info); }
+.acme-app .acme-hr-dot--urlaub { background: var(--warning); }
+.acme-app .acme-hr-dot--krank { background: var(--danger); }
+
+/* ---- Team: "Abwesend heute" rail ------------------------------------------ */
+.acme-app .acme-hr-rail {
+  width: 300px;
+  flex: none;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+}
+.acme-app .acme-hr-rail-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 16px 16px 13px;
+  border-bottom: 1px solid var(--line);
+}
+.acme-app .acme-hr-rail-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+.acme-app .acme-hr-rail-title { font: 700 11px var(--font-mono); letter-spacing: 0.06em; color: var(--ink); }
+.acme-app .acme-hr-rail-list { flex: 1; overflow-y: auto; }
+.acme-app .acme-hr-rail-empty { padding: 16px; font: 500 12px var(--font-ui); color: var(--faint); }
+.acme-app .acme-hr-absent {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.acme-app .acme-hr-absent-meta { min-width: 0; flex: 1; }
+.acme-app .acme-hr-absent-name { font: 600 12.5px var(--font-ui); color: var(--ink); }
+.acme-app .acme-hr-absent-role { font: 400 10px var(--font-mono); color: var(--faint); margin-top: 1px; }
+
+/* Filled status/tier badge (Space Mono, squared). */
+.acme-app .acme-hr-badge {
+  flex: none;
+  font: 700 8px var(--font-mono);
+  letter-spacing: 0.04em;
+  padding: 2px 5px;
+  border-radius: var(--radius);
+}
+.acme-app .acme-hr-badge--urlaub { background: var(--warning); color: var(--on-warning); }
+.acme-app .acme-hr-badge--krank { background: var(--danger); color: var(--on-signal); }
+
+/* ---- Org chart ------------------------------------------------------------ */
+.acme-app .acme-hr-org { flex: 1; overflow-y: auto; padding: 14px 24px 28px; }
+.acme-app .acme-hr-org-tree { display: flex; flex-direction: column; align-items: center; }
+.acme-app .acme-hr-ceo {
+  width: 230px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--brand-graphite);
+  color: var(--on-signal);
+  border-radius: var(--radius);
+}
+.acme-app .acme-hr-ceo-av {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.16);
+  font: 700 12px var(--font-mono);
+}
+.acme-app .acme-hr-ceo-name { font: 600 14px var(--font-ui); }
+.acme-app .acme-hr-ceo-role {
+  font: 700 9px var(--font-mono);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 2px;
+}
+.acme-app .acme-hr-connector { width: 1px; height: 26px; background: var(--line2); }
+.acme-app .acme-hr-areas { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.acme-app .acme-hr-area { width: 216px; display: flex; flex-direction: column; }
+/* Area accent (rotates through the four brand area colors). */
+.acme-app .acme-hr-area--0 { --area: var(--accent-crm); --area-ink: var(--on-signal); }
+.acme-app .acme-hr-area--1 { --area: var(--accent-bld); --area-ink: var(--on-signal); }
+.acme-app .acme-hr-area--2 { --area: var(--accent-sup); --area-ink: var(--on-signal); }
+.acme-app .acme-hr-area--3 { --area: var(--accent-hr); --area-ink: var(--on-warning); }
+.acme-app .acme-hr-area-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: var(--edge) solid var(--area);
+  border-radius: var(--radius);
+  padding: 14px 15px;
+}
+.acme-app .acme-hr-area-head { display: flex; align-items: center; gap: 11px; }
+.acme-app .acme-hr-area-av {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  background: var(--area);
+  color: var(--area-ink);
+  font: 700 11px var(--font-mono);
+}
+.acme-app .acme-hr-area-name { font: 600 13.5px var(--font-ui); color: var(--ink); }
+.acme-app .acme-hr-area-role { font: 400 10.5px var(--font-mono); color: var(--faint); margin-top: 1px; }
+.acme-app .acme-hr-area-team {
+  font: 700 9px var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--area);
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.acme-app .acme-hr-area-reports { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-left: 12px; }
+.acme-app .acme-hr-area-report {
+  font: 400 11px var(--font-mono);
+  color: var(--dim);
+  border-left: 2px solid var(--line2);
+  padding: 5px 0 5px 11px;
+}
+
+/* ---- Recruiting board (Bewerber) ------------------------------------------ */
+.acme-app .acme-hr-demo-note { padding: 10px 24px 0; font: 500 11.5px var(--font-ui); color: var(--dim); }
+.acme-app .acme-hr-board { flex: 1; overflow-x: auto; overflow-y: hidden; padding: 2px 24px 22px; display: flex; gap: 14px; align-items: flex-start; }
+.acme-app .acme-hr-col { width: 230px; flex: none; display: flex; flex-direction: column; gap: 9px; height: 100%; }
+.acme-app .acme-hr-col-head { display: flex; align-items: center; gap: 8px; padding: 0 2px 2px; }
+.acme-app .acme-hr-col-dot { width: 8px; height: 8px; flex: none; }
+.acme-app .acme-hr-col-dot--neu { background: var(--neutral); }
+.acme-app .acme-hr-col-dot--screening { background: var(--warning); }
+.acme-app .acme-hr-col-dot--interview { background: var(--info); }
+.acme-app .acme-hr-col-dot--angebot { background: var(--success); }
+.acme-app .acme-hr-col-dot--abgelehnt { background: var(--danger); }
+.acme-app .acme-hr-col-label { font: 700 10.5px var(--font-mono); letter-spacing: 0.06em; color: var(--dim); }
+.acme-app .acme-hr-col-count {
+  font: 700 10px var(--font-mono);
+  color: var(--faint);
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.acme-app .acme-hr-col-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 8px;
+  background: var(--chip);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow-y: auto;
+}
+.acme-app .acme-hr-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 11px 12px 10px;
+}
+.acme-app .acme-hr-card[draggable='true'] { cursor: grab; }
+.acme-app .acme-hr-card.is-dragging { opacity: 0.4; }
+.acme-app .acme-hr-card-head { display: flex; align-items: center; gap: 9px; }
+.acme-app .acme-hr-card-id { min-width: 0; }
+.acme-app .acme-hr-card-name {
+  font: 600 12.5px var(--font-ui);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.acme-app .acme-hr-card-team { font: 400 10px var(--font-mono); color: var(--faint); }
+.acme-app .acme-hr-card-role { font: 400 11px var(--font-ui); color: var(--dim); margin-top: 8px; }
+.acme-app .acme-hr-card-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.acme-app .acme-hr-match {
+  font: 700 8px var(--font-mono);
+  letter-spacing: 0.04em;
+  padding: 2px 5px;
+  border-radius: var(--radius);
+}
+.acme-app .acme-hr-match--good { background: var(--success); color: var(--on-signal); }
+.acme-app .acme-hr-match--mid { background: var(--warning); color: var(--on-warning); }
+.acme-app .acme-hr-match--bad { background: var(--danger); color: var(--on-signal); }
+.acme-app .acme-hr-match--none { background: var(--faint); color: var(--on-signal); }
+.acme-app .acme-hr-age { margin-left: auto; font: 400 10px var(--font-mono); color: var(--faint); }
