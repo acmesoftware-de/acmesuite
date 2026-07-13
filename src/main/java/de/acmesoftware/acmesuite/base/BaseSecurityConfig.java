@@ -3,6 +3,7 @@ package de.acmesoftware.acmesuite.base;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.proc.SecurityContext;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.context.annotation.Bean;
@@ -82,6 +83,9 @@ class BaseSecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/base/auth/oidc/**").permitAll()
                             // Any authenticated user may read their profile / set their own password.
                             .requestMatchers("/api/base/auth/me", "/api/base/auth/password").authenticated()
+                            // Version history is gated by the orthogonal AUDIT capability (ADR-0010),
+                            // not by ADMIN — must precede the ADMIN user-management rule below.
+                            .requestMatchers(HttpMethod.GET, "/api/base/users/*/history").hasRole("AUDIT")
                             // Admin surface: user/role management + provider configuration + reindex.
                             .requestMatchers("/api/base/users/**",
                                     "/api/base/auth/provider-configs/**",
@@ -101,14 +105,23 @@ class BaseSecurityConfig {
         return http.build();
     }
 
-    /** Maps the {@code role} claim of the Base token to a single {@code ROLE_*} authority. */
+    /**
+     * Maps the Base token to authorities: the {@code role} claim to a single {@code ROLE_*}
+     * access authority, plus {@code ROLE_AUDIT} when the orthogonal {@code audit} claim is set
+     * (may view version history; ADR-0010).
+     */
     private static JwtAuthenticationConverter roleConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<GrantedAuthority> authorities = new ArrayList<>();
             String role = jwt.getClaimAsString("role");
-            return role == null
-                    ? List.<GrantedAuthority>of()
-                    : List.<GrantedAuthority>of(new SimpleGrantedAuthority("ROLE_" + role));
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+            }
+            if (Boolean.TRUE.equals(jwt.getClaimAsBoolean("audit"))) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_AUDIT"));
+            }
+            return authorities;
         });
         return converter;
     }
