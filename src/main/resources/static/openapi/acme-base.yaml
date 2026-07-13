@@ -1,0 +1,455 @@
+openapi: 3.0.3
+info:
+  title: ACMEbase — Platform API (auth, users, providers) + shared components
+  version: 0.3.0
+  description: >
+    Foundation of the **ACMEsuite** (*ACMEbase*). Two roles in one spec:
+
+
+    1. **Platform API** — authentication (local login + federated provider options), the current
+    user, self-service password, and the admin surface (user/role management + federated
+    auth-provider configuration). Identity may be local or federated (Entra/OIDC), but the access
+    role is always assigned **locally** in Base. After a successful login Base issues its own
+    session JWT (bearer); the module APIs validate that token only and never see the external IdP.
+
+
+    2. **Shared components** — value types (`Money`, `DateRange`), the RFC-7807 error object, the
+    generic error responses, the e-approval types (`Approval`/`ApprovalDecision`) and the auth
+    scheme. The four module specs (hr/crm/build/supply) reference these via cross-file `$ref`
+    (`acme-base.yaml#/components/...`); `redocly bundle` resolves them when needed.
+
+
+    **Roles (ACMEbase auth):** `WATCH` reads · `WORK` writes operationally · `ADMIN` maintains
+    master data and administers the platform; hierarchy ADMIN > WORK > WATCH. Annotated per
+    operation as `x-required-role`. Note: because of OpenAPI 3.0, the `bearerAuth` scheme must
+    additionally be declared locally in each module spec (a `security` requirement cannot be
+    resolved via cross-file `$ref`); the definition maintained here is the canonical template.
+  contact:
+    name: ACME analog Inc · ACMEsuite
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://demo.acmesoftware.de/api/base
+    description: ACMEbase platform API — auth, users, provider configuration (TLS at the edge).
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: Sign-in, current user, self-service password.
+  - name: Users
+    description: User &amp; role administration (ADMIN).
+  - name: Providers
+    description: Federated identity-provider configuration (ADMIN).
+
+paths:
+  # ─────────────────────────── Auth ───────────────────────────
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with local credentials
+      operationId: login
+      security: [] # public
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LoginRequest' } } }
+      responses:
+        '200':
+          description: Signed in.
+          content: { application/json: { schema: { $ref: '#/components/schemas/LoginResponse' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/providers:
+    get:
+      tags: [Auth]
+      summary: List sign-in options
+      operationId: listProviders
+      security: [] # public
+      responses:
+        '200':
+          description: Local plus any enabled federated providers.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProviderOption' } } } }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user
+      operationId: me
+      x-required-role: WATCH
+      responses:
+        '200':
+          description: The authenticated user.
+          content: { application/json: { schema: { $ref: '#/components/schemas/SessionUser' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/password:
+    post:
+      tags: [Auth]
+      summary: Set or rotate own password
+      operationId: setPassword
+      x-required-role: WATCH
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/PasswordRequest' } } }
+      responses:
+        '204': { description: Password changed. }
+        '400': { description: Password does not meet the policy (minimum length). }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ─────────────────────────── Users (admin) ───────────────────────────
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      operationId: listUsers
+      x-required-role: ADMIN
+      responses:
+        '200':
+          description: All users.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DirectoryUser' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Users]
+      summary: Create a local user
+      operationId: createUser
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateUserRequest' } } }
+      responses:
+        '201':
+          description: Created — returns a one-time temporary password.
+          content: { application/json: { schema: { $ref: '#/components/schemas/CreateUserResponse' } } }
+        '400': { description: Invalid role or missing username. }
+        '409': { description: Username already exists. }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /users/{id}/role:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put:
+      tags: [Users]
+      summary: Set a user's access role
+      operationId: setUserRole
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RoleRequest' } } }
+      responses:
+        '200':
+          description: Updated.
+          content: { application/json: { schema: { $ref: '#/components/schemas/DirectoryUser' } } }
+        '400': { description: Invalid role. }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /users/{id}/status:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put:
+      tags: [Users]
+      summary: Set a user's status
+      operationId: setUserStatus
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/StatusRequest' } } }
+      responses:
+        '200':
+          description: Updated.
+          content: { application/json: { schema: { $ref: '#/components/schemas/DirectoryUser' } } }
+        '400': { description: Invalid status. }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /users/{id}/auditor:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put:
+      tags: [Users]
+      summary: Grant or revoke the AUDIT capability
+      description: Orthogonal to the access role (ADR-0010) — may view version history.
+      operationId: setUserAuditor
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AuditorRequest' } } }
+      responses:
+        '200':
+          description: Updated.
+          content: { application/json: { schema: { $ref: '#/components/schemas/DirectoryUser' } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /users/{id}/history:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Users]
+      summary: Version history of a user
+      description: >
+        Full versioned change history (ADR-0010). Requires the AUDIT capability — ordinary users,
+        including ADMINs without AUDIT, cannot see version numbers or earlier versions.
+      operationId: getUserHistory
+      x-required-role: AUDIT
+      responses:
+        '200':
+          description: Revisions, oldest first.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/UserRevision' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ─────────────────────── Provider configuration (admin) ───────────────────────
+  /auth/provider-configs:
+    get:
+      tags: [Providers]
+      summary: List federated provider configurations
+      operationId: listProviderConfigs
+      x-required-role: ADMIN
+      responses:
+        '200':
+          description: Config plus form schema per configurable provider (secrets never returned).
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProviderConfig' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/provider-configs/{providerId}:
+    parameters: [{ name: providerId, in: path, required: true, schema: { type: string } }]
+    put:
+      tags: [Providers]
+      summary: Create or update a provider configuration
+      operationId: upsertProviderConfig
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProviderConfigUpsert' } } }
+      responses:
+        '200':
+          description: Stored — secret values are encrypted at rest and not echoed back.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ProviderConfig' } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      tags: [Providers]
+      summary: Remove a provider configuration
+      operationId: deleteProviderConfig
+      x-required-role: ADMIN
+      responses:
+        '204': { description: Removed. }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT from ACMEbase auth. The bearer role (WATCH/WORK/ADMIN) must satisfy the role
+        required per operation under `x-required-role` (hierarchy ADMIN > WORK > WATCH). AUDIT is
+        an orthogonal capability (not part of the hierarchy): operations marked
+        `x-required-role: AUDIT` require the `audit` token claim regardless of the access role.
+
+  responses:
+    Unauthorized:
+      description: Missing/invalid authentication or insufficient role.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    NotFound:
+      description: Resource not found.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Unprocessable:
+      description: Semantically invalid.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+
+  schemas:
+    Problem:
+      description: Error per RFC 7807.
+      type: object
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+
+    Money:
+      description: Monetary amount. `unlimited=true` → no amount limit (then amount/currency are empty).
+      type: object
+      properties:
+        amount: { type: number, nullable: true, example: 50000 }
+        currency: { type: string, minLength: 3, maxLength: 3, nullable: true, example: EUR }
+        unlimited: { type: boolean, default: false }
+
+    DateRange:
+      description: Validity period. `until=null` = open-ended.
+      type: object
+      properties:
+        from: { type: string, format: date }
+        until: { type: string, format: date, nullable: true }
+
+    Approval:
+      description: E-approval status of an order/procurement.
+      type: object
+      properties:
+        required: { type: boolean }
+        approverId: { type: string, nullable: true, description: Authorized signatory (resolved from ACMEhr). }
+        decision: { type: string, nullable: true, enum: [APPROVE, REJECT] }
+        decidedOn: { type: string, format: date, nullable: true }
+        comment: { type: string, nullable: true }
+    ApprovalDecision:
+      description: Approval decision by an authorized signatory.
+      type: object
+      required: [approverId, decision]
+      properties:
+        approverId: { type: string, description: "Person (ACMEhr) making the decision." }
+        decision: { type: string, enum: [APPROVE, REJECT] }
+        comment: { type: string, nullable: true }
+
+    # ── Auth / platform types ──
+    AccessRole:
+      type: string
+      enum: [WATCH, WORK, ADMIN]
+      description: Access role; hierarchy ADMIN > WORK > WATCH.
+    UserStatus:
+      type: string
+      enum: [ACTIVE, PENDING, DISABLED]
+      description: ACTIVE may sign in · PENDING awaits role assignment · DISABLED is blocked.
+    ProviderKind:
+      type: string
+      enum: [LOCAL, OIDC]
+    FieldType:
+      type: string
+      enum: [TEXT, SECRET, URL, BOOL]
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string, format: password }
+    SessionUser:
+      description: The signed-in user (also the subject of the session token).
+      type: object
+      properties:
+        id: { type: string }
+        username: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        displayName: { type: string, nullable: true }
+        role: { $ref: '#/components/schemas/AccessRole' }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        auditor:
+          type: boolean
+          description: >
+            Orthogonal AUDIT capability (ADR-0010): may view version history. Independent of the
+            access role; granted separately by an admin.
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string, description: Base session JWT (bearer). }
+        mustSetPassword: { type: boolean, description: If true, a new password must be set before proceeding. }
+        user: { $ref: '#/components/schemas/SessionUser' }
+    PasswordRequest:
+      type: object
+      required: [newPassword]
+      properties:
+        newPassword: { type: string, format: password, minLength: 10 }
+    ProviderOption:
+      description: A sign-in option shown on the login screen.
+      type: object
+      properties:
+        id: { type: string }
+        displayName: { type: string }
+        kind: { $ref: '#/components/schemas/ProviderKind' }
+
+    DirectoryUser:
+      description: >
+        A user in the admin directory (adds the authenticating provider and the last-change stamp).
+        Who/when of the last change is visible to everyone (ADR-0010); the version number is not.
+      allOf:
+        - $ref: '#/components/schemas/SessionUser'
+        - type: object
+          properties:
+            authProvider: { type: string, description: "'local' or a configured provider id." }
+            updatedAt: { type: string, format: date-time, nullable: true, description: When the record was last changed. }
+            updatedBy: { type: string, nullable: true, description: Who last changed the record. }
+    CreateUserRequest:
+      type: object
+      required: [username, role]
+      properties:
+        username: { type: string }
+        displayName: { type: string }
+        email: { type: string }
+        role: { $ref: '#/components/schemas/AccessRole' }
+    CreateUserResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/DirectoryUser' }
+        temporaryPassword: { type: string, description: One-time password; shown once, must be changed on first login. }
+    RoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: '#/components/schemas/AccessRole' }
+    StatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: '#/components/schemas/UserStatus' }
+    AuditorRequest:
+      description: Grant or revoke the orthogonal AUDIT capability (ADR-0010).
+      type: object
+      required: [auditor]
+      properties:
+        auditor: { type: boolean }
+    RevisionType:
+      type: string
+      enum: [ADD, MOD, DEL]
+      description: How the record changed at this revision (add / modify / delete-tombstone).
+    UserRevision:
+      description: >
+        One versioned revision of a user (ADR-0010). Returned only to the AUDIT capability —
+        version numbers and earlier versions are never shown to ordinary users.
+      type: object
+      properties:
+        revision: { type: integer, format: int64, description: Monotonic version number. }
+        changedAt: { type: string, format: date-time }
+        changedBy: { type: string, nullable: true }
+        changeType: { $ref: '#/components/schemas/RevisionType' }
+        username: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        displayName: { type: string, nullable: true }
+        role: { $ref: '#/components/schemas/AccessRole' }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        auditor: { type: boolean }
+        deleted: { type: boolean, description: Whether this revision is a tombstone. }
+
+    ProviderField:
+      description: One field of a provider's config schema (drives the admin form).
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        type: { $ref: '#/components/schemas/FieldType' }
+        required: { type: boolean }
+    ProviderConfig:
+      description: A federated provider's configuration. Secret values are never returned.
+      type: object
+      properties:
+        providerId: { type: string }
+        displayName: { type: string }
+        kind: { $ref: '#/components/schemas/ProviderKind' }
+        enabled: { type: boolean }
+        configured: { type: boolean }
+        schema: { type: array, items: { $ref: '#/components/schemas/ProviderField' } }
+        values:
+          type: object
+          additionalProperties: { type: string }
+          description: Non-secret field values.
+        secretsSet:
+          type: array
+          items: { type: string }
+          description: Keys of secret fields that currently have a stored value.
+    ProviderConfigUpsert:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        values:
+          type: object
+          additionalProperties: { type: string }
+          description: Field values; a blank secret keeps the stored one.

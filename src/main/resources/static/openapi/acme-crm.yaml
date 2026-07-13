@@ -1,0 +1,586 @@
+openapi: 3.0.3
+info:
+  title: ACMEcrm API
+  version: 0.1.0
+  description: >
+    Sales system of **ACME analog Inc.** and system of record for **customers & resellers**,
+    **products**, **price lists**, **quotes** and **orders** (production contracts).
+
+
+    Orders are confirmed via the **e-approval system**: above defined thresholds an authorized
+    signatory must approve (resolved via ACMEhr — approval limits/deputies).
+    Confirmed orders (products, quantities, delivery dates) drive factory, port and treasury.
+
+
+    Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally (quotes/orders/approval),
+    `ADMIN` maintains master data (products/price lists). Per operation under `x-required-role`;
+    hierarchy ADMIN > WORK > WATCH.
+  contact:
+    name: ACME analog Inc · ACMEsuite
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://demo.acmesoftware.de/api/crm
+    description: ACMEsuite API (TLS at the edge)
+tags:
+  - name: Customers
+    description: Customers and resellers (sales partners).
+  - name: Products
+    description: Product catalog (analog goods from the ACME factory).
+  - name: PriceLists
+    description: Price lists (list/reseller) with tiered prices + price resolution.
+  - name: Quotes
+    description: Quotes — draft through acceptance, conversion into an order.
+  - name: Orders
+    description: Orders incl. e-approval (submission, approval/rejection, production, fulfillment).
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ─────────────────────────── Customers ───────────────────────────
+  /customers:
+    get:
+      tags: [Customers]
+      summary: List customers/resellers
+      operationId: listCustomers
+      x-required-role: WATCH
+      parameters:
+        - { name: kind, in: query, schema: { $ref: '#/components/schemas/CustomerKind' } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/CustomerStatus' } }
+        - { name: resellerId, in: query, schema: { type: string }, description: Customers of a reseller. }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Matches.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Customer' } } } }
+    post:
+      tags: [Customers]
+      summary: Create customer/reseller
+      operationId: createCustomer
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CustomerWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201':
+          description: Created.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Customer' } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /customers/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Customers]
+      summary: Read customer
+      operationId: getCustomer
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Customer., content: { application/json: { schema: { $ref: '#/components/schemas/Customer' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Customers]
+      summary: Update customer
+      operationId: updateCustomer
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CustomerWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Customer' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Products ───────────────────────────
+  /products:
+    get:
+      tags: [Products]
+      summary: List products
+      operationId: listProducts
+      x-required-role: WATCH
+      parameters:
+        - { name: category, in: query, schema: { type: string } }
+        - { name: active, in: query, schema: { type: boolean } }
+        - { name: q, in: query, schema: { type: string } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Products.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Product' } } } }
+    post:
+      tags: [Products]
+      summary: Create product (master data)
+      operationId: createProduct
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProductWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /products/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Products]
+      summary: Read product
+      operationId: getProduct
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Product., content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Products]
+      summary: Update product (master data)
+      operationId: updateProduct
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProductWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Price lists ───────────────────────────
+  /price-lists:
+    get:
+      tags: [PriceLists]
+      summary: List price lists
+      operationId: listPriceLists
+      x-required-role: WATCH
+      parameters:
+        - { name: kind, in: query, schema: { $ref: '#/components/schemas/PriceListKind' } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Price lists.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PriceList' } } } }
+    post:
+      tags: [PriceLists]
+      summary: Create price list (master data)
+      operationId: createPriceList
+      x-required-role: ADMIN
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/PriceListWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/PriceList' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /price-lists/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [PriceLists]
+      summary: Read price list
+      operationId: getPriceList
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Price list., content: { application/json: { schema: { $ref: '#/components/schemas/PriceList' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /price:
+    get:
+      tags: [PriceLists]
+      summary: Resolve effective unit price
+      description: Returns the unit price applicable for customer + product + quantity (incl. tier/reseller).
+      operationId: resolvePrice
+      x-required-role: WATCH
+      parameters:
+        - { name: customerId, in: query, required: true, schema: { type: string } }
+        - { name: productId, in: query, required: true, schema: { type: string } }
+        - { name: quantity, in: query, schema: { type: integer, default: 1, minimum: 1 } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Price., content: { application/json: { schema: { $ref: '#/components/schemas/ResolvedPrice' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Quotes ───────────────────────────
+  /quotes:
+    get:
+      tags: [Quotes]
+      summary: List quotes
+      operationId: listQuotes
+      x-required-role: WATCH
+      parameters:
+        - { name: customerId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/QuoteStatus' } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Quotes.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Quote' } } } }
+    post:
+      tags: [Quotes]
+      summary: Create quote
+      description: Unit prices are resolved from the customer's price list if not provided.
+      operationId: createQuote
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/QuoteWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Quote' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /quotes/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Quotes]
+      summary: Read quote
+      operationId: getQuote
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Quote., content: { application/json: { schema: { $ref: '#/components/schemas/Quote' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Quotes]
+      summary: Update quote (status/validity)
+      operationId: updateQuote
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/QuoteUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated., content: { application/json: { schema: { $ref: '#/components/schemas/Quote' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /quotes/{id}/order:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Quotes]
+      summary: Convert quote into order
+      description: Marks the quote as accepted and creates an order from it.
+      operationId: convertQuoteToOrder
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Order., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  # ─────────────────────────── Orders ───────────────────────────
+  /orders:
+    get:
+      tags: [Orders]
+      summary: List orders
+      description: Consumers read the approved orders via `status=APPROVED` for the production cycle.
+      operationId: listOrders
+      x-required-role: WATCH
+      parameters:
+        - { name: customerId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/OrderStatus' } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Orders.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Order' } } } }
+    post:
+      tags: [Orders]
+      summary: Create order
+      operationId: createOrder
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/OrderWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+    delete:
+      tags: [Orders]
+      summary: Delete all orders (data reset)
+      description: >
+        Destructive reset of the order stock — intended only for the data/economy reset,
+        hence `ADMIN`. Not for normal operation.
+      operationId: deleteAllOrders
+      x-required-role: ADMIN
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '204': { description: Stock cleared. }
+  /orders/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Orders]
+      summary: Read order
+      operationId: getOrder
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Order., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /orders/{id}/submission:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Orders]
+      summary: Submit order for approval (e-approval)
+      description: Sets the status to PENDING_APPROVAL or — below the threshold — directly to APPROVED.
+      operationId: submitOrder
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Submitted., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /orders/{id}/decision:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Orders]
+      summary: Approval decision (e-approval)
+      operationId: decideOrder
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: 'acme-base.yaml#/components/schemas/ApprovalDecision' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Decided., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /orders/{id}/production:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Orders]
+      summary: Record produced quantities (partial fulfillment)
+      description: >
+        Reports the quantities produced on a day per line; reduces
+        `remainingQuantity`. The production cycle calls this after manufacturing. Once the
+        order is thereby complete, it moves to FULFILLED.
+      operationId: recordProduction
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProductionReport' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Updated order., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /orders/{id}/fulfillment:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Orders]
+      summary: Mark order as fully fulfilled
+      operationId: fulfillOrder
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Fulfilled., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /orders/{id}/cancellation:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Orders]
+      summary: Cancel order
+      operationId: cancelOrder
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Cancelled., content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT from ACMEbase auth. The bearer role (WATCH/WORK/ADMIN) must satisfy the role
+        required per operation under `x-required-role` (hierarchy ADMIN > WORK > WATCH).
+
+  schemas:
+    CustomerKind:
+      type: string
+      enum: [CUSTOMER, RESELLER]
+    CustomerStatus:
+      type: string
+      enum: [PROSPECT, ACTIVE, BLOCKED]
+    Customer:
+      type: object
+      required: [id, name, kind, status]
+      properties:
+        id: { type: string }
+        name: { type: string, example: Kontor Nord GmbH }
+        kind: { $ref: '#/components/schemas/CustomerKind' }
+        status: { $ref: '#/components/schemas/CustomerStatus' }
+        email: { type: string, format: email, nullable: true }
+        country: { type: string, nullable: true, example: DE }
+        parentResellerId: { type: string, nullable: true, description: For end customers of a reseller. }
+        priceListId: { type: string, nullable: true, description: Assigned price list. }
+    CustomerWrite:
+      type: object
+      required: [name, kind]
+      properties:
+        name: { type: string }
+        kind: { $ref: '#/components/schemas/CustomerKind' }
+        status: { $ref: '#/components/schemas/CustomerStatus' }
+        email: { type: string, format: email }
+        country: { type: string }
+        parentResellerId: { type: string, nullable: true }
+        priceListId: { type: string, nullable: true }
+
+    Product:
+      type: object
+      required: [id, sku, name, active]
+      properties:
+        id: { type: string }
+        sku: { type: string, example: ACME-RADIO-01 }
+        name: { type: string, example: "Tube radio „Nostalgie“" }
+        category: { type: string, nullable: true }
+        unit: { type: string, default: piece }
+        active: { type: boolean }
+        listPrice: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+    ProductWrite:
+      type: object
+      required: [sku, name]
+      properties:
+        sku: { type: string }
+        name: { type: string }
+        category: { type: string }
+        unit: { type: string }
+        active: { type: boolean }
+        listPrice: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+
+    PriceListKind:
+      type: string
+      enum: [LIST, RESELLER, CUSTOM]
+    PriceListItem:
+      type: object
+      required: [productId, unitPrice]
+      properties:
+        productId: { type: string }
+        unitPrice: { type: number, example: 149.0 }
+        minQuantity: { type: integer, default: 1, description: The price applies from this quantity on (tier). }
+    PriceList:
+      type: object
+      required: [id, name, currency, kind, items]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        currency: { type: string, minLength: 3, maxLength: 3, example: EUR }
+        kind: { $ref: '#/components/schemas/PriceListKind' }
+        validity: { $ref: 'acme-base.yaml#/components/schemas/DateRange' }
+        items: { type: array, items: { $ref: '#/components/schemas/PriceListItem' } }
+    PriceListWrite:
+      type: object
+      required: [name, currency, kind]
+      properties:
+        name: { type: string }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        kind: { $ref: '#/components/schemas/PriceListKind' }
+        validFrom: { type: string, format: date }
+        validUntil: { type: string, format: date, nullable: true }
+        items: { type: array, items: { $ref: '#/components/schemas/PriceListItem' } }
+    ResolvedPrice:
+      type: object
+      required: [productId, customerId, quantity, unitPrice]
+      properties:
+        productId: { type: string }
+        customerId: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        currency: { type: string }
+        priceListId: { type: string, nullable: true }
+        source:
+          type: string
+          enum: [PRICE_LIST, LIST_PRICE]
+
+    QuoteStatus:
+      type: string
+      enum: [DRAFT, SENT, ACCEPTED, REJECTED, EXPIRED]
+    LineWrite:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+        unitPrice: { type: number, nullable: true, description: Optional — otherwise resolved from the price list. }
+        discountPercent: { type: number, default: 0 }
+    Line:
+      type: object
+      required: [productId, quantity, unitPrice, lineTotal]
+      properties:
+        productId: { type: string }
+        productName: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        discountPercent: { type: number }
+        lineTotal: { type: number }
+        remainingQuantity: { type: integer, description: Quantity still to be produced (order lines). }
+    Quote:
+      type: object
+      required: [id, customerId, status, currency, lines, netTotal]
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        status: { $ref: '#/components/schemas/QuoteStatus' }
+        currency: { type: string }
+        validUntil: { type: string, format: date, nullable: true }
+        lines: { type: array, items: { $ref: '#/components/schemas/Line' } }
+        netTotal: { type: number }
+        createdOn: { type: string, format: date, nullable: true }
+    QuoteWrite:
+      type: object
+      required: [customerId, lines]
+      properties:
+        customerId: { type: string }
+        validUntil: { type: string, format: date, nullable: true }
+        lines: { type: array, minItems: 1, items: { $ref: '#/components/schemas/LineWrite' } }
+    QuoteUpdate:
+      type: object
+      properties:
+        status: { $ref: '#/components/schemas/QuoteStatus' }
+        validUntil: { type: string, format: date, nullable: true }
+
+    OrderStatus:
+      type: string
+      enum: [CREATED, PENDING_APPROVAL, APPROVED, REJECTED, FULFILLED, CANCELLED]
+    Order:
+      type: object
+      required: [id, customerId, status, orderDate, lines, total]
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        customerCountry: { type: string, nullable: true }
+        quoteId: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        orderDate: { type: string, format: date }
+        lines: { type: array, items: { $ref: '#/components/schemas/Line' } }
+        total: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        approval: { $ref: 'acme-base.yaml#/components/schemas/Approval' }
+        shippingMode: { type: string, nullable: true, description: "Shipping mode (e.g. AIR = air freight, otherwise sea freight)." }
+        note: { type: string, nullable: true }
+    OrderWrite:
+      type: object
+      required: [customerId, lines]
+      properties:
+        customerId: { type: string }
+        quoteId: { type: string, nullable: true }
+        lines: { type: array, minItems: 1, items: { $ref: '#/components/schemas/LineWrite' } }
+        shippingMode: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+    ProductionReport:
+      description: Per product, the share produced today (additionally fulfilled).
+      type: object
+      required: [lines]
+      properties:
+        lines:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [productId, producedQuantity]
+            properties:
+              productId: { type: string }
+              producedQuantity: { type: integer, minimum: 0 }
