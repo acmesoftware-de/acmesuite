@@ -58,6 +58,16 @@ export function TopBar({
         <span className="acme-kbd">⌘K</span>
       </div>
 
+      <a
+        className="acme-api-link"
+        href="/swagger.html"
+        target="_blank"
+        rel="noopener"
+        title="API-Dokumentation (Swagger UI)"
+      >
+        API
+      </a>
+
       <button className="acme-theme-toggle" onClick={onToggleTheme} title="Hell / Dunkel">
         {mode === 'dark' ? '◐' : '◑'}
       </button>

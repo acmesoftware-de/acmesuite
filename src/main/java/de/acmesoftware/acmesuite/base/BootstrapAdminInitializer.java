@@ -5,7 +5,6 @@ import de.acmesoftware.acmesuite.base.domain.BaseUser;
 import de.acmesoftware.acmesuite.base.domain.BaseUserRepository;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
 import java.security.SecureRandom;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -58,7 +57,8 @@ class BootstrapAdminInitializer implements ApplicationRunner {
                 username, null, "Administrator",
                 AccessRole.ADMIN, UserStatus.ACTIVE, LocalAuthProvider.ID, null,
                 // Force a change only for the generated temporary password.
-                encoder.encode(password), generated, Instant.now());
+                encoder.encode(password), generated);
+        admin.setAuditor(true); // the bootstrap superuser may view version history (AUDIT)
         users.save(admin);
 
         if (generated) {

@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 /**
  * Issues the Base session token after a successful login (local or federated). Downstream module
  * APIs validate this token only — they never see the external IdP. Subject = Base user id; the
- * {@code role} claim carries the locally assigned {@code AccessRole}.
+ * {@code role} claim carries the locally assigned {@code AccessRole}. The boolean {@code audit}
+ * claim carries the orthogonal AUDIT capability (may view version history; ADR-0010).
  */
 @Service
 public class SessionTokenService {
@@ -26,7 +27,7 @@ public class SessionTokenService {
         this.ttl = props.getJwt().getTtl();
     }
 
-    public String issue(String userId, String role, String displayName) {
+    public String issue(String userId, String role, String displayName, boolean auditor) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("acmebase")
@@ -35,6 +36,7 @@ public class SessionTokenService {
                 .subject(userId)
                 .claim("role", role)
                 .claim("name", displayName == null ? "" : displayName)
+                .claim("audit", auditor)
                 .build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         return encoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();

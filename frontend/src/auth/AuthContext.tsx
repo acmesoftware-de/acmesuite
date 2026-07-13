@@ -13,6 +13,8 @@ interface AuthContextValue {
   /** true for WORK and ADMIN (may perform operational writes). */
   canWrite: boolean
   isAdmin: boolean
+  /** Orthogonal AUDIT capability (ADR-0010): may view version history / Chatter timeline. */
+  isAuditor: boolean
   /** Set when a federated (OIDC) sign-in returned an error/pending on redirect back. */
   oidcError: string | null
   login: (username: string, password: string) => Promise<void>
@@ -112,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       canWrite: user ? ROLE_RANK[user.role] >= ROLE_RANK.WORK : false,
       isAdmin: user?.role === 'ADMIN',
+      isAuditor: user?.auditor ?? false,
       oidcError,
       login,
       completeSetPassword,

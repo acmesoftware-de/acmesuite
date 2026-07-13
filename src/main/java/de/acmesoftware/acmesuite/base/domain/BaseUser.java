@@ -1,13 +1,15 @@
 package de.acmesoftware.acmesuite.base.domain;
 
 import de.acmesoftware.acmesuite.base.AccessRole;
+import de.acmesoftware.acmesuite.shared.AuditedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.envers.Audited;
 
 /**
  * An ACMEbase user account: an identity that can access the suite APIs, plus the locally
@@ -17,10 +19,14 @@ import java.time.Instant;
  * or <b>federated</b> (a configured provider id, {@link #externalSubject} set). The role is always
  * local — never taken from an IdP claim. Deliberately separate from {@code org.person} (business
  * employees): this is solely about API access.
+ *
+ * <p>Versioned + tombstoned (ADR-0010): audit stamps + history from {@link AuditedEntity}.
  */
 @Entity
+@Audited
 @Table(name = "base_user")
-public class BaseUser {
+@SQLRestriction("deleted_at is null")
+public class BaseUser extends AuditedEntity {
 
     @Id
     @Column(name = "id", length = 32)
@@ -59,11 +65,9 @@ public class BaseUser {
     @Column(name = "must_set_password", nullable = false)
     private boolean mustSetPassword;
 
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    /** AUDIT capability — may view version history (orthogonal to the access role; ADR-0010). */
+    @Column(name = "auditor", nullable = false)
+    private boolean auditor;
 
     protected BaseUser() {
         // JPA
@@ -71,7 +75,7 @@ public class BaseUser {
 
     public BaseUser(String id, String username, String email, String displayName, AccessRole role,
             UserStatus status, String authProvider, String externalSubject, String passwordHash,
-            boolean mustSetPassword, Instant now) {
+            boolean mustSetPassword) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -82,8 +86,6 @@ public class BaseUser {
         this.externalSubject = externalSubject;
         this.passwordHash = passwordHash;
         this.mustSetPassword = mustSetPassword;
-        this.createdAt = now;
-        this.updatedAt = now;
     }
 
     public String getId() {
@@ -150,15 +152,11 @@ public class BaseUser {
         this.mustSetPassword = mustSetPassword;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
+    public boolean isAuditor() {
+        return auditor;
     }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void touch(Instant now) {
-        this.updatedAt = now;
+    public void setAuditor(boolean auditor) {
+        this.auditor = auditor;
     }
 }

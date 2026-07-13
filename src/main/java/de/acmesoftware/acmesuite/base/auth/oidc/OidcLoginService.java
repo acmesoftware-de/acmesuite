@@ -82,7 +82,8 @@ public class OidcLoginService {
         BaseUser user = identities.findOrProvision(sc.providerId(), id.subject(), id.email(),
                 id.displayName());
         if (user.getStatus() == UserStatus.ACTIVE) {
-            String token = sessionTokens.issue(user.getId(), user.getRole().name(), user.getDisplayName());
+            String token = sessionTokens.issue(user.getId(), user.getRole().name(),
+                    user.getDisplayName(), user.isAuditor());
             return CallbackResult.authed(token);
         }
         return CallbackResult.pending();

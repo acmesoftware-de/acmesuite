@@ -88,6 +88,18 @@
   border-radius: var(--radius);
   color: var(--faint);
 }
+.acme-app .acme-api-link {
+  margin-left: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--dim);
+  font: 700 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.acme-app .acme-api-link:hover { color: var(--ink); }
 .acme-app .acme-theme-toggle {
   width: 34px;
   height: 34px;
@@ -326,7 +338,7 @@
 .acme-app .acme-users-head,
 .acme-app .acme-users-row {
   display: grid;
-  grid-template-columns: 2fr 130px 140px 1fr;
+  grid-template-columns: 2fr 104px 116px 56px 1fr 34px;
   align-items: center;
   gap: 12px;
   padding: 0 4px;
@@ -418,6 +430,153 @@
 
 /* Avatar rendered as a button (logout). */
 .acme-app .acme-avatar--button { border: none; cursor: pointer; }
+
+/* ---- Admin: DB schema browser ---------------------------------------------- */
+.acme-app .acme-schema-table {
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  background: var(--panel);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.acme-app .acme-schema-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font: 700 12px var(--font-mono);
+  color: var(--ink);
+  list-style: none;
+}
+.acme-app .acme-schema-summary::-webkit-details-marker { display: none; }
+.acme-app .acme-schema-count { margin-left: auto; font: 500 11px var(--font-mono); color: var(--faint); }
+.acme-app .acme-schema-cols {
+  display: grid;
+  grid-template-columns: 2fr 1fr 90px;
+  gap: 8px 14px;
+  padding: 4px 14px 14px;
+  border-top: 1px solid var(--line2);
+}
+.acme-app .acme-schema-col-name { font: 600 12px var(--font-mono); color: var(--ink); }
+.acme-app .acme-schema-col-type { font: 500 12px var(--font-mono); color: var(--dim); }
+.acme-app .acme-schema-col-null { font: 500 11px var(--font-mono); color: var(--faint); }
+
+/* ---- Chatter: per-record change feed (ADR-0010) --------------------------- */
+.acme-app .acme-icon-btn {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line2);
+  background: var(--chip);
+  color: var(--dim);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  transition: color 0.12s, border-color 0.12s;
+}
+.acme-app .acme-icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.acme-app .acme-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 40;
+}
+.acme-app .acme-drawer {
+  width: min(420px, 92vw);
+  height: 100%;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.18);
+  padding: 18px 20px 24px;
+  overflow-y: auto;
+}
+.acme-app .acme-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.acme-app .acme-drawer-title { font: 600 17px var(--font-ui); color: var(--ink); margin-top: 4px; }
+.acme-app .acme-drawer-sub { font: 400 10.5px var(--font-mono); color: var(--faint); margin-top: 2px; }
+.acme-app .acme-drawer-close {
+  border: none;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+}
+.acme-app .acme-lastchange {
+  font: 500 12px var(--font-ui);
+  color: var(--dim);
+  padding: 10px 12px;
+  background: var(--chip);
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.acme-app .acme-lastchange strong { color: var(--ink); font-weight: 600; }
+.acme-app .acme-chatter-locked {
+  font: 500 12px var(--font-ui);
+  color: var(--faint);
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.acme-app .acme-timeline { list-style: none; margin: 0; padding: 0; }
+.acme-app .acme-tl-item {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 0 0 18px 2px;
+}
+.acme-app .acme-tl-item::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 14px;
+  bottom: 0;
+  width: 1px;
+  background: var(--line2);
+}
+.acme-app .acme-tl-item:last-child::before { display: none; }
+.acme-app .acme-tl-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  margin-top: 3px;
+  flex: none;
+  border: 2px solid var(--panel);
+  background: var(--dim);
+  box-shadow: 0 0 0 1px var(--line2);
+}
+.acme-app .acme-tl-dot--add { background: var(--success); }
+.acme-app .acme-tl-dot--del { background: var(--danger, #c0392b); }
+.acme-app .acme-tl-body { min-width: 0; }
+.acme-app .acme-tl-line { display: flex; align-items: center; gap: 8px; }
+.acme-app .acme-tl-badge {
+  font: 700 8.5px var(--font-mono);
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--chip);
+  color: var(--dim);
+  border: 1px solid var(--line2);
+}
+.acme-app .acme-tl-badge--add { color: var(--success); border-color: var(--success); }
+.acme-app .acme-tl-badge--del { color: var(--danger, #c0392b); border-color: var(--danger, #c0392b); }
+.acme-app .acme-tl-ver { font: 700 10px var(--font-mono); color: var(--accent); }
+.acme-app .acme-tl-actor { font: 600 12px var(--font-ui); color: var(--ink); }
+.acme-app .acme-tl-summary { font: 400 11.5px var(--font-ui); color: var(--dim); margin-top: 3px; }
+.acme-app .acme-tl-time { font: 400 10px var(--font-mono); color: var(--faint); margin-top: 3px; }
 
 /* ---- ACMEassist (bottom-anchored co-pilot, ADR-0008) --------------------- */
 .acme-app .acme-assist {

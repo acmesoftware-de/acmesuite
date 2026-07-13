@@ -3,9 +3,12 @@ package de.acmesoftware.acmesuite.base.web;
 import de.acmesoftware.acmesuite.base.AccessRole;
 import de.acmesoftware.acmesuite.base.UserAdminService;
 import de.acmesoftware.acmesuite.base.UserAdminService.DuplicateUsernameException;
+import de.acmesoftware.acmesuite.base.UserHistoryService;
 import de.acmesoftware.acmesuite.base.domain.UserStatus;
+import de.acmesoftware.acmesuite.base.web.AdminViews.AuditorRequest;
 import de.acmesoftware.acmesuite.base.web.AdminViews.CreateUserRequest;
 import de.acmesoftware.acmesuite.base.web.AdminViews.CreateUserResponse;
+import de.acmesoftware.acmesuite.base.web.AdminViews.HistoryEntry;
 import de.acmesoftware.acmesuite.base.web.AdminViews.RoleRequest;
 import de.acmesoftware.acmesuite.base.web.AdminViews.StatusRequest;
 import de.acmesoftware.acmesuite.base.web.AdminViews.UserView;
@@ -27,9 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserAdminController {
 
     private final UserAdminService users;
+    private final UserHistoryService history;
 
-    public UserAdminController(UserAdminService users) {
+    public UserAdminController(UserAdminService users, UserHistoryService history) {
         this.users = users;
+        this.history = history;
     }
 
     @GetMapping
@@ -75,6 +80,20 @@ public class UserAdminController {
         return users.setStatus(id, status.get())
                 .map(u -> ResponseEntity.ok(AdminViews.user(u)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /** Grant or revoke the orthogonal AUDIT capability (ADR-0010). ADMIN only. */
+    @PutMapping("/{id}/auditor")
+    public ResponseEntity<UserView> setAuditor(@PathVariable String id, @RequestBody AuditorRequest req) {
+        return users.setAuditor(id, req.auditor())
+                .map(u -> ResponseEntity.ok(AdminViews.user(u)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /** Full version history of a user. AUDIT capability only (gated by URL rule in security config). */
+    @GetMapping("/{id}/history")
+    public List<HistoryEntry> history(@PathVariable String id) {
+        return history.history(id);
     }
 
     private static Optional<AccessRole> role(String value) {

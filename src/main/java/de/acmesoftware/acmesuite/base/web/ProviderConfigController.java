@@ -5,8 +5,6 @@ import de.acmesoftware.acmesuite.base.web.AdminViews.ProviderConfigUpsert;
 import de.acmesoftware.acmesuite.base.web.AdminViews.ProviderConfigView;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,10 +34,9 @@ public class ProviderConfigController {
 
     @PutMapping("/{providerId}")
     public ResponseEntity<ProviderConfigView> upsert(@PathVariable String providerId,
-            @RequestBody ProviderConfigUpsert req, @AuthenticationPrincipal Jwt jwt) {
-        String actor = jwt != null ? jwt.getSubject() : "system";
+            @RequestBody ProviderConfigUpsert req) {
         try {
-            ProviderConfigService.State state = configs.upsert(providerId, req.enabled(), req.values(), actor);
+            ProviderConfigService.State state = configs.upsert(providerId, req.enabled(), req.values());
             return ResponseEntity.ok(AdminViews.providerConfig(state));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

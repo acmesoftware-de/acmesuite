@@ -45,6 +45,13 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  modulith:
+    events:
+      # The event publication registry (transactional outbox) table is owned by Flyway
+      # (V23), not auto-created by Modulith.
+      jdbc:
+        schema-initialization:
+          enabled: false
 
 management:
   endpoints:
@@ -67,6 +74,10 @@ management:
 # set to true to enable authentication → Base-issued session JWT (bearer). Federated
 # login (Entra/OIDC) authenticates the identity; roles are assigned locally in Base.
 acme:
+  # Central full-text search (Lucene). The index is a derived projection: fed live by module
+  # domain events (outbox) and rebuildable from each module via /api/search/reindex.
+  search:
+    index-dir: ${ACME_SEARCH_INDEX_DIR:data/search-index}
   base:
     auth:
       enabled: false

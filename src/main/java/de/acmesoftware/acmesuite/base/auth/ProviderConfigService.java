@@ -1,5 +1,6 @@
 package de.acmesoftware.acmesuite.base.auth;
 
+import de.acmesoftware.acmesuite.base.CurrentActor;
 import de.acmesoftware.acmesuite.base.crypto.SecretCipher;
 import de.acmesoftware.acmesuite.base.domain.AuthProviderConfig;
 import de.acmesoftware.acmesuite.base.domain.AuthProviderConfigRepository;
@@ -56,12 +57,11 @@ public class ProviderConfigService {
     }
 
     @Transactional
-    public State upsert(String providerId, boolean enabled, Map<String, String> incoming, String actor) {
+    public State upsert(String providerId, boolean enabled, Map<String, String> incoming) {
         AuthProvider provider = configurable(providerId)
                 .orElseThrow(() -> new IllegalArgumentException("unknown provider: " + providerId));
-        Instant now = Instant.now();
         AuthProviderConfig cfg = repo.findByProviderId(providerId)
-                .orElseGet(() -> new AuthProviderConfig(newId(), providerId, now));
+                .orElseGet(() -> new AuthProviderConfig(newId(), providerId));
 
         Map<String, String> nonSecret = readMap(cfg.getConfigJson());
         Map<String, String> secrets = readMap(cfg.getSecretsJson());
@@ -89,15 +89,18 @@ public class ProviderConfigService {
         cfg.setEnabled(enabled);
         cfg.setConfigJson(writeMap(nonSecret));
         cfg.setSecretsJson(writeMap(secrets));
-        cfg.setUpdatedBy(actor);
-        cfg.touch(now);
+        // created_/updated_ stamps are set by JPA auditing (ADR-0010).
         repo.save(cfg);
         return toState(provider, cfg);
     }
 
+    /** Tombstones the config (ADR-0010) — never a hard delete. */
     @Transactional
     public void delete(String providerId) {
-        repo.findByProviderId(providerId).ifPresent(repo::delete);
+        repo.findByProviderId(providerId).ifPresent(cfg -> {
+            cfg.tombstone(CurrentActor.current(), Instant.now());
+            repo.save(cfg);
+        });
     }
 
     /** Provider ids with an enabled config (used to show federated login options). */
