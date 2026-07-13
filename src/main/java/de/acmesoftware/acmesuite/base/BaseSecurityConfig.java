@@ -86,9 +86,11 @@ class BaseSecurityConfig {
                             // Version history is gated by the orthogonal AUDIT capability (ADR-0010),
                             // not by ADMIN — must precede the ADMIN user-management rule below.
                             .requestMatchers(HttpMethod.GET, "/api/base/users/*/history").hasRole("AUDIT")
-                            // Admin surface: user/role management + provider configuration + reindex.
+                            // Admin surface: user/role management + provider configuration + reindex
+                            // + DB schema browser.
                             .requestMatchers("/api/base/users/**",
                                     "/api/base/auth/provider-configs/**",
+                                    "/api/base/db/**",
                                     "/api/search/reindex").hasRole(AccessRole.ADMIN.name())
                             // Suite APIs: read = WATCH+, write = WORK+ (ADMIN adds master-data guards).
                             .requestMatchers(HttpMethod.GET, "/api/**")

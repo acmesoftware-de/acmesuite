@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ACMEsuite API — Swagger UI</title>
+    <!-- Assets served from the jar (webjar), no CDN. -->
+    <link rel="stylesheet" href="/webjars/swagger-ui/5.32.8/swagger-ui.css" />
+    <style>
+      body { margin: 0; background: #fff; }
+      .docs-nav {
+        display: flex; align-items: center; gap: 16px;
+        padding: 10px 16px; background: #17181c; color: #f4f3ef;
+        font: 13px/1 -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+      .docs-nav strong { letter-spacing: .04em; }
+      .docs-nav a { color: #9aa4b2; text-decoration: none; }
+      .docs-nav a:hover { color: #fff; }
+      .docs-nav a.active { color: #6e56cf; font-weight: 700; }
+      .docs-nav .spacer { flex: 1; }
+    </style>
+  </head>
+  <body>
+    <nav class="docs-nav">
+      <strong>ACMEsuite API</strong>
+      <a class="active" href="/swagger.html">Swagger UI</a>
+      <a href="/redoc.html">Redoc</a>
+      <span class="spacer"></span>
+      <a href="/openapi/acme-hr.yaml">ACMEhr</a>
+      <a href="/openapi/acme-crm.yaml">ACMEcrm</a>
+      <a href="/openapi/acme-supply.yaml">ACMEsupply</a>
+      <a href="/openapi/acme-build.yaml">ACMEbuild</a>
+      <a href="/">&larr; App</a>
+    </nav>
+    <div id="swagger-ui"></div>
+    <script src="/webjars/swagger-ui/5.32.8/swagger-ui-bundle.js"></script>
+    <script src="/webjars/swagger-ui/5.32.8/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = function () {
+        window.ui = SwaggerUIBundle({
+          urls: [
+            { url: '/openapi/acme-hr.yaml', name: 'ACMEhr' },
+            { url: '/openapi/acme-crm.yaml', name: 'ACMEcrm' },
+            { url: '/openapi/acme-supply.yaml', name: 'ACMEsupply' },
+            { url: '/openapi/acme-build.yaml', name: 'ACMEbuild' },
+          ],
+          'urls.primaryName': 'ACMEhr',
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          layout: 'StandaloneLayout',
+          // send the session cookie so "Try it out" works when login is enabled
+          withCredentials: true,
+        })
+      }
+    </script>
+  </body>
+</html>

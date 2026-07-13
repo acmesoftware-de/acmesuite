@@ -1,0 +1,712 @@
+openapi: 3.0.3
+info:
+  title: ACMEhr API
+  version: 0.1.0
+  description: >
+    HR system of **ACME analog Inc.** and system of record for employees
+    (title/role/hierarchy), vacation/absence planning, deputies & assistants,
+    sick days, compensation as well as **powers of attorney** and **approval limits**.
+
+
+    This data feeds the approval/e-approval logic (which person may sign off on which
+    amount, who deputizes during an absence) and consumers (who is available/on
+    vacation/sick on day N). It evolves the existing `org` domain model
+    (Person · OrgUnit · PowerOfAttorney · Absence · Role). The read-only `/api/org` browsing
+    (people/units/hierarchy) continues to exist alongside it and is the source of people for consumers.
+
+
+    Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally, `ADMIN` maintains master data.
+    Per operation under `x-required-role`; hierarchy ADMIN > WORK > WATCH.
+  contact:
+    name: ACME analog Inc · ACMEsuite
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://demo.acmesoftware.de/api/hr
+    description: ACMEsuite API (TLS at the edge)
+tags:
+  - name: Employees
+    description: Employees (hired) — title, role, hierarchy, deputy/assistant.
+  - name: Applicants
+    description: Applicants — candidates before being hired (applicant=true).
+  - name: Compensation
+    description: Compensation (salary/hourly wage) and personnel costs.
+  - name: Roles
+    description: Role catalog and role assignments.
+  - name: Absences
+    description: Vacation planning and sick days (absences) with deputy.
+  - name: PowersOfAttorney
+    description: Powers of attorney (Prokura/Handlungsvollmacht) per legal entity.
+  - name: ApprovalLimits
+    description: Approval limits — who may sign off up to which amount.
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ─────────────────────────── Employees ───────────────────────────
+  /employees:
+    get:
+      tags: [Employees]
+      summary: List employees
+      description: Employees (hired). Applicants are not included — see `/applicants`.
+      operationId: listEmployees
+      x-required-role: WATCH
+      parameters:
+        - { name: active, in: query, schema: { type: boolean }, description: Active/inactive only. }
+        - { name: unitId, in: query, schema: { type: string }, description: Filter by primary org unit. }
+        - { name: q, in: query, schema: { type: string }, description: Free text (name/email/title). }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: List of employees.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Employee' } }
+  /employees/{id}:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    get:
+      tags: [Employees]
+      summary: Read employee
+      operationId: getEmployee
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Employee.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Employee' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Employees]
+      summary: Maintain overlay (title, manager, deputy, assistant, active)
+      operationId: updateEmployee
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/EmployeeUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Updated employee.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Employee' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /employees/{id}/compensation:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    patch:
+      tags: [Compensation]
+      summary: Set compensation (salary/hourly wage)
+      operationId: updateCompensation
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CompensationUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Updated employee.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Employee' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /employees/{id}/roles:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    get:
+      tags: [Roles]
+      summary: Role assignments of the person
+      operationId: listEmployeeRoles
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Role assignments.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RoleAssignment' } } } }
+    post:
+      tags: [Roles]
+      summary: Assign role
+      operationId: assignRole
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RoleAssignmentCreate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201':
+          description: Created assignment.
+          content: { application/json: { schema: { $ref: '#/components/schemas/RoleAssignment' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /employees/{id}/roles/{assignmentId}:
+    parameters:
+      - { $ref: '#/components/parameters/PersonId' }
+      - { name: assignmentId, in: path, required: true, schema: { type: string } }
+    delete:
+      tags: [Roles]
+      summary: Remove role assignment
+      operationId: removeRole
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '204': { description: Removed. }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /employees/{id}/absences:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    get:
+      tags: [Absences]
+      summary: Absences of the person (vacation/sick)
+      operationId: listEmployeeAbsences
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Absences.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Absence' } } } }
+  /employees/{id}/powers-of-attorney:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    get:
+      tags: [PowersOfAttorney]
+      summary: Powers of attorney of the person
+      operationId: listEmployeePowers
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Powers of attorney.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PowerOfAttorney' } } } }
+  /employees/{id}/approval-limit:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    get:
+      tags: [ApprovalLimits]
+      summary: Effective approval limit of the person on a given date
+      description: >
+        Returns the approval limit effective on the given date (resolved from active powers of
+        attorney or an explicitly maintained limit). Does NOT account for deputies — that is
+        handled by e-approval resolution.
+      operationId: getEmployeeApprovalLimit
+      x-required-role: WATCH
+      parameters:
+        - { $ref: '#/components/parameters/AsOf' }
+        - { name: legalEntityId, in: query, schema: { type: string }, description: Restrict to one legal entity. }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Effective approval limit.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ApprovalLimit' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Applicants ───────────────────────────
+  /applicants:
+    get:
+      tags: [Applicants]
+      summary: List applicants
+      operationId: listApplicants
+      x-required-role: WATCH
+      parameters:
+        - { name: unitId, in: query, schema: { type: string }, description: Target org unit. }
+        - { name: q, in: query, schema: { type: string }, description: Free text (name/title). }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Applicants.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Applicant' } } } }
+    post:
+      tags: [Applicants]
+      summary: Create applicant
+      operationId: createApplicant
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ApplicantWrite' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201': { description: Created., content: { application/json: { schema: { $ref: '#/components/schemas/Applicant' } } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /applicants/{id}:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    get:
+      tags: [Applicants]
+      summary: Read applicant
+      operationId: getApplicant
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200': { description: Applicant., content: { application/json: { schema: { $ref: '#/components/schemas/Applicant' } } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    delete:
+      tags: [Applicants]
+      summary: Reject/remove application
+      operationId: rejectApplicant
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '204': { description: Removed. }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /applicants/{id}/hire:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    post:
+      tags: [Applicants]
+      summary: Hire applicant
+      description: >
+        Activates the applicant (applicant=false, active=true) as of the given day; they
+        thereby become an employee.
+      operationId: hireApplicant
+      x-required-role: WORK
+      parameters:
+        - { name: day, in: query, schema: { type: integer, default: 0 }, description: Day of hiring. }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Hired employee.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Employee' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  # ─────────────────────────── Compensation ───────────────────────────
+  /payroll:
+    get:
+      tags: [Compensation]
+      summary: Personnel cost overview (weekly)
+      operationId: getPayroll
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Payroll summary.
+          content: { application/json: { schema: { $ref: '#/components/schemas/PayrollSummary' } } }
+
+  # ─────────────────────────── Roles ───────────────────────────
+  /roles:
+    get:
+      tags: [Roles]
+      summary: Role catalog
+      operationId: listRoles
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Roles.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Role' } } } }
+
+  # ─────────────────────────── Absences ───────────────────────────
+  /absences:
+    get:
+      tags: [Absences]
+      summary: Search absences (vacation planning, sick days)
+      operationId: listAbsences
+      x-required-role: WATCH
+      parameters:
+        - { name: personId, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { $ref: '#/components/schemas/AbsenceType' } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/AbsenceStatus' } }
+        - { name: from, in: query, schema: { type: string, format: date }, description: Overlap from this day on. }
+        - { name: until, in: query, schema: { type: string, format: date }, description: Overlap up to this day. }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Matches.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Absence' } } } }
+    post:
+      tags: [Absences]
+      summary: Create absence (plan vacation / report sick)
+      description: >
+        Creates an absence. `VACATION` starts as `PLANNED` (approval follows),
+        `SICK` is usually recorded directly as `APPROVED` (reported).
+      operationId: createAbsence
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AbsenceCreate' }
+            examples:
+              urlaub:
+                summary: Plan vacation
+                value: { personId: p-julia-jefa, type: VACATION, from: '2026-07-20', until: '2026-08-02', substituteId: p-dirk-direktor, note: Summer vacation }
+              krank:
+                summary: Report sick day
+                value: { personId: p-dirk-direktor, type: SICK, from: '2026-06-24', until: '2026-06-26' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201':
+          description: Created absence.
+          headers: { Location: { schema: { type: string }, description: URI of the new resource. } }
+          content: { application/json: { schema: { $ref: '#/components/schemas/Absence' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /absences/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Absences]
+      summary: Read absence
+      operationId: getAbsence
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Absence.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Absence' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Absences]
+      summary: Change absence (approve/reject/cancel, deputy, period)
+      operationId: updateAbsence
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AbsenceUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Changed absence.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Absence' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+    delete:
+      tags: [Absences]
+      summary: Delete absence
+      operationId: deleteAbsence
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '204': { description: Deleted. }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Powers of Attorney ───────────────────────────
+  /powers-of-attorney:
+    get:
+      tags: [PowersOfAttorney]
+      summary: Search powers of attorney
+      operationId: listPowers
+      x-required-role: WATCH
+      parameters:
+        - { name: holderId, in: query, schema: { type: string } }
+        - { name: legalEntityId, in: query, schema: { type: string } }
+        - { name: includeRevoked, in: query, schema: { type: boolean, default: false } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Powers of attorney.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PowerOfAttorney' } } } }
+    post:
+      tags: [PowersOfAttorney]
+      summary: Grant power of attorney
+      operationId: grantPower
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/PowerOfAttorneyGrant' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201':
+          description: Granted power of attorney.
+          content: { application/json: { schema: { $ref: '#/components/schemas/PowerOfAttorney' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /powers-of-attorney/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [PowersOfAttorney]
+      summary: Read power of attorney
+      operationId: getPower
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Power of attorney.
+          content: { application/json: { schema: { $ref: '#/components/schemas/PowerOfAttorney' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+  /powers-of-attorney/{id}/revocation:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put:
+      tags: [PowersOfAttorney]
+      summary: Revoke power of attorney
+      operationId: revokePower
+      x-required-role: WORK
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Revoked power of attorney.
+          content: { application/json: { schema: { $ref: '#/components/schemas/PowerOfAttorney' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+
+  # ─────────────────────────── Approval limits ───────────────────────────
+  /approval-limits:
+    get:
+      tags: [ApprovalLimits]
+      summary: List approval limits
+      operationId: listApprovalLimits
+      x-required-role: WATCH
+      parameters:
+        - { name: personId, in: query, schema: { type: string } }
+        - { $ref: '#/components/parameters/AsOf' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Approval limits.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ApprovalLimit' } } } }
+    put:
+      tags: [ApprovalLimits]
+      summary: Set explicit approval limit
+      description: Sets an explicitly maintained approval limit (overrides the one derived from powers of attorney).
+      operationId: setApprovalLimit
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ApprovalLimitSet' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Set approval limit.
+          content: { application/json: { schema: { $ref: '#/components/schemas/ApprovalLimit' } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /legal-entities/{legalEntityId}/signatories:
+    parameters: [{ name: legalEntityId, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [ApprovalLimits]
+      summary: Authorized signatories for an amount on a given date
+      description: Who may sign off on the given amount for this legal entity on the given date (from active powers of attorney).
+      operationId: listSignatories
+      x-required-role: WATCH
+      parameters:
+        - { name: amount, in: query, required: true, schema: { type: number } }
+        - { name: currency, in: query, schema: { type: string, default: EUR, minLength: 3, maxLength: 3 } }
+        - { $ref: '#/components/parameters/AsOf' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Authorized signatories.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PowerOfAttorney' } } } }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT from ACMEbase auth. The bearer role (WATCH/WORK/ADMIN) must satisfy the role
+        required per operation under `x-required-role` (hierarchy ADMIN > WORK > WATCH).
+
+  parameters:
+    PersonId:
+      name: id
+      in: path
+      required: true
+      description: Natural person key.
+      schema: { type: string, maxLength: 32 }
+    AsOf:
+      name: on
+      in: query
+      description: Reference date (default = today / current day).
+      schema: { type: string, format: date }
+
+  schemas:
+    CompensationType:
+      type: string
+      enum: [HOURLY, SALARIED]
+
+    Employee:
+      type: object
+      required: [id, fullName, active]
+      properties:
+        id: { type: string, maxLength: 32, example: p-julia-jefa }
+        firstName: { type: string }
+        lastName: { type: string }
+        fullName: { type: string, example: Julia Jefa }
+        email: { type: string, format: email, nullable: true }
+        jobTitle: { type: string, nullable: true, example: Managing Director }
+        active: { type: boolean }
+        applicant: { type: boolean, description: Applicant (not yet hired). }
+        primaryOrgUnitId: { type: string, nullable: true }
+        primaryOrgUnitName: { type: string, nullable: true }
+        managerId: { type: string, nullable: true, description: Reporting line (manager). }
+        deputyIds: { type: array, items: { type: string }, description: Named deputies. }
+        assistantIds: { type: array, items: { type: string } }
+        secondaryUnitIds: { type: array, items: { type: string }, description: Matrix/secondary memberships. }
+        compType: { $ref: '#/components/schemas/CompensationType' }
+        hourlyRate: { type: number, nullable: true, description: Hourly rate when HOURLY. }
+
+    EmployeeUpdate:
+      description: Maintenance of the curated overlay. Only set fields are changed.
+      type: object
+      properties:
+        jobTitle: { type: string }
+        managerId: { type: string, nullable: true }
+        active: { type: boolean }
+        deputyIds: { type: array, items: { type: string } }
+        assistantIds: { type: array, items: { type: string } }
+
+    CompensationUpdate:
+      type: object
+      required: [compType]
+      properties:
+        compType: { $ref: '#/components/schemas/CompensationType' }
+        hourlyRate: { type: number, nullable: true, description: Required when HOURLY. }
+
+    PayrollSummary:
+      description: Weekly personnel costs, split by salary/hourly wage.
+      type: object
+      required: [salariedCount, hourlyCount, weeklySalariedEur, weeklyHourlyEur, weeklyTotalEur]
+      properties:
+        salariedCount: { type: integer }
+        hourlyCount: { type: integer }
+        weeklySalariedEur: { type: number }
+        weeklyHourlyEur: { type: number }
+        weeklyTotalEur: { type: number }
+
+    Applicant:
+      description: Applicant before being hired (applicant=true).
+      type: object
+      required: [id, fullName]
+      properties:
+        id: { type: string, maxLength: 32 }
+        firstName: { type: string }
+        lastName: { type: string }
+        fullName: { type: string }
+        email: { type: string, format: email, nullable: true }
+        jobTitle: { type: string, nullable: true, description: Target role. }
+        targetOrgUnitId: { type: string, nullable: true, description: Target org unit. }
+        appliedOn: { type: string, format: date, nullable: true }
+    ApplicantWrite:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        jobTitle: { type: string }
+        targetOrgUnitId: { type: string }
+
+    Role:
+      type: object
+      required: [id, title, kind]
+      properties:
+        id: { type: string }
+        title: { type: string, example: Head of Purchasing }
+        kind: { $ref: '#/components/schemas/RoleKind' }
+        description: { type: string, nullable: true }
+    RoleKind:
+      type: string
+      enum: [BUSINESS, GOVERNANCE, SYSTEM]
+
+    RoleAssignment:
+      type: object
+      required: [id, personId, roleId]
+      properties:
+        id: { type: string }
+        personId: { type: string }
+        personName: { type: string }
+        roleId: { type: string }
+        roleTitle: { type: string }
+        orgUnitId: { type: string, nullable: true }
+        validFrom: { type: string, format: date, nullable: true }
+        validUntil: { type: string, format: date, nullable: true }
+    RoleAssignmentCreate:
+      type: object
+      required: [roleId]
+      properties:
+        roleId: { type: string }
+        orgUnitId: { type: string, nullable: true }
+        validFrom: { type: string, format: date, nullable: true }
+        validUntil: { type: string, format: date, nullable: true }
+
+    AbsenceType:
+      type: string
+      description: Type of absence.
+      enum: [VACATION, SICK, CURE, TRAINING, OTHER]
+    AbsenceStatus:
+      type: string
+      enum: [PLANNED, APPROVED, REJECTED, CANCELLED]
+
+    Absence:
+      type: object
+      required: [id, personId, type, status, period]
+      properties:
+        id: { type: string }
+        personId: { type: string }
+        personName: { type: string }
+        type: { $ref: '#/components/schemas/AbsenceType' }
+        status: { $ref: '#/components/schemas/AbsenceStatus' }
+        period: { $ref: 'acme-base.yaml#/components/schemas/DateRange' }
+        substituteId: { type: string, nullable: true, description: Deputy during the absence. }
+        substituteName: { type: string, nullable: true }
+        reasonKey: { type: string, nullable: true, description: "Business key/reason (e.g. urlaub-1)." }
+        note: { type: string, nullable: true }
+        workingDays: { type: integer, nullable: true, description: Effective working days (excluding weekend). }
+    AbsenceCreate:
+      type: object
+      required: [personId, type, from, until]
+      properties:
+        personId: { type: string }
+        type: { $ref: '#/components/schemas/AbsenceType' }
+        from: { type: string, format: date }
+        until: { type: string, format: date }
+        substituteId: { type: string, nullable: true }
+        note: { type: string, nullable: true }
+    AbsenceUpdate:
+      type: object
+      properties:
+        status: { $ref: '#/components/schemas/AbsenceStatus' }
+        substituteId: { type: string, nullable: true }
+        from: { type: string, format: date }
+        until: { type: string, format: date }
+        note: { type: string, nullable: true }
+
+    PowerOfAttorneyType:
+      type: string
+      enum: [PROKURA, HANDLUNGSVOLLMACHT, GENERAL, SPECIAL]
+    SignatureRule:
+      type: string
+      description: SOLE = sole signing authority, JOINT = only jointly.
+      enum: [SOLE, JOINT]
+
+    PowerOfAttorney:
+      type: object
+      required: [id, holderId, legalEntityId, type, signatureRule, limit, revoked]
+      properties:
+        id: { type: string }
+        holderId: { type: string }
+        holderName: { type: string }
+        legalEntityId: { type: string }
+        type: { $ref: '#/components/schemas/PowerOfAttorneyType' }
+        signatureRule: { $ref: '#/components/schemas/SignatureRule' }
+        limit: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        scope: { type: string, nullable: true }
+        validity: { $ref: 'acme-base.yaml#/components/schemas/DateRange' }
+        revoked: { type: boolean }
+    PowerOfAttorneyGrant:
+      type: object
+      required: [holderId, legalEntityId, type, signatureRule, validFrom]
+      properties:
+        holderId: { type: string }
+        legalEntityId: { type: string }
+        type: { $ref: '#/components/schemas/PowerOfAttorneyType' }
+        signatureRule: { $ref: '#/components/schemas/SignatureRule' }
+        limit: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        scope: { type: string, nullable: true }
+        validFrom: { type: string, format: date }
+        validUntil: { type: string, format: date, nullable: true }
+
+    ApprovalLimit:
+      description: Approval limit — up to which amount a person may sign off.
+      type: object
+      required: [personId, maxAmount, source]
+      properties:
+        personId: { type: string }
+        personName: { type: string }
+        legalEntityId: { type: string, nullable: true }
+        maxAmount: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        signatureRule: { $ref: '#/components/schemas/SignatureRule' }
+        source:
+          type: string
+          description: Origin of the limit.
+          enum: [POWER_OF_ATTORNEY, EXPLICIT]
+        validity: { $ref: 'acme-base.yaml#/components/schemas/DateRange' }
+    ApprovalLimitSet:
+      type: object
+      required: [personId, maxAmount]
+      properties:
+        personId: { type: string }
+        legalEntityId: { type: string, nullable: true }
+        maxAmount: { $ref: 'acme-base.yaml#/components/schemas/Money' }
+        validFrom: { type: string, format: date, nullable: true }
+        validUntil: { type: string, format: date, nullable: true }

@@ -58,6 +58,18 @@ export interface ProviderConfig {
   secretsSet: string[]
 }
 
+export interface DbColumn {
+  name: string
+  type: string
+  nullable: boolean
+}
+
+export interface DbTable {
+  name: string
+  rowCount: number
+  columns: DbColumn[]
+}
+
 /** ACMEbase admin endpoints (ADMIN only). */
 export const adminApi = {
   listUsers: () => api.get<AdminUser[]>('/base/users'),
@@ -74,4 +86,7 @@ export const adminApi = {
   listProviderConfigs: () => api.get<ProviderConfig[]>('/base/auth/provider-configs'),
   upsertProviderConfig: (id: string, body: { enabled: boolean; values: Record<string, string> }) =>
     api.put<ProviderConfig>(`/base/auth/provider-configs/${id}`, body),
+
+  /** DB schema browser — information_schema introspection of the app's own Postgres schema. */
+  getDbSchema: () => api.get<DbTable[]>('/base/db/schema'),
 }

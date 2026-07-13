@@ -88,6 +88,18 @@
   border-radius: var(--radius);
   color: var(--faint);
 }
+.acme-app .acme-api-link {
+  margin-left: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--dim);
+  font: 700 10px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.acme-app .acme-api-link:hover { color: var(--ink); }
 .acme-app .acme-theme-toggle {
   width: 34px;
   height: 34px;
@@ -418,6 +430,37 @@
 
 /* Avatar rendered as a button (logout). */
 .acme-app .acme-avatar--button { border: none; cursor: pointer; }
+
+/* ---- Admin: DB schema browser ---------------------------------------------- */
+.acme-app .acme-schema-table {
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  background: var(--panel);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.acme-app .acme-schema-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font: 700 12px var(--font-mono);
+  color: var(--ink);
+  list-style: none;
+}
+.acme-app .acme-schema-summary::-webkit-details-marker { display: none; }
+.acme-app .acme-schema-count { margin-left: auto; font: 500 11px var(--font-mono); color: var(--faint); }
+.acme-app .acme-schema-cols {
+  display: grid;
+  grid-template-columns: 2fr 1fr 90px;
+  gap: 8px 14px;
+  padding: 4px 14px 14px;
+  border-top: 1px solid var(--line2);
+}
+.acme-app .acme-schema-col-name { font: 600 12px var(--font-mono); color: var(--ink); }
+.acme-app .acme-schema-col-type { font: 500 12px var(--font-mono); color: var(--dim); }
+.acme-app .acme-schema-col-null { font: 500 11px var(--font-mono); color: var(--faint); }
 
 /* ---- Chatter: per-record change feed (ADR-0010) --------------------------- */
 .acme-app .acme-icon-btn {
