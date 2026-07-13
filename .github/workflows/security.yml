@@ -101,7 +101,14 @@ jobs:
           cache: maven
 
       - name: Build the OCI image (spring-boot:build-image)
-        run: mvn -B -ntp -DskipTests spring-boot:build-image -Dspring-boot.build-image.imageName=acmesuite:ci
+        run: |
+          # spring-boot-maven-plugin's buildpacks Docker client has a long-standing bug where a
+          # set DOCKER_HOST (even a correct unix:// one) gets double-concatenated into a malformed
+          # request path ("...docker.sockdocker:///var/run/docker.sock/v1.48/...", 500 Internal
+          # Server Error) — see spring-projects/spring-boot#22300. Unset it so the plugin falls
+          # back to its own default-socket detection, which doesn't hit this bug.
+          unset DOCKER_HOST
+          mvn -B -ntp -DskipTests spring-boot:build-image -Dspring-boot.build-image.imageName=acmesuite:ci
 
       - name: "Trivy scan of the image (gate: CRITICAL/HIGH, OS packages only)"
         uses: aquasecurity/trivy-action@v0.36.0
