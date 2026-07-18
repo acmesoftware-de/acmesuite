@@ -61,6 +61,19 @@ public class Person extends AuditedEntity {
     @Column(name = "hire_blocked_until_day", nullable = false)
     private long hireBlockedUntilDay = -1;
 
+    /** Recruiting pipeline stage — only meaningful while {@link #applicant} is true; else {@code null}. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "applicant_stage", length = 16)
+    private ApplicantStage applicantStage;
+
+    /** Fit score 0–100 from screening; {@code null} until scored (e.g. still {@code NEW}). */
+    @Column(name = "match_score")
+    private Integer matchScore;
+
+    /** Day the application was received; {@code null} for long-standing employees. */
+    @Column(name = "applied_on")
+    private java.time.LocalDate appliedOn;
+
     /** Compensation type (hourly wage vs. salary) — switchable in ACMEhr. */
     @Enumerated(EnumType.STRING)
     @Column(name = "comp_type", nullable = false, length = 16)
@@ -146,6 +159,37 @@ public class Person extends AuditedEntity {
 
     public void setHireBlockedUntilDay(long day) {
         this.hireBlockedUntilDay = day;
+    }
+
+    public ApplicantStage getApplicantStage() {
+        return applicantStage;
+    }
+
+    public void setApplicantStage(ApplicantStage stage) {
+        this.applicantStage = stage;
+    }
+
+    public Integer getMatchScore() {
+        return matchScore;
+    }
+
+    public void setMatchScore(Integer matchScore) {
+        this.matchScore = matchScore;
+    }
+
+    public java.time.LocalDate getAppliedOn() {
+        return appliedOn;
+    }
+
+    public void setAppliedOn(java.time.LocalDate appliedOn) {
+        this.appliedOn = appliedOn;
+    }
+
+    /** Set the recruiting overlay for an applicant in one call (seeding / applicant creation). */
+    public void setRecruiting(ApplicantStage stage, Integer matchScore, java.time.LocalDate appliedOn) {
+        this.applicantStage = stage;
+        this.matchScore = matchScore;
+        this.appliedOn = appliedOn;
     }
 
     public void replaceDelegates(java.util.Collection<String> ids) {

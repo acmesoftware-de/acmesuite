@@ -4,6 +4,7 @@ import de.acmesoftware.acmesuite.org.catalog.AcmeOrgCatalog.PersonSpec;
 import de.acmesoftware.acmesuite.org.catalog.AcmeOrgCatalog.UnitSpec;
 import de.acmesoftware.acmesuite.org.domain.Absence;
 import de.acmesoftware.acmesuite.org.domain.AbsenceRepository;
+import de.acmesoftware.acmesuite.org.domain.ApplicantStage;
 import de.acmesoftware.acmesuite.org.domain.CompensationType;
 import de.acmesoftware.acmesuite.org.domain.CostCenter;
 import de.acmesoftware.acmesuite.org.domain.CostCenterRepository;
@@ -106,6 +107,9 @@ public class OrgSeeder implements ApplicationRunner {
             p.assistantKeys().forEach(person::addAssistant);
             person.setCompensation(defaultCompType(p), defaultRate(p));
             person.setApplicant(p.applicant());
+            if (p.applicant()) {
+                seedRecruiting(person, p.key());
+            }
             persons.save(person);
         }
         catalog.secondaryMemberships().forEach(m -> {
@@ -177,6 +181,18 @@ public class OrgSeeder implements ApplicationRunner {
         int sp = displayName.indexOf(' ');
         return sp < 0 ? new String[]{displayName, ""} : new String[]{
                 displayName.substring(0, sp), displayName.substring(sp + 1)};
+    }
+
+    /**
+     * Deterministic recruiting overlay for a seeded applicant: spreads candidates across the
+     * pipeline and gives scored (non-NEW) ones a fit score, from a stable hash of the key.
+     */
+    private static void seedRecruiting(Person person, String key) {
+        int h = Math.abs(key.hashCode());
+        ApplicantStage stage = ApplicantStage.values()[h % ApplicantStage.values().length];
+        Integer score = stage == ApplicantStage.NEW ? null : 60 + (h % 39); // 60–98
+        LocalDate appliedOn = LocalDate.of(2026, 7, 10).minusDays(h % 10);
+        person.setRecruiting(stage, score, appliedOn);
     }
 
     /** Management (without a superior) and leads (-lead/-cfo) → salary; everyone else → hourly wage. */

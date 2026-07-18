@@ -33,6 +33,21 @@ public final class HrViews {
         }
     }
 
+    /** Applicant projection (applicant=true) incl. recruiting pipeline stage + fit score. */
+    public record ApplicantView(String id, String firstName, String lastName, String fullName, String email,
+                                String jobTitle, String targetOrgUnitId, String targetOrgUnitName,
+                                LocalDate appliedOn, String stage, Integer matchScore) {
+        public static ApplicantView of(Person p) {
+            return new ApplicantView(p.getId(), p.getFirstName(), p.getLastName(), p.fullName(), p.getEmail(),
+                    p.getJobTitle(),
+                    p.getPrimaryOrgUnit() == null ? null : p.getPrimaryOrgUnit().getId(),
+                    p.getPrimaryOrgUnit() == null ? null : p.getPrimaryOrgUnit().getName(),
+                    p.getAppliedOn(),
+                    p.getApplicantStage() == null ? null : p.getApplicantStage().name(),
+                    p.getMatchScore());
+        }
+    }
+
     /** Payroll summary per compensation class (weekly estimate; hourly wage ~ standard week). */
     public record PayrollSummaryView(int salariedCount, int hourlyCount,
                                      java.math.BigDecimal weeklySalariedEur, java.math.BigDecimal weeklyHourlyEur,

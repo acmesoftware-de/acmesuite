@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import de.acmesoftware.acmesuite.TestcontainersConfig;
 import de.acmesoftware.acmesuite.org.domain.AbsenceStatus;
 import de.acmesoftware.acmesuite.org.domain.AbsenceType;
+import de.acmesoftware.acmesuite.org.domain.ApplicantStage;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyType;
 import de.acmesoftware.acmesuite.org.domain.SignatureRule;
 import de.acmesoftware.acmesuite.org.hr.HrViews.MoneyView;
@@ -35,6 +36,39 @@ class HrServiceTest {
                 .extracting(HrViews.EmployeeView::id).contains("u-gf-1");
         assertThat(hr.getEmployee("u-gf-1")).get()
                 .satisfies(e -> assertThat(e.jobTitle()).isEqualTo("Geschäftsführerin"));
+    }
+
+    @Test
+    void listsAndMovesApplicantsThroughThePipeline() {
+        var applicants = hr.listApplicants(null, null);
+        assertThat(applicants).isNotEmpty();
+        // Every seeded applicant carries a recruiting stage from the enum.
+        assertThat(applicants).allSatisfy(a -> assertThat(a.stage()).isNotNull());
+
+        var one = applicants.get(0);
+        var moved = hr.updateApplicantStage(one.id(), ApplicantStage.OFFER);
+        assertThat(moved.stage()).isEqualTo("OFFER");
+        assertThat(hr.getApplicant(one.id())).get()
+                .satisfies(a -> assertThat(a.stage()).isEqualTo("OFFER"));
+
+        // Applicant-only ops refuse a hired employee.
+        assertThatThrownBy(() -> hr.updateApplicantStage("u-gf-1", ApplicantStage.OFFER))
+                .isInstanceOf(ResponseStatusException.class).hasMessageContaining("404");
+    }
+
+    @Test
+    void createsScoreClampedApplicantThenRejects() {
+        var created = hr.createApplicant("Nina", "Neu", "n.neu@acme-group.io", "Account Executive",
+                "ou-einkauf", ApplicantStage.SCREENING, 150);           // score clamps to 100
+        assertThat(created.stage()).isEqualTo("SCREENING");
+        assertThat(created.matchScore()).isEqualTo(100);
+        assertThat(created.targetOrgUnitName()).isEqualTo("Einkauf");
+        assertThat(hr.listApplicants(null, "nina")).extracting(HrViews.ApplicantView::id)
+                .contains(created.id());
+
+        hr.rejectApplicant(created.id());                                // tombstoned, not hard-deleted
+        assertThat(hr.getApplicant(created.id())).isEmpty();
+        assertThat(hr.listApplicants(null, "nina")).isEmpty();
     }
 
     @Test
