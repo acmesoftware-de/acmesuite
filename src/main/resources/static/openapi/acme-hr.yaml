@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEhr API
-  version: 0.2.0
+  version: 0.3.0
   description: >
     HR system of **ACME analog Inc.** and system of record for employees
     (title/role/hierarchy), vacation/absence planning, deputies & assistants,
@@ -64,6 +64,21 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: '#/components/schemas/Employee' } }
+    post:
+      tags: [Employees]
+      summary: Create employee
+      description: Creates a hired employee directly (active=true, applicant=false).
+      operationId: createEmployee
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/EmployeeCreate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201':
+          description: Created employee.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Employee' } } }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
   /employees/{id}:
     parameters: [{ $ref: '#/components/parameters/PersonId' }]
     get:
@@ -521,6 +536,11 @@ components:
       type: string
       enum: [HOURLY, SALARIED]
 
+    WorkLocation:
+      type: string
+      description: Where an employee primarily works.
+      enum: [ONSITE, REMOTE, HYBRID]
+
     Employee:
       type: object
       required: [id, fullName, active]
@@ -541,6 +561,19 @@ components:
         secondaryUnitIds: { type: array, items: { type: string }, description: Matrix/secondary memberships. }
         compType: { $ref: '#/components/schemas/CompensationType' }
         hourlyRate: { type: number, nullable: true, description: Hourly rate when HOURLY. }
+        workLocation: { $ref: '#/components/schemas/WorkLocation' }
+
+    EmployeeCreate:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        jobTitle: { type: string }
+        primaryOrgUnitId: { type: string }
+        managerId: { type: string }
+        workLocation: { $ref: '#/components/schemas/WorkLocation' }
 
     EmployeeUpdate:
       description: Maintenance of the curated overlay. Only set fields are changed.
@@ -551,6 +584,7 @@ components:
         active: { type: boolean }
         deputyIds: { type: array, items: { type: string } }
         assistantIds: { type: array, items: { type: string } }
+        workLocation: { $ref: '#/components/schemas/WorkLocation' }
 
     CompensationUpdate:
       type: object

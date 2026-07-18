@@ -21,6 +21,7 @@ import de.acmesoftware.acmesuite.org.domain.PowerOfAttorney;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyRepository;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyType;
 import de.acmesoftware.acmesuite.org.domain.SignatureRule;
+import de.acmesoftware.acmesuite.org.domain.WorkLocation;
 import de.acmesoftware.acmesuite.shared.DateRange;
 import de.acmesoftware.acmesuite.shared.Money;
 import java.math.BigDecimal;
@@ -109,6 +110,8 @@ public class OrgSeeder implements ApplicationRunner {
             person.setApplicant(p.applicant());
             if (p.applicant()) {
                 seedRecruiting(person, p.key());
+            } else {
+                person.setWorkLocation(seedWorkLocation(p.key()));
             }
             persons.save(person);
         }
@@ -193,6 +196,15 @@ public class OrgSeeder implements ApplicationRunner {
         Integer score = stage == ApplicantStage.NEW ? null : 60 + (h % 39); // 60–98
         LocalDate appliedOn = LocalDate.of(2026, 7, 10).minusDays(h % 10);
         person.setRecruiting(stage, score, appliedOn);
+    }
+
+    /** Deterministic work location for a hired employee: ~20% remote, ~10% hybrid, rest on-site. */
+    private static WorkLocation seedWorkLocation(String key) {
+        int m = Math.abs(key.hashCode()) % 10;
+        if (m < 2) {
+            return WorkLocation.REMOTE;
+        }
+        return m < 3 ? WorkLocation.HYBRID : WorkLocation.ONSITE;
     }
 
     /** Management (without a superior) and leads (-lead/-cfo) → salary; everyone else → hourly wage. */
