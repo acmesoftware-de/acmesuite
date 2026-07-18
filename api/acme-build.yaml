@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEbuild API
-  version: 0.1.0
+  version: 0.2.0
   description: >
     Production system of **ACME analog Inc.** (formerly *ACMEprod*). System of record for
     **products, bills of materials (BOM)** and **production planning**. Core capabilities:
@@ -13,11 +13,19 @@ info:
       and the available capacity (workers/shifts, from ACMEhr),
 
     * answers via the **feasibility API** whether a contract (products, quantities, delivery date)
-      can be fulfilled — and if not, **which resource is scarce** (worker or material).
+      can be fulfilled — and if not, **which resource is scarce** (worker or material),
+
+    * tracks the **shop floor** — production orders on the planning board (`/production-orders`),
+      the weekly **shift plan** (`/shift-plan`) and the live **machine monitor** with OEE
+      (`/machines`) that back the ACMEbuild "Fertigung" UI.
 
 
     Roles (ACMEbase): `WATCH` reads, `WORK` writes operationally, `ADMIN` maintains master data
     (products/BOM). The role required per operation is given under `x-required-role`.
+
+
+    Version 0.2.0 adds the shop-floor resources (production orders, shift plan, machines) the
+    Build frontend persists; they extend but do not change the v0.1.0 planning surface.
   contact:
     name: ACME analog Inc · ACMEsuite
   license:
@@ -33,6 +41,10 @@ tags:
     description: Production capacity and material demand projection.
   - name: Feasibility
     description: Feasibility of a contract against capacity and material availability.
+  - name: Shopfloor
+    description: >
+      Execution layer — production orders (planning board), the weekly shift plan and the
+      live machine monitor (OEE). Backs the ACMEbuild "Fertigung" views.
 security:
   - bearerAuth: []
 paths:
@@ -148,6 +160,126 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/FeasibilityResult' }
         '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  /production-orders:
+    get:
+      tags: [Shopfloor]
+      summary: Production orders on the planning board
+      description: >
+        Open and recently closed production orders, each in one of the board stages
+        GEPLANT · RUESTEN · IN_ARBEIT · PRUEFUNG · FERTIG. Filter by stage to fetch a single column.
+      operationId: listProductionOrders
+      x-required-role: WATCH
+      parameters:
+        - name: stage
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/OrderStage' }
+          description: Restrict to a single board stage.
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Production orders.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ProductionOrder' } }
+    post:
+      tags: [Shopfloor]
+      summary: Create a production order
+      description: Schedules a new order; it enters the board in `GEPLANT` unless a stage is given.
+      operationId: createProductionOrder
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductionOrderCreate' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductionOrder' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  /production-orders/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string }, description: Production order ID. }
+    patch:
+      tags: [Shopfloor]
+      summary: Advance / edit a production order
+      description: >
+        Moves an order between board stages (drag & drop) or reassigns its machine. Non-null
+        fields are applied; others are left unchanged.
+      operationId: updateProductionOrder
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductionOrderUpdate' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductionOrder' }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  /shift-plan:
+    get:
+      tags: [Shopfloor]
+      summary: Weekly shift plan
+      description: >
+        The current week's shift matrix — three shifts (early/late/night) × six working days
+        (Mon–Sat), each cell FREE, FULL or PARTIAL. Basis for the daily labor capacity.
+      operationId: getShiftPlan
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Shift plan.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ShiftPlan' }
+    put:
+      tags: [Shopfloor]
+      summary: Replace the weekly shift plan
+      operationId: putShiftPlan
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ShiftPlanWrite' }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Saved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ShiftPlan' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+
+  /machines:
+    get:
+      tags: [Shopfloor]
+      summary: Machine monitor (digital twin)
+      description: >
+        Live status of the shop-floor machines with **OEE** and its availability / performance /
+        quality components, plus the currently running order and its progress.
+      operationId: listMachines
+      x-required-role: WATCH
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Machines.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Machine' } }
 
 components:
   securitySchemes:
@@ -273,3 +405,100 @@ components:
           type: string
           description: Material ID for `MATERIAL`; for `WORKER` e.g. `labor` or `harbor`.
         shortfall: { type: number, description: Shortfall (units or material quantity). }
+
+    # ── Shop floor (v0.2.0) ──────────────────────────────────────────────────
+
+    OrderStage:
+      type: string
+      description: Stage of a production order on the planning board.
+      enum: [GEPLANT, RUESTEN, IN_ARBEIT, PRUEFUNG, FERTIG]
+
+    ProductionOrder:
+      type: object
+      required: [id, orderNo, quantity, stage]
+      properties:
+        id: { type: string }
+        orderNo: { type: string, description: Human order number, e.g. `FA-1042`. }
+        productId: { type: string, description: "Product being manufactured (see /products/{id}/bom)." }
+        productName: { type: string, description: Denormalised product name for display. }
+        quantity: { type: integer, minimum: 1, description: Pieces to produce. }
+        machine: { type: string, nullable: true, description: "Assigned machine (e.g. CNC-03), if any." }
+        ownerInitials: { type: string, nullable: true, description: Responsible planner's initials. }
+        stage: { $ref: '#/components/schemas/OrderStage' }
+        dueDate: { type: string, format: date, nullable: true }
+
+    ProductionOrderCreate:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+        machine: { type: string, nullable: true }
+        ownerInitials: { type: string, nullable: true }
+        stage: { $ref: '#/components/schemas/OrderStage' }
+        dueDate: { type: string, format: date, nullable: true }
+
+    ProductionOrderUpdate:
+      type: object
+      description: Partial update; only the given fields change.
+      properties:
+        stage: { $ref: '#/components/schemas/OrderStage' }
+        machine: { type: string, nullable: true }
+        ownerInitials: { type: string, nullable: true }
+
+    ShiftCell:
+      type: string
+      description: Staffing of one shift on one day.
+      enum: [FREE, FULL, PARTIAL]
+
+    ShiftRow:
+      type: object
+      required: [shift, cells]
+      properties:
+        shift:
+          type: string
+          enum: [EARLY, LATE, NIGHT]
+        label: { type: string, description: Display label, e.g. `Frühschicht`. }
+        time: { type: string, description: Shift window, e.g. `06–14`. }
+        cells:
+          type: array
+          minItems: 6
+          maxItems: 6
+          description: One cell per working day Mon–Sat.
+          items: { $ref: '#/components/schemas/ShiftCell' }
+
+    ShiftPlan:
+      type: object
+      required: [rows]
+      properties:
+        week: { type: string, description: Calendar week label, e.g. `KW 29`. }
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/ShiftRow' }
+
+    ShiftPlanWrite:
+      type: object
+      required: [rows]
+      properties:
+        rows:
+          type: array
+          items: { $ref: '#/components/schemas/ShiftRow' }
+
+    MachineStatus:
+      type: string
+      description: Live machine state driving the tile color.
+      enum: [RUNNING, SETUP, FAULT, MAINTENANCE, IDLE]
+
+    Machine:
+      type: object
+      required: [id, name, status, oee, availability, performance, quality, progress]
+      properties:
+        id: { type: string }
+        name: { type: string, description: Machine label, e.g. `CNC-01`. }
+        status: { $ref: '#/components/schemas/MachineStatus' }
+        oee: { type: integer, minimum: 0, maximum: 100, description: Overall Equipment Effectiveness (%). }
+        availability: { type: integer, minimum: 0, maximum: 100, description: OEE availability component (%). }
+        performance: { type: integer, minimum: 0, maximum: 100, description: OEE performance component (%). }
+        quality: { type: integer, minimum: 0, maximum: 100, description: OEE quality component (%). }
+        progress: { type: integer, minimum: 0, maximum: 100, description: Progress of the running order (%). }
+        currentOrder: { type: string, nullable: true, description: "Running order + product, or a note (e.g. maintenance until)." }
