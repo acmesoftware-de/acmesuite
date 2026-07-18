@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +28,16 @@ class HrServiceTest {
 
     @Autowired
     de.acmesoftware.acmesuite.shared.AbsenceCalendar calendar;
+
+    // This test is not @Transactional and commits to the shared DB. Its absences (for u-einkauf-1)
+    // must not leak into sibling global-count assertions like OrgDirectoryTest, which counts all
+    // live absences and expects only the seeded ones. Remove them after each test. (We deliberately
+    // do NOT roll back the whole test: the CRM/Supply approval tests rely on the powers of attorney
+    // and approval limits this test commits — those stay.) Seeded absences belong to other people.
+    @AfterEach
+    void removeCreatedAbsences() {
+        hr.absencesOf("u-einkauf-1").forEach(a -> hr.deleteAbsence(a.id()));
+    }
 
     @Test
     void listsEmployees() {
