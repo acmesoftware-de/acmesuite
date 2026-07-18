@@ -7,6 +7,7 @@ import { AdminModule } from './modules/admin/AdminModule'
 import { CrmModule } from './modules/crm/CrmModule'
 import { PIPELINE_MODES, type PipelineMode } from './modules/crm/PipelineView'
 import { HrModule } from './modules/hr/HrModule'
+import { BuildModule } from './modules/build/BuildModule'
 import { useShellState } from './shell/useShellState'
 import { Assist } from './assist/Assist'
 import { useTheme } from './theme/ThemeProvider'
@@ -25,6 +26,8 @@ export function App() {
   const [newDealTick, setNewDealTick] = useState(0)
   // Same idea for HR: "+ Mitarbeiter" / "+ Bewerber" opens the module's create form.
   const [newHrTick, setNewHrTick] = useState(0)
+  // Bumped when the shell's "+ AUFTRAG" button is pressed; Build opens its order-create form.
+  const [newOrderTick, setNewOrderTick] = useState(0)
   // CRM pipeline view mode (Tabelle/Kanban/Funnel) — its switch lives in the module header,
   // next to the Pipeline tab, so it is only shown on that sub-view.
   const [pipelineMode, setPipelineMode] = useState<PipelineMode>('tabelle')
@@ -74,7 +77,9 @@ export function App() {
                 ? () => setNewDealTick((t) => t + 1)
                 : module.id === 'HR'
                   ? () => setNewHrTick((t) => t + 1)
-                  : undefined
+                  : module.id === 'BLD'
+                    ? () => setNewOrderTick((t) => t + 1)
+                    : undefined
             }
             headerExtra={
               showPipelineSwitch ? (
@@ -105,6 +110,12 @@ export function App() {
             />
           ) : module.id === 'HR' ? (
             <HrModule subView={shell.activeSubKey} canWrite={auth.canWrite} newTick={newHrTick} />
+          ) : module.id === 'BLD' ? (
+            <BuildModule
+              subView={shell.activeSubKey}
+              canWrite={auth.canWrite}
+              newOrderTick={newOrderTick}
+            />
           ) : (
             <ModulePlaceholder module={module} activeSub={shell.activeSub} />
           )}
