@@ -5,10 +5,12 @@ import de.acmesoftware.acmesuite.org.OrgViews.RoleAssignmentView;
 import de.acmesoftware.acmesuite.org.OrgViews.RoleView;
 import de.acmesoftware.acmesuite.org.domain.AbsenceStatus;
 import de.acmesoftware.acmesuite.org.domain.AbsenceType;
+import de.acmesoftware.acmesuite.org.domain.ApplicantStage;
 import de.acmesoftware.acmesuite.org.domain.CompensationType;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyType;
 import de.acmesoftware.acmesuite.org.domain.SignatureRule;
 import de.acmesoftware.acmesuite.org.hr.HrViews.AbsenceView;
+import de.acmesoftware.acmesuite.org.hr.HrViews.ApplicantView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.ApprovalLimitView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.EmployeeView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.MoneyView;
@@ -72,12 +74,6 @@ public class HrController {
         return hr.updateCompensation(id, req.compType(), req.hourlyRate());
     }
 
-    /** Hire an applicant → hiring folder (HR officer → HR management → managing director). */
-    @PostMapping("/employees/{id}/hire")
-    public EmployeeView hire(@PathVariable String id, @RequestParam(defaultValue = "0") long day) {
-        return hr.requestHire(id, day);
-    }
-
     @GetMapping("/payroll")
     public PayrollSummaryView payroll() {
         return hr.payrollSummary();
@@ -109,6 +105,43 @@ public class HrController {
     @GetMapping("/roles")
     public List<RoleView> roles() {
         return org.roles();
+    }
+
+    // ── Applicants (recruiting pipeline) ──
+    @GetMapping("/applicants")
+    public List<ApplicantView> applicants(
+            @RequestParam(required = false) String unitId,
+            @RequestParam(required = false) String q) {
+        return hr.listApplicants(unitId, q);
+    }
+
+    @PostMapping("/applicants")
+    public ResponseEntity<ApplicantView> createApplicant(@RequestBody ApplicantWriteReq req) {
+        ApplicantView v = hr.createApplicant(req.firstName(), req.lastName(), req.email(), req.jobTitle(),
+                req.targetOrgUnitId(), req.stage(), req.matchScore());
+        return ResponseEntity.created(URI.create("/api/hr/applicants/" + v.id())).body(v);
+    }
+
+    @GetMapping("/applicants/{id}")
+    public ResponseEntity<ApplicantView> applicant(@PathVariable String id) {
+        return ResponseEntity.of(hr.getApplicant(id));
+    }
+
+    @PatchMapping("/applicants/{id}")
+    public ApplicantView updateApplicant(@PathVariable String id, @RequestBody ApplicantStageReq req) {
+        return hr.updateApplicantStage(id, req.stage());
+    }
+
+    @DeleteMapping("/applicants/{id}")
+    public ResponseEntity<Void> rejectApplicant(@PathVariable String id) {
+        hr.rejectApplicant(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Hire an applicant → hiring folder (HR officer → HR management → managing director). */
+    @PostMapping("/applicants/{id}/hire")
+    public EmployeeView hire(@PathVariable String id, @RequestParam(defaultValue = "0") long day) {
+        return hr.requestHire(id, day);
     }
 
     // ── Absences ──
@@ -198,6 +231,13 @@ public class HrController {
     }
 
     public record CompensationReq(CompensationType compType, java.math.BigDecimal hourlyRate) {
+    }
+
+    public record ApplicantWriteReq(String firstName, String lastName, String email, String jobTitle,
+                                    String targetOrgUnitId, ApplicantStage stage, Integer matchScore) {
+    }
+
+    public record ApplicantStageReq(ApplicantStage stage) {
     }
 
     public record AbsenceCreateReq(String personId, AbsenceType type, LocalDate from, LocalDate until,

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEhr API
-  version: 0.1.0
+  version: 0.2.0
   description: >
     HR system of **ACME analog Inc.** and system of record for employees
     (title/role/hierarchy), vacation/absence planning, deputies & assistants,
@@ -231,6 +231,22 @@ paths:
         '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
         '200': { description: Applicant., content: { application/json: { schema: { $ref: '#/components/schemas/Applicant' } } } }
         '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+    patch:
+      tags: [Applicants]
+      summary: Move applicant along the recruiting pipeline
+      description: Sets the recruiting `stage` (Bewerber board drag & drop).
+      operationId: updateApplicant
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ApplicantStageUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Updated applicant.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Applicant' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
     delete:
       tags: [Applicants]
       summary: Reject/remove application
@@ -246,8 +262,9 @@ paths:
       tags: [Applicants]
       summary: Hire applicant
       description: >
-        Activates the applicant (applicant=false, active=true) as of the given day; they
-        thereby become an employee.
+        Starts hiring the applicant: opens a hiring folder for approval (HR officer → HR
+        management → managing director). On the concluding approval the applicant becomes an
+        employee (applicant=false, active=true); a rejection imposes a re-hire block.
       operationId: hireApplicant
       x-required-role: WORK
       parameters:
@@ -553,6 +570,11 @@ components:
         weeklyHourlyEur: { type: number }
         weeklyTotalEur: { type: number }
 
+    ApplicantStage:
+      type: string
+      description: Recruiting pipeline stage of an applicant.
+      enum: [NEW, SCREENING, INTERVIEW, OFFER, REJECTED]
+
     Applicant:
       description: Applicant before being hired (applicant=true).
       type: object
@@ -565,7 +587,15 @@ components:
         email: { type: string, format: email, nullable: true }
         jobTitle: { type: string, nullable: true, description: Target role. }
         targetOrgUnitId: { type: string, nullable: true, description: Target org unit. }
+        targetOrgUnitName: { type: string, nullable: true }
         appliedOn: { type: string, format: date, nullable: true }
+        stage: { $ref: '#/components/schemas/ApplicantStage' }
+        matchScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Fit score 0–100 from screening; null until scored.
     ApplicantWrite:
       type: object
       required: [firstName, lastName]
@@ -575,6 +605,13 @@ components:
         email: { type: string, format: email }
         jobTitle: { type: string }
         targetOrgUnitId: { type: string }
+        stage: { $ref: '#/components/schemas/ApplicantStage' }
+        matchScore: { type: integer, minimum: 0, maximum: 100, nullable: true }
+    ApplicantStageUpdate:
+      type: object
+      required: [stage]
+      properties:
+        stage: { $ref: '#/components/schemas/ApplicantStage' }
 
     Role:
       type: object

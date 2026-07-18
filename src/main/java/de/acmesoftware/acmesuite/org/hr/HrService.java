@@ -3,12 +3,15 @@ package de.acmesoftware.acmesuite.org.hr;
 import de.acmesoftware.acmesuite.org.domain.Absence;
 import de.acmesoftware.acmesuite.org.domain.AbsenceRepository;
 import de.acmesoftware.acmesuite.org.domain.AbsenceStatus;
+import de.acmesoftware.acmesuite.org.domain.ApplicantStage;
 import de.acmesoftware.acmesuite.org.domain.CompensationType;
 import de.acmesoftware.acmesuite.org.domain.AbsenceType;
 import de.acmesoftware.acmesuite.org.domain.ApprovalLimit;
 import de.acmesoftware.acmesuite.org.domain.ApprovalLimitRepository;
 import de.acmesoftware.acmesuite.org.domain.LegalEntity;
 import de.acmesoftware.acmesuite.org.domain.LegalEntityRepository;
+import de.acmesoftware.acmesuite.org.domain.OrgUnit;
+import de.acmesoftware.acmesuite.org.domain.OrgUnitRepository;
 import de.acmesoftware.acmesuite.org.domain.Person;
 import de.acmesoftware.acmesuite.org.domain.PersonRepository;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorney;
@@ -16,6 +19,7 @@ import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyRepository;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyType;
 import de.acmesoftware.acmesuite.org.domain.SignatureRule;
 import de.acmesoftware.acmesuite.org.hr.HrViews.AbsenceView;
+import de.acmesoftware.acmesuite.org.hr.HrViews.ApplicantView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.ApprovalLimitView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.EmployeeView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.MoneyView;
@@ -44,16 +48,19 @@ public class HrService {
     private final PowerOfAttorneyRepository powers;
     private final LegalEntityRepository legalEntities;
     private final ApprovalLimitRepository approvalLimits;
+    private final OrgUnitRepository orgUnits;
     private final org.springframework.context.ApplicationEventPublisher events;
 
     public HrService(PersonRepository persons, AbsenceRepository absences, PowerOfAttorneyRepository powers,
                      LegalEntityRepository legalEntities, ApprovalLimitRepository approvalLimits,
+                     OrgUnitRepository orgUnits,
                      org.springframework.context.ApplicationEventPublisher events) {
         this.persons = persons;
         this.absences = absences;
         this.powers = powers;
         this.legalEntities = legalEntities;
         this.approvalLimits = approvalLimits;
+        this.orgUnits = orgUnits;
         this.events = events;
     }
 
@@ -96,6 +103,68 @@ public class HrService {
                 persons.save(p);
             }
         });
+    }
+
+    // ── Applicants (recruiting pipeline) ──
+    @Transactional(readOnly = true)
+    public List<ApplicantView> listApplicants(String unitId, String q) {
+        String needle = q == null ? null : q.toLowerCase();
+        return persons.findAll().stream()
+                .filter(Person::isApplicant)
+                .filter(p -> unitId == null
+                        || (p.getPrimaryOrgUnit() != null && unitId.equals(p.getPrimaryOrgUnit().getId())))
+                .filter(p -> needle == null
+                        || p.fullName().toLowerCase().contains(needle)
+                        || (p.getJobTitle() != null && p.getJobTitle().toLowerCase().contains(needle)))
+                .sorted(Comparator.comparing(Person::fullName))
+                .map(ApplicantView::of)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ApplicantView> getApplicant(String id) {
+        return persons.findById(id).filter(Person::isApplicant).map(ApplicantView::of);
+    }
+
+    public ApplicantView createApplicant(String firstName, String lastName, String email, String jobTitle,
+                                         String targetOrgUnitId, ApplicantStage stage, Integer matchScore) {
+        if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank()) {
+            throw unprocessable("firstName and lastName are required");
+        }
+        OrgUnit unit = targetOrgUnitId == null ? null : orgUnits.findById(targetOrgUnitId)
+                .orElseThrow(() -> unprocessable("Org unit " + targetOrgUnitId + " unknown"));
+        String id = "app-" + UUID.randomUUID().toString().substring(0, 12);
+        Person p = new Person(id, firstName, lastName, email, jobTitle, unit);
+        p.setApplicant(true);
+        p.setActive(false);
+        p.setRecruiting(stage == null ? ApplicantStage.NEW : stage, clampScore(matchScore), LocalDate.now());
+        return ApplicantView.of(persons.save(p));
+    }
+
+    /** Move an applicant along the recruiting pipeline (Bewerber-Board drag & drop). */
+    public ApplicantView updateApplicantStage(String id, ApplicantStage stage) {
+        if (stage == null) {
+            throw unprocessable("stage is required");
+        }
+        Person p = persons.findById(id).filter(Person::isApplicant)
+                .orElseThrow(() -> notFound("Applicant " + id + " unknown"));
+        p.setApplicantStage(stage);
+        return ApplicantView.of(p);
+    }
+
+    /** Reject/remove an application — tombstoned (ADR-0010), never hard-deleted. */
+    public void rejectApplicant(String id) {
+        Person p = persons.findById(id).filter(Person::isApplicant)
+                .orElseThrow(() -> notFound("Applicant " + id + " unknown"));
+        p.tombstone(null, java.time.Instant.now());
+        persons.save(p);
+    }
+
+    private static Integer clampScore(Integer score) {
+        if (score == null) {
+            return null;
+        }
+        return Math.max(0, Math.min(100, score));
     }
 
     // ── Employees ──
