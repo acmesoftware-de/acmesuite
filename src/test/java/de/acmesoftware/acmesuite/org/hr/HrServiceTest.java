@@ -8,6 +8,7 @@ import de.acmesoftware.acmesuite.org.domain.AbsenceStatus;
 import de.acmesoftware.acmesuite.org.domain.AbsenceType;
 import de.acmesoftware.acmesuite.org.domain.ApplicantStage;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyType;
+import de.acmesoftware.acmesuite.org.domain.WorkLocation;
 import de.acmesoftware.acmesuite.org.domain.SignatureRule;
 import de.acmesoftware.acmesuite.org.hr.HrViews.MoneyView;
 import java.math.BigDecimal;
@@ -25,6 +26,9 @@ class HrServiceTest {
 
     @Autowired
     HrService hr;
+
+    @Autowired
+    de.acmesoftware.acmesuite.org.domain.PersonRepository persons;
 
     @Autowired
     de.acmesoftware.acmesuite.shared.AbsenceCalendar calendar;
@@ -97,9 +101,24 @@ class HrServiceTest {
     }
 
     @Test
-    void updatesOverlay() {
-        var updated = hr.updateEmployee("u-einkauf-1", "Senior Einkäufer", null, null, null, null);
+    void updatesOverlayIncludingWorkLocation() {
+        var updated = hr.updateEmployee("u-einkauf-1", "Senior Einkäufer", null, null, null, null,
+                WorkLocation.REMOTE);
         assertThat(updated.jobTitle()).isEqualTo("Senior Einkäufer");
+        assertThat(updated.workLocation()).isEqualTo("REMOTE");
+    }
+
+    @Test
+    void createsHiredEmployee() {
+        var emp = hr.createEmployee("Nora", "Nova", "n.nova@acme-group.io", "Sachbearbeiterin",
+                "ou-einkauf", "u-einkauf-lead", WorkLocation.HYBRID);
+        assertThat(emp.active()).isTrue();
+        assertThat(emp.applicant()).isFalse();
+        assertThat(emp.workLocation()).isEqualTo("HYBRID");
+        assertThat(emp.managerId()).isEqualTo("u-einkauf-lead");
+        assertThat(hr.getEmployee(emp.id())).isPresent();
+
+        persons.deleteById(emp.id()); // keep the seeded headcount stable for other tests
     }
 
     @Test

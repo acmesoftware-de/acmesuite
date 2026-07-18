@@ -18,6 +18,7 @@ import de.acmesoftware.acmesuite.org.domain.PowerOfAttorney;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyRepository;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyType;
 import de.acmesoftware.acmesuite.org.domain.SignatureRule;
+import de.acmesoftware.acmesuite.org.domain.WorkLocation;
 import de.acmesoftware.acmesuite.org.hr.HrViews.AbsenceView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.ApplicantView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.ApprovalLimitView;
@@ -255,8 +256,31 @@ public class HrService {
     }
 
     // ── Employee overlay ──
+
+    /** Create a hired employee directly (Team → "+ Mitarbeiter"). */
+    public EmployeeView createEmployee(String firstName, String lastName, String email, String jobTitle,
+                                       String primaryOrgUnitId, String managerId, WorkLocation workLocation) {
+        if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank()) {
+            throw unprocessable("firstName and lastName are required");
+        }
+        OrgUnit unit = primaryOrgUnitId == null ? null : orgUnits.findById(primaryOrgUnitId)
+                .orElseThrow(() -> unprocessable("Org unit " + primaryOrgUnitId + " unknown"));
+        String id = "emp-" + UUID.randomUUID().toString().substring(0, 12);
+        Person p = new Person(id, firstName, lastName, email, jobTitle, unit);
+        p.setApplicant(false);
+        p.setActive(true);
+        if (managerId != null) {
+            p.assignManager(persons.findById(managerId)
+                    .orElseThrow(() -> unprocessable("Manager " + managerId + " unknown")));
+        }
+        if (workLocation != null) {
+            p.setWorkLocation(workLocation);
+        }
+        return EmployeeView.of(persons.save(p));
+    }
+
     public EmployeeView updateEmployee(String id, String jobTitle, String managerId, Boolean active,
-                                       List<String> deputyIds, List<String> assistantIds) {
+                                       List<String> deputyIds, List<String> assistantIds, WorkLocation workLocation) {
         Person p = persons.findById(id).orElseThrow(() -> notFound("Person " + id + " unknown"));
         if (jobTitle != null) {
             p.updateJobTitle(jobTitle);
@@ -273,6 +297,9 @@ public class HrService {
         }
         if (assistantIds != null) {
             p.replaceAssistants(assistantIds);
+        }
+        if (workLocation != null) {
+            p.setWorkLocation(workLocation);
         }
         return EmployeeView.of(p);
     }

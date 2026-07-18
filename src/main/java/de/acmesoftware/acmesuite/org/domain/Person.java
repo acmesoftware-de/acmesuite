@@ -83,6 +83,11 @@ public class Person extends AuditedEntity {
     @Column(name = "hourly_rate", nullable = false, precision = 10, scale = 2)
     private java.math.BigDecimal hourlyRate = new java.math.BigDecimal("25.00");
 
+    /** Primary work location (on-site / remote / hybrid) — drives the Team roster status. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "work_location", nullable = false, length = 16)
+    private WorkLocation workLocation = WorkLocation.ONSITE;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "primary_org_unit_id")
     private OrgUnit primaryOrgUnit;
@@ -226,6 +231,14 @@ public class Person extends AuditedEntity {
 
     public java.math.BigDecimal getHourlyRate() {
         return hourlyRate;
+    }
+
+    public WorkLocation getWorkLocation() {
+        return workLocation;
+    }
+
+    public void setWorkLocation(WorkLocation workLocation) {
+        this.workLocation = workLocation;
     }
 
     public String getId() {

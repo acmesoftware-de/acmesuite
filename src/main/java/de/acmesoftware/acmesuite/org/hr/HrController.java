@@ -9,6 +9,7 @@ import de.acmesoftware.acmesuite.org.domain.ApplicantStage;
 import de.acmesoftware.acmesuite.org.domain.CompensationType;
 import de.acmesoftware.acmesuite.org.domain.PowerOfAttorneyType;
 import de.acmesoftware.acmesuite.org.domain.SignatureRule;
+import de.acmesoftware.acmesuite.org.domain.WorkLocation;
 import de.acmesoftware.acmesuite.org.hr.HrViews.AbsenceView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.ApplicantView;
 import de.acmesoftware.acmesuite.org.hr.HrViews.ApprovalLimitView;
@@ -58,6 +59,13 @@ public class HrController {
         return hr.listEmployees(active, unitId, q);
     }
 
+    @PostMapping("/employees")
+    public ResponseEntity<EmployeeView> createEmployee(@RequestBody EmployeeCreateReq req) {
+        EmployeeView v = hr.createEmployee(req.firstName(), req.lastName(), req.email(), req.jobTitle(),
+                req.primaryOrgUnitId(), req.managerId(), req.workLocation());
+        return ResponseEntity.created(URI.create("/api/hr/employees/" + v.id())).body(v);
+    }
+
     @GetMapping("/employees/{id}")
     public ResponseEntity<EmployeeView> employee(@PathVariable String id) {
         return ResponseEntity.of(hr.getEmployee(id));
@@ -66,7 +74,7 @@ public class HrController {
     @PatchMapping("/employees/{id}")
     public EmployeeView updateEmployee(@PathVariable String id, @RequestBody EmployeeUpdateReq req) {
         return hr.updateEmployee(id, req.jobTitle(), req.managerId(), req.active(),
-                req.deputyIds(), req.assistantIds());
+                req.deputyIds(), req.assistantIds(), req.workLocation());
     }
 
     @PatchMapping("/employees/{id}/compensation")
@@ -227,7 +235,12 @@ public class HrController {
     }
 
     public record EmployeeUpdateReq(String jobTitle, String managerId, Boolean active,
-                                    List<String> deputyIds, List<String> assistantIds) {
+                                    List<String> deputyIds, List<String> assistantIds,
+                                    WorkLocation workLocation) {
+    }
+
+    public record EmployeeCreateReq(String firstName, String lastName, String email, String jobTitle,
+                                    String primaryOrgUnitId, String managerId, WorkLocation workLocation) {
     }
 
     public record CompensationReq(CompensationType compType, java.math.BigDecimal hourlyRate) {

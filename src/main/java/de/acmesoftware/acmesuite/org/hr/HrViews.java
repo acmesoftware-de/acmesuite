@@ -20,7 +20,8 @@ public final class HrViews {
                                String jobTitle, boolean active, boolean applicant, String primaryOrgUnitId,
                                String primaryOrgUnitName,
                                String managerId, List<String> deputyIds, List<String> assistantIds,
-                               List<String> secondaryUnitIds, String compType, java.math.BigDecimal hourlyRate) {
+                               List<String> secondaryUnitIds, String compType, java.math.BigDecimal hourlyRate,
+                               String workLocation) {
         public static EmployeeView of(Person p) {
             return new EmployeeView(p.getId(), p.getFirstName(), p.getLastName(), p.fullName(), p.getEmail(),
                     p.getJobTitle(), p.isActive(), p.isApplicant(),
@@ -29,7 +30,8 @@ public final class HrViews {
                     p.getManager() == null ? null : p.getManager().getId(),
                     List.copyOf(p.getDelegateIds()), List.copyOf(p.getAssistantIds()),
                     List.copyOf(p.getSecondaryUnitIds()),
-                    p.getCompType().name(), p.getHourlyRate());
+                    p.getCompType().name(), p.getHourlyRate(),
+                    p.getWorkLocation() == null ? null : p.getWorkLocation().name());
         }
     }
 
