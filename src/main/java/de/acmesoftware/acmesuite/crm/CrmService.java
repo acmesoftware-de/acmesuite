@@ -1,9 +1,12 @@
 package de.acmesoftware.acmesuite.crm;
 
+import de.acmesoftware.acmesuite.crm.CrmViews.ContactView;
 import de.acmesoftware.acmesuite.crm.CrmViews.CustomerView;
 import de.acmesoftware.acmesuite.crm.CrmViews.PriceListView;
 import de.acmesoftware.acmesuite.crm.CrmViews.ProductView;
 import de.acmesoftware.acmesuite.crm.CrmViews.ResolvedPriceView;
+import de.acmesoftware.acmesuite.crm.domain.Contact;
+import de.acmesoftware.acmesuite.crm.domain.ContactRepository;
 import de.acmesoftware.acmesuite.crm.domain.Customer;
 import de.acmesoftware.acmesuite.crm.domain.CustomerKind;
 import de.acmesoftware.acmesuite.crm.domain.CustomerRepository;
@@ -35,11 +38,14 @@ public class CrmService {
     private final CustomerRepository customers;
     private final ProductRepository products;
     private final PriceListRepository priceLists;
+    private final ContactRepository contacts;
 
-    public CrmService(CustomerRepository customers, ProductRepository products, PriceListRepository priceLists) {
+    public CrmService(CustomerRepository customers, ProductRepository products, PriceListRepository priceLists,
+                      ContactRepository contacts) {
         this.customers = customers;
         this.products = products;
         this.priceLists = priceLists;
+        this.contacts = contacts;
     }
 
     // ── Customers ──
@@ -78,6 +84,48 @@ public class CrmService {
         validatePriceList(priceListId);
         c.update(name, kind, status, email, country, parentResellerId, priceListId);
         return CustomerView.of(c);
+    }
+
+    // ── Contacts ──
+    @Transactional(readOnly = true)
+    public List<ContactView> listContacts(String customerId, String q) {
+        String needle = q == null ? null : q.toLowerCase();
+        return (customerId != null ? contacts.findByCustomerId(customerId) : contacts.findAll()).stream()
+                .filter(c -> needle == null || c.getName().toLowerCase().contains(needle))
+                .sorted(Comparator.comparing(Contact::getName))
+                .map(ContactView::of)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ContactView> getContact(String id) {
+        return contacts.findById(id).map(ContactView::of);
+    }
+
+    public ContactView createContact(String customerId, String name, String role, String email, String phone,
+                                     Boolean primary, Boolean newsletter) {
+        if (name == null || name.isBlank()) {
+            throw unprocessable("name is required");
+        }
+        validateCustomer(customerId);
+        String id = "contact-" + UUID.randomUUID().toString().substring(0, 12);
+        Contact c = new Contact(id, customerId, name, role, email, phone,
+                Boolean.TRUE.equals(primary), Boolean.TRUE.equals(newsletter));
+        return ContactView.of(contacts.save(c));
+    }
+
+    public ContactView updateContact(String id, String customerId, String name, String role, String email,
+                                     String phone, Boolean primary, Boolean newsletter) {
+        Contact c = contacts.findById(id).orElseThrow(() -> notFound("Contact " + id + " unknown"));
+        validateCustomer(customerId);
+        c.update(customerId, name, role, email, phone, primary, newsletter);
+        return ContactView.of(c);
+    }
+
+    private void validateCustomer(String customerId) {
+        if (customerId != null && !customers.existsById(customerId)) {
+            throw unprocessable("Customer " + customerId + " unknown");
+        }
     }
 
     // ── Products ──
