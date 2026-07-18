@@ -920,24 +920,48 @@
 .acme-app .acme-msg-body { font: 400 12px var(--font-ui); color: var(--ink); line-height: 1.4; }
 
 /* ---- ACMEassist (bottom-anchored co-pilot, ADR-0008) --------------------- */
-.acme-app .acme-assist {
+/* Bottom bar: the ACMEassist trigger (flex:1) + a version/copyright credit on the right. */
+.acme-app .acme-assist-bar {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 20;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: stretch;
   height: 42px;
-  padding: 0 16px;
-  border: none;
   border-top: 1px solid var(--line);
   background: var(--panel);
+}
+.acme-app .acme-assist {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border: none;
+  background: transparent;
   color: var(--ink);
   font-family: var(--font-ui);
   text-align: left;
   cursor: pointer;
+}
+.acme-app .acme-footcredit {
+  display: flex;
+  align-items: center;
+  flex: none;
+  padding: 0 16px;
+  border-left: 1px solid var(--line);
+  font: 500 10.5px var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.acme-app .acme-footcredit a { color: var(--dim); text-decoration: none; }
+.acme-app .acme-footcredit a:hover { color: var(--accent); }
+@media (max-width: 720px) {
+  .acme-app .acme-footcredit { display: none; }
 }
 .acme-app .acme-assist-mark { color: var(--accent); font-size: 14px; flex: none; }
 .acme-app .acme-assist-hint { font: 500 12.5px var(--font-ui); color: var(--dim); }
