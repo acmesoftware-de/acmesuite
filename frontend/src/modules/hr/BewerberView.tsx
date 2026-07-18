@@ -3,15 +3,17 @@ import { matchTier, type ApplicantColumn, type Stage } from './hrModel'
 
 interface BewerberViewProps {
   columns: ApplicantColumn[]
-  /** WORK/ADMIN may move candidates between stages (drag & drop). Read-only for WATCH. */
+  /** WORK/ADMIN may move candidates between stages (drag & drop) and hire. Read-only for WATCH. */
   canWrite: boolean
   onMove: (id: string, stage: Stage) => void
+  /** Start hiring an OFFER-stage candidate (opens the approval folder). */
+  onHire: (id: string) => void
   /** True when the board shows demo candidates (live /applicants unavailable). */
   fallback?: boolean
 }
 
 /** Recruiting kanban (NEU · SCREENING · INTERVIEW · ANGEBOT · ABGELEHNT). */
-export function BewerberView({ columns, canWrite, onMove, fallback }: BewerberViewProps) {
+export function BewerberView({ columns, canWrite, onMove, onHire, fallback }: BewerberViewProps) {
   const [dragId, setDragId] = useState<string | null>(null)
 
   function handleDrop(stage: Stage) {
@@ -65,6 +67,15 @@ export function BewerberView({ columns, canWrite, onMove, fallback }: BewerberVi
                     </span>
                     <span className="acme-hr-age">{a.ageDays > 0 ? `${a.ageDays}T` : 'neu'}</span>
                   </div>
+                  {canWrite && col.id === 'angebot' && (
+                    <button
+                      className="acme-hr-hire"
+                      onClick={() => onHire(a.id)}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      Einstellen
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
