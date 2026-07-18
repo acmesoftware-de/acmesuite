@@ -8,12 +8,15 @@
     <link rel="stylesheet" href="/openapi/assets/fonts/acme-fonts.css" />
     <link rel="stylesheet" href="/openapi/assets/brand.css" />
     <style>
-      body { background: var(--paper); }
-      .foot { margin: 0; padding: 22px 24px 40px; border-top: 2px solid var(--ink);
-              color: #3a3a3a; font-family: var(--text); font-size: 14px; line-height: 1.7; }
+      body { background: var(--paper); padding-bottom: 34px; }
+      /* Slim always-visible footer bar pinned to the viewport bottom (the docs are long). */
+      .foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; align-items: center;
+              gap: 12px; height: 34px; padding: 0 24px; background: var(--paper); border-top: 2px solid var(--ink);
+              color: #3a3a3a; font-family: var(--text); font-size: 13px; }
       .foot a { color: var(--build); font-weight: 600; text-decoration: none; }
       .foot a:hover { text-decoration: underline; }
       .foot .build { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--graphite); }
+      .foot .foot-spacer { flex: 1; }
     </style>
   </head>
   <body>
@@ -34,8 +37,9 @@
     </nav>
     <div id="redoc"></div>
     <footer class="foot">
-      <div class="build" id="build-stamp">ACMEsuite API</div>
-      &copy; 2026 AFINA GmbH. <a href="https://www.acmesoftware.de">www.acmesoftware.de</a>
+      <span class="build" id="build-stamp">ACMEsuite API</span>
+      <span class="foot-spacer"></span>
+      <span>&copy; 2026 AFINA GmbH. <a href="https://www.acmesoftware.de">www.acmesoftware.de</a></span>
     </footer>
     <!-- Vendored self-contained bundle served from the jar under /openapi/ (no CDN, no /webjars). -->
     <script src="/openapi/assets/redoc.standalone.js"></script>

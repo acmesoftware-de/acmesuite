@@ -12,18 +12,21 @@
     <link rel="stylesheet" href="/openapi/assets/fonts/acme-fonts.css" />
     <link rel="stylesheet" href="/openapi/assets/brand.css" />
     <style>
-      body { background: var(--paper); }
+      body { background: var(--paper); padding-bottom: 34px; }
       #swagger-ui { max-width: 1400px; margin: 0 auto; }
       /* Nudge Swagger UI toward the brand: Archivo for text/headings, Space Mono for code. */
       .swagger-ui, .swagger-ui .opblock-tag, .swagger-ui .info .title { font-family: var(--text); }
       .swagger-ui .info .title { font-family: var(--display); font-weight: normal; }
       .swagger-ui .opblock .opblock-summary-path, .swagger-ui code, .swagger-ui .microlight { font-family: var(--mono); }
-      /* Footer (matches the portal's .foot). */
-      .foot { max-width: 1400px; margin: 40px auto 0; padding: 22px 24px 40px; border-top: 2px solid var(--ink);
-              color: #3a3a3a; font-family: var(--text); font-size: 14px; line-height: 1.7; }
+      /* Footer — a slim always-visible bar pinned to the viewport bottom (the docs are long, so a
+         normal bottom footer would sit below the fold). */
+      .foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; align-items: center;
+              gap: 12px; height: 34px; padding: 0 24px; background: var(--paper); border-top: 2px solid var(--ink);
+              color: #3a3a3a; font-family: var(--text); font-size: 13px; }
       .foot a { color: var(--build); font-weight: 600; text-decoration: none; }
       .foot a:hover { text-decoration: underline; }
       .foot .build { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--graphite); }
+      .foot .foot-spacer { flex: 1; }
     </style>
   </head>
   <body>
@@ -43,8 +46,9 @@
     </nav>
     <div id="swagger-ui"></div>
     <footer class="foot">
-      <div class="build" id="build-stamp">ACMEsuite API</div>
-      &copy; 2026 AFINA GmbH. <a href="https://www.acmesoftware.de">www.acmesoftware.de</a>
+      <span class="build" id="build-stamp">ACMEsuite API</span>
+      <span class="foot-spacer"></span>
+      <span>&copy; 2026 AFINA GmbH. <a href="https://www.acmesoftware.de">www.acmesoftware.de</a></span>
     </footer>
     <script src="/openapi/assets/swagger-ui-bundle.js"></script>
     <script src="/openapi/assets/swagger-ui-standalone-preset.js"></script>

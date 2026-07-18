@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAssist } from './useAssist'
+import { versionLabel } from '../version'
 
 interface AssistProps {
   module: string
@@ -102,11 +103,17 @@ export function Assist({ module, subView }: AssistProps) {
         </div>
       )}
 
-      <button className="acme-assist" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <span className="acme-assist-mark">✦</span>
-        <span className="acme-assist-hint">ACMEassist — fragen, zusammenfassen, entwerfen</span>
-        <span className="acme-assist-kbd">⌘K</span>
-      </button>
+      <div className="acme-assist-bar">
+        <button className="acme-assist" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+          <span className="acme-assist-mark">✦</span>
+          <span className="acme-assist-hint">ACMEassist — fragen, zusammenfassen, entwerfen</span>
+          <span className="acme-assist-kbd">⌘K</span>
+        </button>
+        <span className="acme-footcredit">
+          {versionLabel} · &copy; 2026 AFINA GmbH ·{' '}
+          <a href="https://www.acmesoftware.de" target="_blank" rel="noopener">www.acmesoftware.de</a>
+        </span>
+      </div>
     </>
   )
 }
