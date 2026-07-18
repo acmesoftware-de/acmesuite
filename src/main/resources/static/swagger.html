@@ -4,8 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ACMEsuite API — Swagger UI</title>
-    <!-- Assets served from the jar (webjar), no CDN. -->
-    <link rel="stylesheet" href="/webjars/swagger-ui/5.32.8/swagger-ui.css" />
+    <!-- Vendored assets served from the jar under /openapi/ (no CDN, no /webjars). The edge that
+         fronts the deployment proxies /openapi/ to the backend, so these resolve there too; the
+         /webjars/ path is not proxied and would fall through to the SPA. -->
+    <link rel="stylesheet" href="/openapi/assets/swagger-ui.css" />
     <style>
       body { margin: 0; background: #fff; }
       .docs-nav {
@@ -33,8 +35,8 @@
       <a href="/">&larr; App</a>
     </nav>
     <div id="swagger-ui"></div>
-    <script src="/webjars/swagger-ui/5.32.8/swagger-ui-bundle.js"></script>
-    <script src="/webjars/swagger-ui/5.32.8/swagger-ui-standalone-preset.js"></script>
+    <script src="/openapi/assets/swagger-ui-bundle.js"></script>
+    <script src="/openapi/assets/swagger-ui-standalone-preset.js"></script>
     <script>
       window.onload = function () {
         window.ui = SwaggerUIBundle({

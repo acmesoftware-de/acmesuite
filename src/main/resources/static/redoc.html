@@ -32,7 +32,8 @@
       <a href="/">&larr; App</a>
     </nav>
     <redoc spec-url="/openapi/acme-hr.yaml"></redoc>
-    <!-- Self-contained bundle served from the jar (webjar), no CDN. -->
-    <script src="/webjars/redoc/2.5.0/bundles/redoc.standalone.js"></script>
+    <!-- Vendored self-contained bundle served from the jar under /openapi/ (no CDN, no /webjars).
+         The edge proxies /openapi/ to the backend; /webjars/ is not proxied (falls to the SPA). -->
+    <script src="/openapi/assets/redoc.standalone.js"></script>
   </body>
 </html>
