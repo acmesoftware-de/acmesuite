@@ -6,37 +6,49 @@
     <title>ACMEsuite API — Swagger UI</title>
     <!-- Vendored assets served from the jar under /openapi/ (no CDN, no /webjars). The edge that
          fronts the deployment proxies /openapi/ to the backend, so these resolve there too; the
-         /webjars/ path is not proxied and would fall through to the SPA. -->
+         /webjars/ path is not proxied and would fall through to the SPA. Brand-kit styling matches
+         the API portal (acmesoftware.de). -->
     <link rel="stylesheet" href="/openapi/assets/swagger-ui.css" />
+    <link rel="stylesheet" href="/openapi/assets/fonts/acme-fonts.css" />
+    <link rel="stylesheet" href="/openapi/assets/brand.css" />
     <style>
-      body { margin: 0; background: #fff; }
-      .docs-nav {
-        display: flex; align-items: center; gap: 16px;
-        padding: 10px 16px; background: #17181c; color: #f4f3ef;
-        font: 13px/1 -apple-system, Segoe UI, Roboto, sans-serif;
-      }
-      .docs-nav strong { letter-spacing: .04em; }
-      .docs-nav a { color: #9aa4b2; text-decoration: none; }
-      .docs-nav a:hover { color: #fff; }
-      .docs-nav a.active { color: #6e56cf; font-weight: 700; }
-      .docs-nav .spacer { flex: 1; }
+      body { background: var(--paper); }
+      #swagger-ui { max-width: 1400px; margin: 0 auto; }
+      /* Nudge Swagger UI toward the brand: Archivo for text/headings, Space Mono for code. */
+      .swagger-ui, .swagger-ui .opblock-tag, .swagger-ui .info .title { font-family: var(--text); }
+      .swagger-ui .info .title { font-family: var(--display); font-weight: normal; }
+      .swagger-ui .opblock .opblock-summary-path, .swagger-ui code, .swagger-ui .microlight { font-family: var(--mono); }
+      /* Footer (matches the portal's .foot). */
+      .foot { max-width: 1400px; margin: 40px auto 0; padding: 22px 24px 40px; border-top: 2px solid var(--ink);
+              color: #3a3a3a; font-family: var(--text); font-size: 14px; line-height: 1.7; }
+      .foot a { color: var(--build); font-weight: 600; text-decoration: none; }
+      .foot a:hover { text-decoration: underline; }
+      .foot .build { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--graphite); }
     </style>
   </head>
   <body>
-    <nav class="docs-nav">
-      <strong>ACMEsuite API</strong>
-      <a class="active" href="/swagger.html">Swagger UI</a>
-      <a href="/redoc.html">Redoc</a>
-      <span class="spacer"></span>
-      <a href="/openapi/acme-hr.yaml">ACMEhr</a>
-      <a href="/openapi/acme-crm.yaml">ACMEcrm</a>
-      <a href="/openapi/acme-supply.yaml">ACMEsupply</a>
-      <a href="/openapi/acme-build.yaml">ACMEbuild</a>
-      <a href="/">&larr; App</a>
+    <nav class="portal-nav">
+      <a class="brand" href="/"><span class="bars"><i></i><i></i><i></i><i></i></span>
+        <span class="wm"><b>ACME</b><span>SOFTWARE</span></span></a>
+      <span class="nav-links">
+        <a href="/swagger.html" class="active">Swagger</a>
+        <a href="/redoc.html">Redoc</a>
+        <a href="/openapi/acme-hr.yaml">ACMEhr</a>
+        <a href="/openapi/acme-crm.yaml">ACMEcrm</a>
+        <a href="/openapi/acme-supply.yaml">ACMEsupply</a>
+        <a href="/openapi/acme-build.yaml">ACMEbuild</a>
+        <a href="/">&larr; App</a>
+      </span>
+      <span class="nav-badge">API PORTAL</span>
     </nav>
     <div id="swagger-ui"></div>
+    <footer class="foot">
+      <div class="build" id="build-stamp">ACMEsuite API</div>
+      &copy; 2026 AFINA GmbH. <a href="https://www.acmesoftware.de">www.acmesoftware.de</a>
+    </footer>
     <script src="/openapi/assets/swagger-ui-bundle.js"></script>
     <script src="/openapi/assets/swagger-ui-standalone-preset.js"></script>
+    <script src="/openapi/assets/build-stamp.js"></script>
     <script>
       window.onload = function () {
         window.ui = SwaggerUIBundle({
@@ -53,8 +65,9 @@
           layout: 'StandaloneLayout',
           // send the session cookie so "Try it out" works when login is enabled
           withCredentials: true,
-        })
-      }
+        });
+        acmeStampBuild('build-stamp');
+      };
     </script>
   </body>
 </html>
