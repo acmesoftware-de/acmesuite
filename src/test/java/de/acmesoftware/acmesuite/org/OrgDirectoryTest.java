@@ -69,10 +69,13 @@ class OrgDirectoryTest {
         assertThat(org.person("u-compliance-1")).get()
                 .satisfies(p -> assertThat(p.secondaryUnitIds()).contains("ou-gremium"));
 
-        // Two absences with substitution (vacation department lead B1, treatment leave GF1).
-        assertThat(absences.findAll()).hasSize(2);
+        // The two seeded absences with substitution (vacation dept lead B1, treatment leave GF1).
+        // Asserted per person — not via a global count — so absences other tests commit for other
+        // people (the suite shares one DB) cannot make this order-dependent.
         assertThat(absences.findByPerson_Id("u-abt-b1-lead")).singleElement()
                 .satisfies(a -> assertThat(a.getSubstitute().getId()).isEqualTo("u-b1-1-1"));
+        assertThat(absences.findByPerson_Id("u-gf-1")).singleElement()
+                .satisfies(a -> assertThat(a.getSubstitute().getId()).isEqualTo("u-gf-1-asst"));
     }
 
     @Test
