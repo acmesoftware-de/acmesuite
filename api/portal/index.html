@@ -51,7 +51,7 @@
       <a class="card" href="/changelog/">
         <div class="tag">History</div>
         <h2>API Changelog</h2>
-        <p>oasdiff-generated changelog between released contract versions.</p>
+        <p>Per-version change counts and breaking-change flags for ACMEsuite and ACMEmailtrap, generated with oasdiff.</p>
       </a>
     </div>
 
@@ -84,6 +84,15 @@
       </a>
     </div>
 
+    <div class="section-title">ACMEmailtrap &middot; Testing</div>
+    <div class="grid">
+      <a class="card mod mod-mailtrap" href="/redoc/mailtrap.html">
+        <div class="tag">ACMEmailtrap</div>
+        <h2>Mail trap for testing</h2>
+        <p>Separate product: catches outgoing mail from ACMEsuite over SMTP, stores it per recipient and serves it via IMAP and this REST API. <a href="https://github.com/acmesoftware-de/acmemailtrap">Open source</a>.</p>
+      </a>
+    </div>
+
     <div class="foot">
       <p>Self-contained specs (bundled) for download:
         <a href="openapi/acme-hr.yaml">hr</a> &middot;
@@ -92,6 +101,7 @@
         <a href="openapi/acme-build.yaml">build</a> &middot;
         <a href="openapi/all.yaml">all</a>
         &nbsp;|&nbsp; shared building blocks: <a href="openapi/acme-base.yaml">acme-base</a>
+        &nbsp;|&nbsp; separate product: <a href="openapi/acme-mailtrap.yaml">acme-mailtrap</a>
       </p>
       <p>Source of truth: <a href="https://github.com/acmesoftware-de/acmesuite/tree/main/api">acmesoftware-de/acmesuite &middot; api/</a>.
          Auth: <code>bearerAuth</code> (JWT), roles WATCH&middot;WORK&middot;ADMIN. Errors per RFC 7807.</p>

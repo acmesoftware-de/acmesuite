@@ -25,6 +25,11 @@ npx --yes $REDOCLY bundle api/acme-base.yaml -o api/portal/openapi/acme-base.yam
 # the variant dropdown.
 npx --yes $REDOCLY build-docs api/acme-base.yaml -o api/portal/redoc/base.html
 
+# ACMEmailtrap: a separate product (the mail trap for testing ACMEsuite mail flows), not a suite
+# module — render its own Redoc page + downloadable spec, but keep it OUT of the merged all.yaml.
+npx --yes $REDOCLY bundle api/acme-mailtrap.yaml -o api/portal/openapi/acme-mailtrap.yaml
+npx --yes $REDOCLY build-docs api/acme-mailtrap.yaml -o api/portal/redoc/mailtrap.html
+
 npx --yes openapi-merge-cli@latest --config api/merge-config.json
 
 # openapi-merge-cli inherits info.title/version from the first input (ACMEhr); relabel the
