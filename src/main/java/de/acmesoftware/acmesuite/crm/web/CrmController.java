@@ -1,6 +1,7 @@
 package de.acmesoftware.acmesuite.crm.web;
 
 import de.acmesoftware.acmesuite.crm.CrmService;
+import de.acmesoftware.acmesuite.crm.CrmViews.ContactView;
 import de.acmesoftware.acmesuite.crm.CrmViews.CustomerView;
 import de.acmesoftware.acmesuite.crm.CrmViews.MoneyView;
 import de.acmesoftware.acmesuite.crm.CrmViews.PriceListView;
@@ -63,6 +64,32 @@ public class CrmController {
     public CustomerView updateCustomer(@PathVariable String id, @RequestBody CustomerWrite req) {
         return crm.updateCustomer(id, req.name(), req.kind(), req.status(), req.email(), req.country(),
                 req.parentResellerId(), req.priceListId());
+    }
+
+    // ── Contacts ──
+    @GetMapping("/contacts")
+    public List<ContactView> contacts(
+            @RequestParam(required = false) String customerId,
+            @RequestParam(required = false) String q) {
+        return crm.listContacts(customerId, q);
+    }
+
+    @GetMapping("/contacts/{id}")
+    public ResponseEntity<ContactView> contact(@PathVariable String id) {
+        return ResponseEntity.of(crm.getContact(id));
+    }
+
+    @PostMapping("/contacts")
+    public ResponseEntity<ContactView> createContact(@RequestBody ContactWrite req) {
+        ContactView v = crm.createContact(req.customerId(), req.name(), req.role(), req.email(), req.phone(),
+                req.primary(), req.newsletter());
+        return ResponseEntity.created(URI.create("/api/crm/contacts/" + v.id())).body(v);
+    }
+
+    @PatchMapping("/contacts/{id}")
+    public ContactView updateContact(@PathVariable String id, @RequestBody ContactWrite req) {
+        return crm.updateContact(id, req.customerId(), req.name(), req.role(), req.email(), req.phone(),
+                req.primary(), req.newsletter());
     }
 
     // ── Products ──
@@ -130,6 +157,10 @@ public class CrmController {
 
     public record CustomerWrite(String name, CustomerKind kind, CustomerStatus status, String email, String country,
                                 String parentResellerId, String priceListId) {
+    }
+
+    public record ContactWrite(String customerId, String name, String role, String email, String phone,
+                               Boolean primary, Boolean newsletter) {
     }
 
     public record ProductWrite(String sku, String name, String category, String unit, Boolean active,

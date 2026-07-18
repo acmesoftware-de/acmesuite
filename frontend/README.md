@@ -80,10 +80,10 @@ Web forms / newsletter signups are configured in Admin (`/forms`, fields + trigg
 and captured via the public `POST /forms/{id}/submit` tool — see the `Forms` tag in the
 contract. The Admin form-builder UI and the public form renderer are separate follow-ups.
 
-> **Backend note:** the `/pipeline`, `/contacts`, `/threads` and `/forms` surfaces are
-> contract-first; the Java backend implementations are still pending, so they are currently
-> mocked for review (a contract-shaped dev mock stands in). The existing
-> `/crm/customers|quotes|orders` endpoints are unchanged.
+> **Backend note:** `/pipeline`, `/contacts` and `/threads` are now implemented in the Java
+> backend (`crm/PipelineService`, `crm/MailService`, `crm` contacts + Flyway `V28`), so the CRM
+> module runs against the real API. Only `/forms` is still contract-first (pending backend,
+> pairs with the Admin form-builder). `/crm/customers|quotes|orders` are unchanged.
 
 ## Status
 
