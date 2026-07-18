@@ -23,6 +23,8 @@ export function App() {
   const { module } = shell
   // Bumped when the shell's "+ DEAL" button is pressed; the CRM module opens its create form.
   const [newDealTick, setNewDealTick] = useState(0)
+  // Same idea for HR: "+ Mitarbeiter" / "+ Bewerber" opens the module's create form.
+  const [newHrTick, setNewHrTick] = useState(0)
   // CRM pipeline view mode (Tabelle/Kanban/Funnel) — its switch lives in the module header,
   // next to the Pipeline tab, so it is only shown on that sub-view.
   const [pipelineMode, setPipelineMode] = useState<PipelineMode>('tabelle')
@@ -67,7 +69,13 @@ export function App() {
             onSelectSubView={shell.setSubView}
             newLabel={shell.newLabel}
             showNew={auth.canWrite && !module.ownsActions}
-            onNew={module.id === 'CRM' ? () => setNewDealTick((t) => t + 1) : undefined}
+            onNew={
+              module.id === 'CRM'
+                ? () => setNewDealTick((t) => t + 1)
+                : module.id === 'HR'
+                  ? () => setNewHrTick((t) => t + 1)
+                  : undefined
+            }
             headerExtra={
               showPipelineSwitch ? (
                 <div className="acme-subtabs">
@@ -96,7 +104,7 @@ export function App() {
               pipelineMode={pipelineMode}
             />
           ) : module.id === 'HR' ? (
-            <HrModule subView={shell.activeSubKey} canWrite={auth.canWrite} />
+            <HrModule subView={shell.activeSubKey} canWrite={auth.canWrite} newTick={newHrTick} />
           ) : (
             <ModulePlaceholder module={module} activeSub={shell.activeSub} />
           )}

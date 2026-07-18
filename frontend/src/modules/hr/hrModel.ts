@@ -4,7 +4,7 @@
 // raw data. Where the contract genuinely lacks a field the design needs, it is synthesised
 // deterministically and flagged MOCK — never silently invented.
 
-import type { Absence, Applicant, Employee } from './hrApi'
+import type { Absence, Applicant, ApplicantStage, Employee } from './hrApi'
 
 // ── shared helpers ──────────────────────────────────────────────────────────
 export function initials(name: string): string {
@@ -14,7 +14,7 @@ export function initials(name: string): string {
   return s.toUpperCase()
 }
 
-/** Stable non-negative hash of a string — for deterministic MOCK fields (no Math.random). */
+/** Stable non-negative hash of a string — for the avatar palette + demo-fallback ages. */
 function hash(s: string): number {
   let h = 0
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0
@@ -49,10 +49,9 @@ export interface TeamRow {
 const CURRENT_ABSENCE: Partial<Record<string, TeamStatus>> = { SICK: 'krank', VACATION: 'urlaub', CURE: 'urlaub' }
 
 /**
- * Team status per the design (aktiv/remote/urlaub/krank). Vacation/sick are REAL — derived
- * from an absence overlapping today. "remote" has no field in the contract, so a small,
- * deterministic subset is flagged remote as a MOCK placeholder (id-hash, ~1 in 6) purely so
- * the four-state pill is demonstrable; replace once a work-location field lands in the API.
+ * Team status per the design (aktiv/remote/urlaub/krank). All real now: vacation/sick from an
+ * absence overlapping today; "remote" from the employee's work location (contract WorkLocation);
+ * otherwise active.
  */
 function deriveStatus(emp: Employee, absencesByPerson: Map<string, Absence[]>): TeamStatus {
   const abs = absencesByPerson.get(emp.id) ?? []
@@ -62,7 +61,7 @@ function deriveStatus(emp: Employee, absencesByPerson: Map<string, Absence[]>): 
     const mapped = CURRENT_ABSENCE[a.type]
     if (mapped) return mapped
   }
-  if (hash(emp.id) % 6 === 0) return 'remote' // MOCK: no work-location field in the contract
+  if (emp.workLocation === 'REMOTE') return 'remote'
   return 'aktiv'
 }
 
@@ -230,7 +229,24 @@ export const STAGES: StageMeta[] = [
   { id: 'abgelehnt', label: 'ABGELEHNT' },
 ]
 
-const STAGE_IDS: Stage[] = STAGES.map((s) => s.id)
+// Bridge the contract enum (ApplicantStage) and the view stage keys.
+const STAGE_FROM_API: Record<ApplicantStage, Stage> = {
+  NEW: 'neu',
+  SCREENING: 'screening',
+  INTERVIEW: 'interview',
+  OFFER: 'angebot',
+  REJECTED: 'abgelehnt',
+}
+const STAGE_TO_API: Record<Stage, ApplicantStage> = {
+  neu: 'NEW',
+  screening: 'SCREENING',
+  interview: 'INTERVIEW',
+  angebot: 'OFFER',
+  abgelehnt: 'REJECTED',
+}
+export function toApiStage(stage: Stage): ApplicantStage {
+  return STAGE_TO_API[stage]
+}
 
 export type MatchTier = 'good' | 'mid' | 'bad' | 'none'
 export function matchTier(score: number): MatchTier {
@@ -251,23 +267,17 @@ function ageInDays(appliedOn?: string | null, fallbackSeed = 0): number {
   return fallbackSeed % 12 // MOCK fallback when appliedOn is absent
 }
 
-/**
- * Turn contract applicants into pipeline cards. Pipeline `stage` and `matchScore` are NOT in
- * the contract, so both are synthesised deterministically from the applicant id (MOCK, stable
- * per candidate) — clearly separated from the real name/role/unit/appliedOn fields. Wire these
- * to real fields once the contract carries a recruiting stage + score.
- */
+/** Turn a contract applicant into a pipeline card (stage/score are real contract fields). */
 export function toCard(a: Applicant): ApplicantCard {
   const h = hash(a.id)
-  const stage = STAGE_IDS[h % STAGE_IDS.length] // MOCK
-  const score = stage === 'neu' ? 0 : 55 + (h % 43) // MOCK: 55–97, unscored while NEU
+  const stage = a.stage ? STAGE_FROM_API[a.stage] : 'neu'
   return {
     id: a.id,
     name: a.fullName,
-    team: a.targetOrgUnitId ? unitShort(a.targetOrgUnitId) : '—',
+    team: a.targetOrgUnitName ?? (a.targetOrgUnitId ? unitShort(a.targetOrgUnitId) : '—'),
     role: a.jobTitle ?? '—',
     stage,
-    score,
+    score: a.matchScore ?? 0,
     ageDays: ageInDays(a.appliedOn, h),
     ini: initials(a.fullName),
     avIndex: h % 4,

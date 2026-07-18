@@ -333,6 +333,7 @@
   gap: 14px;
 }
 .acme-app .acme-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.acme-app .acme-form-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
 /* ---- Admin: users table --------------------------------------------------- */
 .acme-app .acme-users-head,
@@ -1343,3 +1344,16 @@
 .acme-app .acme-hr-match--bad { background: var(--danger); color: var(--on-signal); }
 .acme-app .acme-hr-match--none { background: var(--faint); color: var(--on-signal); }
 .acme-app .acme-hr-age { margin-left: auto; font: 400 10px var(--font-mono); color: var(--faint); }
+.acme-app .acme-hr-hire {
+  margin-top: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 700 9px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
