@@ -4,36 +4,56 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ACMEsuite API — Redoc</title>
+    <!-- Brand-kit styling matches the API portal (acmesoftware.de); assets vendored under /openapi/. -->
+    <link rel="stylesheet" href="/openapi/assets/fonts/acme-fonts.css" />
+    <link rel="stylesheet" href="/openapi/assets/brand.css" />
     <style>
-      body { margin: 0; }
-      .docs-nav {
-        display: flex; align-items: center; gap: 16px;
-        padding: 10px 16px; background: #17181c; color: #f4f3ef;
-        font: 13px/1 -apple-system, Segoe UI, Roboto, sans-serif;
-      }
-      .docs-nav strong { letter-spacing: .04em; }
-      .docs-nav a { color: #9aa4b2; text-decoration: none; }
-      .docs-nav a:hover { color: #fff; }
-      .docs-nav a.active { color: #6e56cf; font-weight: 700; }
-      .docs-nav .spacer { flex: 1; }
+      body { background: var(--paper); }
+      .foot { margin: 0; padding: 22px 24px 40px; border-top: 2px solid var(--ink);
+              color: #3a3a3a; font-family: var(--text); font-size: 14px; line-height: 1.7; }
+      .foot a { color: var(--build); font-weight: 600; text-decoration: none; }
+      .foot a:hover { text-decoration: underline; }
+      .foot .build { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--graphite); }
     </style>
   </head>
   <body>
-    <nav class="docs-nav">
-      <strong>ACMEsuite API</strong>
-      <a href="/swagger.html">Swagger UI</a>
-      <a class="active" href="/redoc.html">Redoc</a>
-      <span class="spacer"></span>
-      <!-- Redoc shows one spec at a time; ACMEhr by default — switch via these links. -->
-      <a href="/openapi/acme-hr.yaml">ACMEhr</a>
-      <a href="/openapi/acme-crm.yaml">ACMEcrm</a>
-      <a href="/openapi/acme-supply.yaml">ACMEsupply</a>
-      <a href="/openapi/acme-build.yaml">ACMEbuild</a>
-      <a href="/">&larr; App</a>
+    <nav class="portal-nav">
+      <a class="brand" href="/"><span class="bars"><i></i><i></i><i></i><i></i></span>
+        <span class="wm"><b>ACME</b><span>SOFTWARE</span></span></a>
+      <span class="nav-links">
+        <a href="/swagger.html">Swagger</a>
+        <a href="/redoc.html" class="active">Redoc</a>
+        <!-- Redoc shows one spec at a time; switch via these (re-renders Redoc for that spec). -->
+        <a href="/redoc.html?spec=acme-hr">ACMEhr</a>
+        <a href="/redoc.html?spec=acme-crm">ACMEcrm</a>
+        <a href="/redoc.html?spec=acme-supply">ACMEsupply</a>
+        <a href="/redoc.html?spec=acme-build">ACMEbuild</a>
+        <a href="/">&larr; App</a>
+      </span>
+      <span class="nav-badge">API PORTAL</span>
     </nav>
-    <redoc spec-url="/openapi/acme-hr.yaml"></redoc>
-    <!-- Vendored self-contained bundle served from the jar under /openapi/ (no CDN, no /webjars).
-         The edge proxies /openapi/ to the backend; /webjars/ is not proxied (falls to the SPA). -->
+    <div id="redoc"></div>
+    <footer class="foot">
+      <div class="build" id="build-stamp">ACMEsuite API</div>
+      &copy; 2026 AFINA GmbH. <a href="https://www.acmesoftware.de">www.acmesoftware.de</a>
+    </footer>
+    <!-- Vendored self-contained bundle served from the jar under /openapi/ (no CDN, no /webjars). -->
     <script src="/openapi/assets/redoc.standalone.js"></script>
+    <script src="/openapi/assets/build-stamp.js"></script>
+    <script>
+      var allowed = { 'acme-hr': 1, 'acme-crm': 1, 'acme-supply': 1, 'acme-build': 1 };
+      var spec = new URLSearchParams(location.search).get('spec');
+      if (!allowed[spec]) spec = 'acme-hr';
+      Redoc.init('/openapi/' + spec + '.yaml', {
+        theme: {
+          colors: { primary: { main: '#0057B8' } },
+          typography: {
+            fontFamily: "'Archivo', sans-serif",
+            headings: { fontFamily: "'Archivo Black', sans-serif", fontWeight: '400' },
+            code: { fontFamily: "'Space Mono', monospace" }
+          }
+        }
+      }, document.getElementById('redoc'), function () { acmeStampBuild('build-stamp'); });
+    </script>
   </body>
 </html>
