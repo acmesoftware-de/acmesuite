@@ -1,7 +1,8 @@
 # Builds the static API developer portal from the OpenAPI contracts (api/*.yaml): lints, bundles,
 # merges into a combined all.yaml, renders Redoc, generates the oasdiff changelog and validates the
-# GraphQL Mesh image. This is a build/lint gate — the portal is deployed to api.acmesoftware.de by
-# uploading api/portal/ to the Hetzner VM directly (DNS points there, not at GitHub Pages).
+# GraphQL Mesh image. On push to main (and manual dispatch) the built portal is then auto-deployed
+# via rsync to api.acmesoftware.de (nginx docroot on the Hetzner VM; DNS points there, not GitHub
+# Pages) as a restricted, dedicated deploy user -- see the `deploy` job + PORTAL_DEPLOY_* secrets.
 name: API-Portal
 
 on:
@@ -68,3 +69,34 @@ jobs:
           name: api-portal
           path: api/portal
           retention-days: 14
+
+  # Auto-deploy the built portal to api.acmesoftware.de (nginx docroot /var/www/api-portal on the
+  # Hetzner VM). Only on push to main (and manual dispatch) -- never on PRs/forks. rsync runs as a
+  # dedicated, restricted deploy user (see PORTAL_DEPLOY_* secrets) that owns only the docroot.
+  deploy:
+    needs: build
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download portal artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-portal
+          path: portal
+
+      - name: Deploy to api.acmesoftware.de (rsync)
+        env:
+          DEPLOY_KEY: ${{ secrets.PORTAL_DEPLOY_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.PORTAL_DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.PORTAL_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.PORTAL_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/portal_deploy"
+          chmod 600 "$HOME/.ssh/portal_deploy"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/portal_known_hosts"
+          rsync -rlptz --delete --chmod=D755,F644 \
+            -e "ssh -i $HOME/.ssh/portal_deploy -o UserKnownHostsFile=$HOME/.ssh/portal_known_hosts -o IdentitiesOnly=yes" \
+            portal/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/api-portal/"
+          echo "Deployed $(find portal -type f | wc -l) files to api.acmesoftware.de."
