@@ -4,7 +4,8 @@
     { "url": "/openapi/acme-hr.yaml", "name": "ACMEhr" },
     { "url": "/openapi/acme-crm.yaml", "name": "ACMEcrm" },
     { "url": "/openapi/acme-supply.yaml", "name": "ACMEsupply" },
-    { "url": "/openapi/acme-build.yaml", "name": "ACMEbuild" }
+    { "url": "/openapi/acme-build.yaml", "name": "ACMEbuild" },
+    { "url": "/openapi/acme-mailtrap.yaml", "name": "ACMEmailtrap (separate product)" }
   ],
   "urls.primaryName": "ACMEsuite — All APIs",
   "deepLinking": true,
