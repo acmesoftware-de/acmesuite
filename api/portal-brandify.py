@@ -34,6 +34,7 @@ VARIANTS = [
     ("/redoc/supply.html", "ACMEsupply", "supply"),
     ("/redoc/build.html", "ACMEbuild", "build"),
     ("/redoc/base.html", "acme-base (shared)", "base"),
+    ("/redoc/mailtrap.html", "ACMEmailtrap", "mailtrap"),
 ]
 
 

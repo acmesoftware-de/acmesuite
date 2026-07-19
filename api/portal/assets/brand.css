@@ -79,6 +79,7 @@ a.card.mod-crm::before{background:var(--crm);}
 a.card.mod-supply::before{background:var(--supply);}
 a.card.mod-build::before{background:var(--build);}
 a.card.mod-base::before{background:var(--graphite);}
+a.card.mod-mailtrap::before{background:#6E56CF;}
 
 /* ---- Footer ---- */
 .foot{margin-top:52px; border-top:2px solid var(--ink); padding-top:22px;
