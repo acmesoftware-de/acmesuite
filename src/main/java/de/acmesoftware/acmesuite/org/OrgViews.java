@@ -44,6 +44,7 @@ public final class OrgViews {
     public record PersonView(String id, String fullName, String firstName, String lastName, String email,
                              String jobTitle, boolean active,
                              boolean applicant, String primaryOrgUnitId, String managerId,
+                             String entraObjectId,
                              java.util.List<String> delegateIds,
                              java.util.List<String> assistantIds, java.util.List<String> secondaryUnitIds) {
         public static PersonView of(Person p) {
@@ -52,6 +53,7 @@ public final class OrgViews {
                     p.isApplicant(),
                     p.getPrimaryOrgUnit() == null ? null : p.getPrimaryOrgUnit().getId(),
                     p.getManager() == null ? null : p.getManager().getId(),
+                    p.getEntraObjectId(),
                     java.util.List.copyOf(p.getDelegateIds()),
                     java.util.List.copyOf(p.getAssistantIds()),
                     java.util.List.copyOf(p.getSecondaryUnitIds()));
