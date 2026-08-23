@@ -208,8 +208,8 @@ public final class AcmeOrgCatalog {
 
         person("u-gf-1", "ou-gf", "Geschäftsführerin", null, List.of(), List.of("u-gf-1-asst"));
         person("u-gf-2", "ou-gf", "Geschäftsführerin", null, List.of(), List.of("u-gf-2-asst"));
-        person("u-gf-1-asst", "ou-gf", "Assistenz der Geschäftsführung", "u-gf-1", List.of(), List.of(), true);
-        person("u-gf-2-asst", "ou-gf", "Assistenz der Geschäftsführung", "u-gf-2", List.of(), List.of(), true);
+        person("u-gf-1-asst", "ou-gf", "Assistenz der Geschäftsführung", "u-gf-1", List.of(), List.of());
+        person("u-gf-2-asst", "ou-gf", "Assistenz der Geschäftsführung", "u-gf-2", List.of(), List.of());
 
         buildFachbereichA();
         buildFachbereichB();
@@ -240,14 +240,14 @@ public final class AcmeOrgCatalog {
         }
         List<String> leads = List.of("u-a1-1-1", "u-a1-1-4"); // Mia Managerin, Tina Talent
         person("u-abt-a1-lead", "ou-abt-a1", "Abteilungsleitung", "u-fb-a-lead", leads, List.of("u-abt-a1-asst"));
-        person("u-abt-a1-asst", "ou-abt-a1", "Assistenz", "u-abt-a1-lead", List.of(), List.of(), true);
+        person("u-abt-a1-asst", "ou-abt-a1", "Assistenz", "u-abt-a1-lead", List.of(), List.of());
         teamLayer("a1", "u-abt-a1-lead", "A1", leads, members);
     }
 
     private void buildFachbereichB() {
         unit("ou-fb-b", "Fachbereich B", OrgUnitType.DIVISION, "ou-gf");
         person("u-fb-b-lead", "ou-fb-b", "Bereichsleitung", "u-gf-2", List.of(), List.of());
-        person("u-fb-b-asst", "ou-fb-b", "Assistenz (geteilt)", "u-fb-b-lead", List.of(), List.of(), true);
+        person("u-fb-b-asst", "ou-fb-b", "Assistenz (geteilt)", "u-fb-b-lead", List.of(), List.of());
 
         // Team leads per department: they report to the department head, the members report to them.
         List<List<String>> leadsByAbt = List.of(
