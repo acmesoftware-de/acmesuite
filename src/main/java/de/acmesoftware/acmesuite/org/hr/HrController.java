@@ -77,6 +77,17 @@ public class HrController {
                 req.deputyIds(), req.assistantIds(), req.workLocation());
     }
 
+    /**
+     * Records the Entra object id a provisioning run obtained for this person. Separate from the
+     * general employee update because it is not HR data an operator maintains: it is the identity
+     * anchor {@code OrgFeed.subjectRef} resolves against, written back by whoever provisioned.
+     */
+    @PutMapping("/employees/{id}/directory-object-id")
+    public EmployeeView assignDirectoryObjectId(@PathVariable String id,
+                                            @RequestBody DirectoryObjectIdReq req) {
+        return hr.assignDirectoryObjectId(id, req.directoryObjectId());
+    }
+
     @PatchMapping("/employees/{id}/compensation")
     public EmployeeView updateCompensation(@PathVariable String id, @RequestBody CompensationReq req) {
         return hr.updateCompensation(id, req.compType(), req.hourlyRate());
@@ -237,6 +248,9 @@ public class HrController {
     public record EmployeeUpdateReq(String jobTitle, String managerId, Boolean active,
                                     List<String> deputyIds, List<String> assistantIds,
                                     WorkLocation workLocation) {
+    }
+
+    public record DirectoryObjectIdReq(String directoryObjectId) {
     }
 
     public record EmployeeCreateReq(String firstName, String lastName, String email, String jobTitle,

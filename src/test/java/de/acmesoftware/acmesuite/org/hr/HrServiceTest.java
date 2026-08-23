@@ -34,6 +34,33 @@ class HrServiceTest {
     de.acmesoftware.acmesuite.shared.AbsenceCalendar calendar;
 
     @Test
+    void assignsDirectoryObjectIdAndSurfacesItOnTheEmployee() {
+        String oid = "00000000-1111-2222-3333-444444444444";
+
+        assertThat(hr.getEmployee("u-gf-1")).get()
+                .satisfies(e -> assertThat(e.directoryObjectId()).isNull());
+
+        assertThat(hr.assignDirectoryObjectId("u-gf-1", oid).directoryObjectId()).isEqualTo(oid);
+        // Idempotent: writing the same value again keeps it, it does not append or fail.
+        assertThat(hr.assignDirectoryObjectId("u-gf-1", oid).directoryObjectId()).isEqualTo(oid);
+        assertThat(hr.getEmployee("u-gf-1")).get()
+                .satisfies(e -> assertThat(e.directoryObjectId()).isEqualTo(oid));
+    }
+
+    /** A wrong anchor would only surface much later as a failing SSO match — reject it at the door. */
+    @Test
+    void rejectsAnDirectoryObjectIdThatIsNotAUuid() {
+        assertThatThrownBy(() -> hr.assignDirectoryObjectId("u-gf-2", "not-a-uuid"))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("UUID");
+        assertThatThrownBy(() -> hr.assignDirectoryObjectId("u-gf-2", "  "))
+                .isInstanceOf(ResponseStatusException.class);
+        assertThatThrownBy(() -> hr.assignDirectoryObjectId("u-does-not-exist",
+                "00000000-1111-2222-3333-444444444444"))
+                .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
     void listsEmployees() {
         assertThat(hr.listEmployees(null, null, null)).hasSize(99);
         assertThat(hr.listEmployees(null, null, "jefa"))

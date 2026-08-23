@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ACMEhr API
-  version: 0.3.0
+  version: 0.4.0
   description: >
     HR system of **ACME analog Inc.** and system of record for employees
     (title/role/hierarchy), vacation/absence planning, deputies & assistants,
@@ -117,6 +117,28 @@ paths:
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: '#/components/schemas/CompensationUpdate' } } }
+      responses:
+        '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
+        '200':
+          description: Updated employee.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Employee' } } }
+        '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
+        '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
+  /employees/{id}/directory-object-id:
+    parameters: [{ $ref: '#/components/parameters/PersonId' }]
+    put:
+      tags: [Employees]
+      summary: Record the directory object id of the person
+      description: >
+        Written back by a provisioning run once it knows the person's object id in the corporate
+        directory. Idempotent; the value must be a UUID. Deliberately separate from the general
+        employee update: this is not HR data an operator maintains, it is the identity anchor
+        `subjectRef` resolves against. Clearing is not offered.
+      operationId: assignDirectoryObjectId
+      x-required-role: WORK
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/DirectoryObjectIdAssign' } } }
       responses:
         '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
         '200':
@@ -562,6 +584,25 @@ components:
         compType: { $ref: '#/components/schemas/CompensationType' }
         hourlyRate: { type: number, nullable: true, description: Hourly rate when HOURLY. }
         workLocation: { $ref: '#/components/schemas/WorkLocation' }
+        directoryObjectId:
+          type: string
+          format: uuid
+          nullable: true
+          description: >
+            Object id of the matching user in the corporate directory, reported back by a
+            provisioning run. Null until the person has been provisioned. Anchor for SSO subject
+            matching (the org feed resolves `subjectRef` against it, falling back to e-mail).
+          example: 00000000-1111-2222-3333-444444444444
+
+    DirectoryObjectIdAssign:
+      type: object
+      required: [directoryObjectId]
+      properties:
+        directoryObjectId:
+          type: string
+          format: uuid
+          description: Object id of the user in the corporate directory.
+          example: 00000000-1111-2222-3333-444444444444
 
     EmployeeCreate:
       type: object

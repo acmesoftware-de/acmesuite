@@ -304,6 +304,31 @@ public class HrService {
         return EmployeeView.of(p);
     }
 
+    /**
+     * Records the Entra object id an external provisioner obtained for this person. Deliberately a
+     * separate, narrow operation rather than a field on the general employee update: the value is
+     * not HR data an operator maintains, it is the identity anchor a provisioning run reports back,
+     * and {@code OrgFeed.subjectRef} resolves against it.
+     *
+     * <p>Idempotent — writing the same value again is a no-op from the caller's perspective. The
+     * value must be a UUID, which is what Entra issues; anything else is rejected rather than
+     * silently stored, because a wrong anchor would surface much later as a failing SSO match.
+     * Clearing is not offered: an object id that was once valid does not become unknown again.
+     */
+    public EmployeeView assignDirectoryObjectId(String id, String directoryObjectId) {
+        Person p = persons.findById(id).orElseThrow(() -> notFound("Person " + id + " unknown"));
+        if (directoryObjectId == null || directoryObjectId.isBlank()) {
+            throw unprocessable("directoryObjectId is required");
+        }
+        try {
+            UUID.fromString(directoryObjectId);
+        } catch (IllegalArgumentException e) {
+            throw unprocessable("directoryObjectId must be a UUID, was: " + directoryObjectId);
+        }
+        p.assignDirectoryObjectId(directoryObjectId);
+        return EmployeeView.of(p);
+    }
+
     // ── Compensation / Payroll ──
 
     /** Switch/adjust compensation (hourly wage ↔ salary, hourly rate). */

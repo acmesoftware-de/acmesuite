@@ -36,6 +36,16 @@
         <spring-modulith.version>2.1.0</spring-modulith.version>
         <spring-ai.version>2.0.0</spring-ai.version>
         <lucene.version>10.1.0</lucene.version>
+        <!-- Ueber die vom Spring-Boot-BOM verwalteten Versionen hinaus angehoben, weil der
+             Abhaengigkeits-Scan sie als verwundbar meldet. Wieder entfernen, sobald der Boot-Parent
+             von sich aus mindestens diese Staende mitbringt - sonst frieren wir sie unbemerkt ein.
+             netty 4.2.16      CVE-2026-59901 (bzip2-Endlosschleife, HIGH), CVE-2026-55831,
+                               CVE-2026-56819, CVE-2026-56816
+             httpcore5 5.4.3   CVE-2026-54399, CVE-2026-54428
+             postgresql 42.7.12 CVE-2026-54291 (SCRAM-SHA-256-PLUS-Downgrade) -->
+        <netty.version>4.2.16.Final</netty.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
+        <postgresql.version>42.7.12</postgresql.version>
     </properties>
 
     <dependencyManagement>

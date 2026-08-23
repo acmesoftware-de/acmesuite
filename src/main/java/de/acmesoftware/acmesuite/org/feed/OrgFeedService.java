@@ -17,12 +17,21 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Builds the source-neutral org feed from the org model. Sorted deterministically by key
  * (the external reconciler diffs by key anyway, and a stable order makes diffs/tests easier).
+ *
+ * <p><b>Applicants are not part of the feed.</b> They are candidates in the recruiting pipeline,
+ * not members of the organization, and an org projection that carries them would grant them a
+ * presence (and a resolvable subject) on the consuming platform. They enter the feed the moment
+ * they are hired ({@code applicant=false}). Everything derived from persons - memberships,
+ * absences and the overlay's reporting/deputy/assistant edges - is filtered against the same set,
+ * so the feed never references a key it does not also declare.
  */
 @Service
 @Transactional(readOnly = true)
@@ -39,7 +48,8 @@ class OrgFeedService {
     }
 
     SnapshotFeed snapshot(Instant observedAt) {
-        List<Person> allPersons = persons.findAll();
+        List<Person> allPersons = members();
+        Set<String> memberKeys = keysOf(allPersons);
 
         List<SourcePerson> sourcePersons = allPersons.stream()
                 .map(p -> new SourcePerson(p.getId(), p.fullName(), subjectRef(p), p.isActive()))
@@ -68,10 +78,11 @@ class OrgFeedService {
                 .toList();
 
         List<AbsenceFact> absenceFacts = absences.findAll().stream()
+                .filter(a -> a.getPerson() != null && memberKeys.contains(a.getPerson().getId()))
                 .map(a -> new AbsenceFact(
                         a.getPerson().getId(),
                         a.getReasonKey(),
-                        a.getSubstitute() == null ? null : a.getSubstitute().getId(),
+                        keyIfMember(a.getSubstitute(), memberKeys),
                         new ValidPeriodView(
                                 toInstant(a.getPeriod() == null ? null : a.getPeriod().from()),
                                 toExclusiveEnd(a.getPeriod() == null ? null : a.getPeriod().until()))))
@@ -83,12 +94,33 @@ class OrgFeedService {
     }
 
     List<OverlayPerson> overlay() {
-        return persons.findAll().stream()
+        List<Person> members = members();
+        Set<String> memberKeys = keysOf(members);
+        return members.stream()
                 .map(p -> new OverlayPerson(p.getId(), p.getJobTitle(),
-                        p.getManager() == null ? null : p.getManager().getId(),
-                        List.copyOf(p.getDelegateIds()), List.copyOf(p.getAssistantIds())))
+                        keyIfMember(p.getManager(), memberKeys),
+                        onlyMembers(p.getDelegateIds(), memberKeys),
+                        onlyMembers(p.getAssistantIds(), memberKeys)))
                 .sorted(Comparator.comparing(OverlayPerson::key))
                 .toList();
+    }
+
+    /** The organization proper: everyone but the applicants (see the class comment). */
+    private List<Person> members() {
+        return persons.findAll().stream().filter(p -> !p.isApplicant()).toList();
+    }
+
+    private static Set<String> keysOf(List<Person> people) {
+        return people.stream().map(Person::getId).collect(Collectors.toSet());
+    }
+
+    /** A reference is only carried when its target is in the feed - no edge into the void. */
+    private static String keyIfMember(Person p, Set<String> memberKeys) {
+        return p != null && memberKeys.contains(p.getId()) ? p.getId() : null;
+    }
+
+    private static List<String> onlyMembers(java.util.Collection<String> ids, Set<String> memberKeys) {
+        return ids.stream().filter(memberKeys::contains).sorted().toList();
     }
 
     /**
@@ -98,7 +130,7 @@ class OrgFeedService {
      * applicants without an oid) — then the old linkage applies as in the reference company catalog.
      */
     private static String subjectRef(Person p) {
-        String oid = p.getEntraObjectId();
+        String oid = p.getDirectoryObjectId();
         return (oid == null || oid.isBlank()) ? p.getEmail() : oid;
     }
 

@@ -36,15 +36,24 @@ public final class OrgViews {
         }
     }
 
-    public record PersonView(String id, String fullName, String email, String jobTitle, boolean active,
+    /**
+     * {@code firstName}/{@code lastName} stand alongside {@code fullName} because directory
+     * consumers keep given name and surname apart, and splitting the composed name would guess
+     * wrong on multi-part names.
+     */
+    public record PersonView(String id, String fullName, String firstName, String lastName, String email,
+                             String jobTitle, boolean active,
                              boolean applicant, String primaryOrgUnitId, String managerId,
+                             String directoryObjectId,
                              java.util.List<String> delegateIds,
                              java.util.List<String> assistantIds, java.util.List<String> secondaryUnitIds) {
         public static PersonView of(Person p) {
-            return new PersonView(p.getId(), p.fullName(), p.getEmail(), p.getJobTitle(), p.isActive(),
+            return new PersonView(p.getId(), p.fullName(), p.getFirstName(), p.getLastName(),
+                    p.getEmail(), p.getJobTitle(), p.isActive(),
                     p.isApplicant(),
                     p.getPrimaryOrgUnit() == null ? null : p.getPrimaryOrgUnit().getId(),
                     p.getManager() == null ? null : p.getManager().getId(),
+                    p.getDirectoryObjectId(),
                     java.util.List.copyOf(p.getDelegateIds()),
                     java.util.List.copyOf(p.getAssistantIds()),
                     java.util.List.copyOf(p.getSecondaryUnitIds()));

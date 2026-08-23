@@ -32,7 +32,8 @@ class OrgFeedTest {
         SnapshotFeed snap = feed.snapshot(Instant.parse("2026-06-22T00:00:00Z"));
 
         assertThat(snap.complete()).isTrue();
-        assertThat(snap.persons()).hasSize(99);
+        // The organization proper: 99 seeded persons minus the 63 in the recruiting pipeline.
+        assertThat(snap.persons()).hasSize(36);
         // Root has no parent edge.
         assertThat(snap.parentEdges())
                 .filteredOn(e -> e.childUnitKey().equals("ou-acme"))
@@ -52,9 +53,9 @@ class OrgFeedTest {
      */
     @Test
     @Transactional
-    void subjectRefIsTheEntraObjectIdOncePersonIsProvisioned() {
+    void subjectRefIsTheDirectoryObjectIdOncePersonIsProvisioned() {
         Person cfo = persons.findById("u-finance-cfo").orElseThrow();
-        cfo.assignEntraObjectId("00000000-1111-2222-3333-444444444444");
+        cfo.assignDirectoryObjectId("00000000-1111-2222-3333-444444444444");
         persons.save(cfo);
 
         SnapshotFeed snap = feed.snapshot(Instant.parse("2026-06-22T00:00:00Z"));
@@ -63,6 +64,42 @@ class OrgFeedTest {
                 .filteredOn(p -> p.key().equals("u-finance-cfo"))
                 .singleElement()
                 .satisfies(p -> assertThat(p.subjectRef()).isEqualTo("00000000-1111-2222-3333-444444444444"));
+    }
+
+    /**
+     * Applicants are candidates, not members of the organization - they must not reach the feed,
+     * and nothing derived from persons may reference them either. Otherwise the consuming platform
+     * would project a presence (and a resolvable subject) for someone who was never hired.
+     */
+    @Test
+    void applicantsAreNotPartOfTheFeed() {
+        SnapshotFeed snap = feed.snapshot(Instant.parse("2026-06-22T00:00:00Z"));
+
+        java.util.Set<String> applicants = persons.findAll().stream()
+                .filter(Person::isApplicant).map(Person::getId).collect(java.util.stream.Collectors.toSet());
+        assertThat(applicants).isNotEmpty();               // sonst prueft der Test nichts
+        assertThat(applicants).contains("u-b2-3-1");       // David Delegat, Teamleitung eines nicht besetzten Teams
+        // Die Assistenzen gehoeren zur Organisation, nicht in die Bewerber-Pipeline.
+        assertThat(applicants).doesNotContain("u-gf-1-asst", "u-gf-2-asst", "u-abt-a1-asst", "u-fb-b-asst");
+
+        java.util.Set<String> declared =
+                snap.persons().stream().map(OrgFeed.SourcePerson::key).collect(java.util.stream.Collectors.toSet());
+        assertThat(declared).doesNotContainAnyElementsOf(applicants);
+
+        // Keine Kante zeigt auf jemanden, den der Feed nicht auch fuehrt.
+        assertThat(snap.memberships()).extracting(OrgFeed.MembershipEdge::personKey).allMatch(declared::contains);
+        assertThat(snap.secondaryMemberships()).extracting(OrgFeed.MembershipEdge::personKey)
+                .allMatch(declared::contains);
+        assertThat(snap.absences()).extracting(OrgFeed.AbsenceFact::personKey).allMatch(declared::contains);
+        assertThat(snap.absences()).extracting(OrgFeed.AbsenceFact::deputyKey)
+                .allMatch(k -> k == null || declared.contains(k));
+
+        assertThat(feed.overlay()).extracting(OrgFeed.OverlayPerson::key).allMatch(declared::contains);
+        assertThat(feed.overlay()).allSatisfy(o -> {
+            assertThat(o.managerKey() == null || declared.contains(o.managerKey())).isTrue();
+            assertThat(declared).containsAll(o.delegateKeys());
+            assertThat(declared).containsAll(o.assistantKeys());
+        });
     }
 
     @Test
