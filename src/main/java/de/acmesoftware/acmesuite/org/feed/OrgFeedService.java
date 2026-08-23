@@ -130,7 +130,7 @@ class OrgFeedService {
      * applicants without an oid) — then the old linkage applies as in the reference company catalog.
      */
     private static String subjectRef(Person p) {
-        String oid = p.getEntraObjectId();
+        String oid = p.getDirectoryObjectId();
         return (oid == null || oid.isBlank()) ? p.getEmail() : oid;
     }
 

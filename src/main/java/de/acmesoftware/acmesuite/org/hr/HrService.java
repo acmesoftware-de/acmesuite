@@ -315,17 +315,17 @@ public class HrService {
      * silently stored, because a wrong anchor would surface much later as a failing SSO match.
      * Clearing is not offered: an object id that was once valid does not become unknown again.
      */
-    public EmployeeView assignEntraObjectId(String id, String entraObjectId) {
+    public EmployeeView assignDirectoryObjectId(String id, String directoryObjectId) {
         Person p = persons.findById(id).orElseThrow(() -> notFound("Person " + id + " unknown"));
-        if (entraObjectId == null || entraObjectId.isBlank()) {
-            throw unprocessable("entraObjectId is required");
+        if (directoryObjectId == null || directoryObjectId.isBlank()) {
+            throw unprocessable("directoryObjectId is required");
         }
         try {
-            UUID.fromString(entraObjectId);
+            UUID.fromString(directoryObjectId);
         } catch (IllegalArgumentException e) {
-            throw unprocessable("entraObjectId must be a UUID, was: " + entraObjectId);
+            throw unprocessable("directoryObjectId must be a UUID, was: " + directoryObjectId);
         }
-        p.assignEntraObjectId(entraObjectId);
+        p.assignDirectoryObjectId(directoryObjectId);
         return EmployeeView.of(p);
     }
 

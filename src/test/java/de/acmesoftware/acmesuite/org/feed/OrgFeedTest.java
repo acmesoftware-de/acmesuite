@@ -53,9 +53,9 @@ class OrgFeedTest {
      */
     @Test
     @Transactional
-    void subjectRefIsTheEntraObjectIdOncePersonIsProvisioned() {
+    void subjectRefIsTheDirectoryObjectIdOncePersonIsProvisioned() {
         Person cfo = persons.findById("u-finance-cfo").orElseThrow();
-        cfo.assignEntraObjectId("00000000-1111-2222-3333-444444444444");
+        cfo.assignDirectoryObjectId("00000000-1111-2222-3333-444444444444");
         persons.save(cfo);
 
         SnapshotFeed snap = feed.snapshot(Instant.parse("2026-06-22T00:00:00Z"));

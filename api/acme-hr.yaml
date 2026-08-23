@@ -124,7 +124,7 @@ paths:
           content: { application/json: { schema: { $ref: '#/components/schemas/Employee' } } }
         '404': { $ref: 'acme-base.yaml#/components/responses/NotFound' }
         '422': { $ref: 'acme-base.yaml#/components/responses/Unprocessable' }
-  /employees/{id}/entra-object-id:
+  /employees/{id}/directory-object-id:
     parameters: [{ $ref: '#/components/parameters/PersonId' }]
     put:
       tags: [Employees]
@@ -134,11 +134,11 @@ paths:
         directory. Idempotent; the value must be a UUID. Deliberately separate from the general
         employee update: this is not HR data an operator maintains, it is the identity anchor
         `subjectRef` resolves against. Clearing is not offered.
-      operationId: assignEntraObjectId
+      operationId: assignDirectoryObjectId
       x-required-role: WORK
       requestBody:
         required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/EntraObjectIdAssign' } } }
+        content: { application/json: { schema: { $ref: '#/components/schemas/DirectoryObjectIdAssign' } } }
       responses:
         '401': { $ref: 'acme-base.yaml#/components/responses/Unauthorized' }
         '200':
@@ -584,7 +584,7 @@ components:
         compType: { $ref: '#/components/schemas/CompensationType' }
         hourlyRate: { type: number, nullable: true, description: Hourly rate when HOURLY. }
         workLocation: { $ref: '#/components/schemas/WorkLocation' }
-        entraObjectId:
+        directoryObjectId:
           type: string
           format: uuid
           nullable: true
@@ -594,11 +594,11 @@ components:
             matching (the org feed resolves `subjectRef` against it, falling back to e-mail).
           example: 00000000-1111-2222-3333-444444444444
 
-    EntraObjectIdAssign:
+    DirectoryObjectIdAssign:
       type: object
-      required: [entraObjectId]
+      required: [directoryObjectId]
       properties:
-        entraObjectId:
+        directoryObjectId:
           type: string
           format: uuid
           description: Object id of the user in the corporate directory.

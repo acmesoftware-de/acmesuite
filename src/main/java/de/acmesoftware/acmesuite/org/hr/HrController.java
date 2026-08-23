@@ -82,10 +82,10 @@ public class HrController {
      * general employee update because it is not HR data an operator maintains: it is the identity
      * anchor {@code OrgFeed.subjectRef} resolves against, written back by whoever provisioned.
      */
-    @PutMapping("/employees/{id}/entra-object-id")
-    public EmployeeView assignEntraObjectId(@PathVariable String id,
-                                            @RequestBody EntraObjectIdReq req) {
-        return hr.assignEntraObjectId(id, req.entraObjectId());
+    @PutMapping("/employees/{id}/directory-object-id")
+    public EmployeeView assignDirectoryObjectId(@PathVariable String id,
+                                            @RequestBody DirectoryObjectIdReq req) {
+        return hr.assignDirectoryObjectId(id, req.directoryObjectId());
     }
 
     @PatchMapping("/employees/{id}/compensation")
@@ -250,7 +250,7 @@ public class HrController {
                                     WorkLocation workLocation) {
     }
 
-    public record EntraObjectIdReq(String entraObjectId) {
+    public record DirectoryObjectIdReq(String directoryObjectId) {
     }
 
     public record EmployeeCreateReq(String firstName, String lastName, String email, String jobTitle,

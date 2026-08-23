@@ -120,8 +120,8 @@ public class Person extends AuditedEntity {
      * Written back by the Entra provisioner after the Graph upsert and is the anchor for the
      * later SSO subject matching (token {@code sub} = Entra {@code oid}).
      */
-    @Column(name = "entra_object_id", length = 64)
-    private String entraObjectId;
+    @Column(name = "directory_object_id", length = 64)
+    private String directoryObjectId;
 
     protected Person() {
     }
@@ -289,12 +289,12 @@ public class Person extends AuditedEntity {
         return secondaryUnitIds;
     }
 
-    public String getEntraObjectId() {
-        return entraObjectId;
+    public String getDirectoryObjectId() {
+        return directoryObjectId;
     }
 
     /** Sets/updates the Entra object id after provisioning (HR -> Entra). */
-    public void assignEntraObjectId(String entraObjectId) {
-        this.entraObjectId = entraObjectId;
+    public void assignDirectoryObjectId(String directoryObjectId) {
+        this.directoryObjectId = directoryObjectId;
     }
 }
