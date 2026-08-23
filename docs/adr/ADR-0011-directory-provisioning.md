@@ -16,10 +16,10 @@ directory. Its tenant id, application id and that customer's group-naming rules 
 in. This repository is a public, generic product, so those specifics had to go, and the whole
 implementation went with them — it now runs outside, on the customer side.
 
-What stayed behind is telling. `Person.entraObjectId` is still here, because it is the stable
-SSO anchor that `OrgFeed.subjectRef` resolves against, and so is the narrow write-back endpoint
-`PUT /api/hr/employees/{id}/entra-object-id`, through which an external run reports the id it
-obtained. The anchor lives in the product while the thing that writes it lives outside: the seam
+What stayed behind is telling. The object id of the person in that directory is still here — at
+the time named `Person.entraObjectId`, since renamed to `directoryObjectId` — because it is the
+stable SSO anchor that `OrgFeed.subjectRef` resolves against, and so is the narrow write-back
+endpoint through which an external run reports the id it obtained. The anchor lives in the product while the thing that writes it lives outside: the seam
 is in the wrong place. Any deployment that wants "employee exists, therefore account exists"
 currently has to rebuild the mechanism.
 
@@ -55,7 +55,8 @@ Constraints that shape the decision:
 
 4. **Idempotent over the login name** (the person's work address), so a run needs no local state
    about what it did last time. The object id the directory returns is written back through the
-   existing endpoint, but only when it changed.
+   existing endpoint, but only when it changed. The anchor is named for the role it plays, not
+   for a vendor: `directoryObjectId`.
 
 5. **Group membership comes from a configured mapping, never from code.** A deployment
    configures which local role or power of attorney maps to which directory group name. The
@@ -121,11 +122,11 @@ Constraints that shape the decision:
   departure? Events are the better fit for a live system, an explicit run for a first cut.
 - Which module owns the adapter — the `org` module that holds the persons, or a separate
   integration module beside ACMEbase's providers?
-- The anchor is named after one vendor: `Person.entraObjectId`, `PUT /api/hr/employees/{id}/
-  entra-object-id`. A generic port with a vendor-named field is a contradiction the moment a
-  second adapter exists. Renaming it to a neutral directory-object-id is cheap in the model and
-  a breaking contract change on the endpoint, so it wants its own decision and a deprecation
-  window rather than a quiet rename here.
+*(Resolved while writing: the anchor was named after one vendor. It turned out the API surface —
+endpoint, body field, and the field on `Employee`/`PersonView` — had not shipped: it exists only
+in the unmerged change that introduces it, while `main` carried nothing but the internal field
+and column. So the rename to `directoryObjectId` costs one commit instead of a deprecation
+window, and it happens before the first release rather than as a break after it.)*
 
 *Number provisional: ADR-0008 already exists four times in this log, so confirm the next free
 number when this is merged rather than when it is written.*
