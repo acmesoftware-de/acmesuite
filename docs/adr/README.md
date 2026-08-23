@@ -5,6 +5,12 @@ Significant, hard-to-reverse decisions for ACMEsuite, one file per decision
 
 ## Log
 
+- [ADR-0011](ADR-0011-directory-provisioning.md) — Directory provisioning owned by HRM
+  (**Proposed**): HRM stays the system of record and writes outward to a directory (create,
+  update, disable, initial password); a `DirectoryProvisioner` port with one adapter per
+  directory (Microsoft Graph first); group membership from a configured role/power-of-attorney
+  to group-name mapping, empty by default; applicants excluded; departures disable rather than
+  delete; inert unless explicitly configured.
 - [ADR-0010](ADR-0010-versioned-tombstoned-data.md) — Versioned, tombstoned data: no hard
   deletes (tombstone on delete), every change versioned with retained history; a cross-cutting
   data principle for all modules.
