@@ -99,4 +99,33 @@ class GraphDirectoryProvisionerTest {
         assertThat(provisioner.findObjectId("nobody@acme-group.io")).isEmpty();
         server.verify();
     }
+
+    @Test
+    void theKeyPrefixIsStrippedFromTheEmployeeId() {
+        DirectoryPerson p = new DirectoryPerson("x@acme-group.io", "X Y", "X", "Y",
+                "x@acme-group.io", null, null, "u-compliance-lead", true);
+        server.expect(requestTo("https://graph.microsoft.com/v1.0/users/oid-1"))
+                .andExpect(method(HttpMethod.PATCH))
+                // "u-compliance-lead" (17) -> "compliance-lead" (15), within Graph's 16-char cap.
+                .andExpect(jsonPath("$.employeeId").value("compliance-lead"))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        provisioner.updateAttributes("oid-1", p);
+        server.verify();
+    }
+
+    @Test
+    void aTooLongEmployeeIdIsOmittedSoItDoesNotCostTheMail() {
+        // Even after stripping "u-", still over 16 chars. It is left out -- the mail must land.
+        DirectoryPerson p = new DirectoryPerson("x@acme-group.io", "X Y", "X", "Y",
+                "x@acme-group.io", null, null, "u-a-very-long-role-key-indeed", true);
+        server.expect(requestTo("https://graph.microsoft.com/v1.0/users/oid-1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(jsonPath("$.employeeId").doesNotExist())
+                .andExpect(jsonPath("$.mail").value("x@acme-group.io"))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        provisioner.updateAttributes("oid-1", p);
+        server.verify();
+    }
 }

@@ -148,8 +148,14 @@ class GraphDirectoryProvisioner implements DirectoryProvisioner {
         if (notBlank(p.mail())) {
             b.put("mail", p.mail());
         }
-        if (notBlank(p.employeeId())) {
-            b.put("employeeId", p.employeeId());
+        // employeeId points back at the HR record, but Graph caps it at 16 chars. Strip the "u-"
+        // key prefix first (a key like "u-compliance-lead" is 17); if it is STILL too long, omit it
+        // rather than let a non-essential attribute take the whole PATCH -- and the mail with it --
+        // down. Same reflex as the password split (ADR-0011 §3): a directory's limit on one field
+        // must not cost the field that matters.
+        String employeeId = trimKey(p.employeeId());
+        if (employeeId != null && employeeId.length() <= 16) {
+            b.put("employeeId", employeeId);
         }
         if (notBlank(p.jobTitle())) {
             b.put("jobTitle", p.jobTitle());
@@ -170,6 +176,13 @@ class GraphDirectoryProvisioner implements DirectoryProvisioner {
             throw new IllegalStateException("directory group not found: " + name);
         }
         return page.value().get(0).id();
+    }
+
+    private static String trimKey(String employeeId) {
+        if (employeeId == null || employeeId.isBlank()) {
+            return null;
+        }
+        return employeeId.startsWith("u-") ? employeeId.substring(2) : employeeId;
     }
 
     private static String localPart(String loginName) {
