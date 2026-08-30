@@ -78,6 +78,21 @@ acme:
   # domain events (outbox) and rebuildable from each module via /api/search/reindex.
   search:
     index-dir: ${ACME_SEARCH_INDEX_DIR:data/search-index}
+  # Directory provisioning (ADR-0011): HRM writes the workforce into an external directory
+  # (Microsoft Graph first) so "employee exists -> account exists, follows the person, blocked on
+  # leaving". INERT by default -- no bean, no endpoint, no run without enabled=true. The secret comes
+  # from the environment (ACME_DIRECTORY_CLIENT_SECRET), never this file (the repo is public).
+  # group-mappings is customer vocabulary (local role id -> directory group name); EMPTY means no
+  # group is ever touched.
+  directory:
+    enabled: ${ACME_DIRECTORY_ENABLED:false}
+    dry-run: ${ACME_DIRECTORY_DRY_RUN:true}
+    tenant-id: ${ACME_DIRECTORY_TENANT_ID:}
+    client-id: ${ACME_DIRECTORY_CLIENT_ID:}
+    client-secret: ${ACME_DIRECTORY_CLIENT_SECRET:}
+    domain: ${ACME_DIRECTORY_DOMAIN:}
+    # group-mappings: local-role-id -> directory-group-name. Absent (this default) = no group is
+    # ever touched. A deployment adds entries; the product ships no vocabulary (ADR-0011 §5).
   base:
     auth:
       enabled: false
