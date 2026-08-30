@@ -1,6 +1,6 @@
 # ADR-0011 — Directory provisioning owned by HRM
 
-- Status: Proposed (2026-08-23)
+- Status: Accepted (2026-08-26)
 - Scope: ACMEhr (the `org` module), the directory adapters, deployment configuration
 - Supersedes: ADR-0005 (HR to Entra provisioning) — its tenant-specific implementation
 - Related: ADR-0007 (federated authentication, local authorization), ADR-0010 (no hard deletes)
