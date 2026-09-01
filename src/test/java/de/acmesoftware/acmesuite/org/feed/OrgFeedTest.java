@@ -32,8 +32,8 @@ class OrgFeedTest {
         SnapshotFeed snap = feed.snapshot(Instant.parse("2026-06-22T00:00:00Z"));
 
         assertThat(snap.complete()).isTrue();
-        // The organization proper: 99 seeded persons minus the 63 in the recruiting pipeline.
-        assertThat(snap.persons()).hasSize(36);
+        // The organization proper: 99 seeded persons minus the 60 in the recruiting pipeline.
+        assertThat(snap.persons()).hasSize(39);
         // Root has no parent edge.
         assertThat(snap.parentEdges())
                 .filteredOn(e -> e.childUnitKey().equals("ou-acme"))

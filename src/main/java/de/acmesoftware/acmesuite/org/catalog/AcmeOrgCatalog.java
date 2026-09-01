@@ -332,8 +332,13 @@ public final class AcmeOrgCatalog {
 
         unit("ou-controlling", "Controlling", OrgUnitType.DEPARTMENT, "ou-gf");
         person("u-controlling-lead", "ou-controlling", "Controlling-Leitung", "u-gf-2", List.of(), List.of());
+        // All four controllers are hired, unlike the other functions where only the first is.
+        // A consuming approval ladder can stagger controlling over several levels (in eCAF:
+        // controlling -> controlling-v2 -> controlling-v1), and each level has to be a different
+        // person or the escalation reviews itself. One controller plus a lead cannot carry three
+        // levels; four can.
         for (int i = 1; i <= 4; i++) {
-            person("u-controlling-" + i, "ou-controlling", "Controller:in", "u-controlling-lead", List.of(), List.of(), i > 1);
+            person("u-controlling-" + i, "ou-controlling", "Controller:in", "u-controlling-lead", List.of(), List.of());
         }
     }
 
