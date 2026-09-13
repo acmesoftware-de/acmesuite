@@ -205,9 +205,14 @@ public final class AcmeOrgCatalog {
     private void build() {
         unit("ou-acme", ROOT_LEGAL_NAME, OrgUnitType.DIVISION, null);
         unit("ou-gf", "Geschäftsführung", OrgUnitType.DIVISION, "ou-acme");
+        // Each managing director leads a portfolio; the unit name is its short code. A downstream
+        // platform reads it as the primary unit name of the person at the top of a reporting line
+        // (V33 moves already seeded databases the same way).
+        unit("ou-cfo", "CFO", OrgUnitType.DEPARTMENT, "ou-gf");
+        unit("ou-ceo", "CEO", OrgUnitType.DEPARTMENT, "ou-gf");
 
-        person("u-gf-1", "ou-gf", "Geschäftsführerin", null, List.of(), List.of("u-gf-1-asst"));
-        person("u-gf-2", "ou-gf", "Geschäftsführerin", null, List.of(), List.of("u-gf-2-asst"));
+        person("u-gf-1", "ou-cfo", "Geschäftsführerin", null, List.of(), List.of("u-gf-1-asst"));
+        person("u-gf-2", "ou-ceo", "Geschäftsführerin", null, List.of(), List.of("u-gf-2-asst"));
         person("u-gf-1-asst", "ou-gf", "Assistenz der Geschäftsführung", "u-gf-1", List.of(), List.of());
         person("u-gf-2-asst", "ou-gf", "Assistenz der Geschäftsführung", "u-gf-2", List.of(), List.of());
 
