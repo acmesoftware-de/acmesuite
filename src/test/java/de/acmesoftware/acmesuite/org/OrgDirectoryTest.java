@@ -45,6 +45,25 @@ class OrgDirectoryTest {
     }
 
     @Test
+    void eachManagingDirectorLeadsAPortfolioUnitNamedByItsCode() {
+        assertThat(org.person("u-gf-1")).get()
+                .satisfies(p -> assertThat(p.primaryOrgUnitId()).isEqualTo("ou-cfo"));
+        assertThat(org.person("u-gf-2")).get()
+                .satisfies(p -> assertThat(p.primaryOrgUnitId()).isEqualTo("ou-ceo"));
+        assertThat(org.orgUnit("ou-cfo")).get().satisfies(u -> {
+            assertThat(u.name()).isEqualTo("CFO");
+            assertThat(u.parentId()).isEqualTo("ou-gf");
+        });
+        assertThat(org.orgUnit("ou-ceo")).get().satisfies(u -> {
+            assertThat(u.name()).isEqualTo("CEO");
+            assertThat(u.parentId()).isEqualTo("ou-gf");
+        });
+        // The assistants stay in the management unit.
+        assertThat(org.person("u-gf-1-asst")).get()
+                .satisfies(p -> assertThat(p.primaryOrgUnitId()).isEqualTo("ou-gf"));
+    }
+
+    @Test
     void overlayCarriesReportingDelegationAndAssistance() {
         // Reporting line: buyer reports to Head of Procurement.
         assertThat(org.person("u-einkauf-1")).get()
