@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
 
@@ -39,13 +39,10 @@
         <!-- Ueber die vom Spring-Boot-BOM verwalteten Versionen hinaus angehoben, weil der
              Abhaengigkeits-Scan sie als verwundbar meldet. Wieder entfernen, sobald der Boot-Parent
              von sich aus mindestens diese Staende mitbringt - sonst frieren wir sie unbemerkt ein.
-             netty 4.2.16      CVE-2026-59901 (bzip2-Endlosschleife, HIGH), CVE-2026-55831,
-                               CVE-2026-56819, CVE-2026-56816
-             httpcore5 5.4.3   CVE-2026-54399, CVE-2026-54428
-             postgresql 42.7.12 CVE-2026-54291 (SCRAM-SHA-256-PLUS-Downgrade) -->
-        <netty.version>4.2.16.Final</netty.version>
-        <httpcore5.version>5.4.3</httpcore5.version>
-        <postgresql.version>42.7.12</postgresql.version>
+             Boot 4.1.1 bringt netty 4.2.17, httpcore5 5.4.3 und postgresql 42.7.13 selbst mit;
+             diese Ueberschreibungen sind deshalb entfallen.
+             tomcat 11.0.25    CVE-2026-65182, CVE-2026-65905, CVE-2026-68525 (Boot 4.1.1: 11.0.24) -->
+        <tomcat.version>11.0.25</tomcat.version>
     </properties>
 
     <dependencyManagement>
