@@ -1,9 +1,9 @@
-FROM node:20-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
-COPY package.json package.json
-RUN npm install --no-audit --no-fund
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
 COPY .meshrc.yml .meshrc.yml
 COPY openapi openapi
