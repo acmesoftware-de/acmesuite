@@ -8,8 +8,8 @@
     "validate": "mesh build"
   },
   "dependencies": {
-    "@graphql-mesh/cli": "latest",
-    "@graphql-mesh/openapi": "latest",
-    "graphql": "latest"
+    "@graphql-mesh/cli": "0.103.2",
+    "@graphql-mesh/openapi": "0.112.4",
+    "graphql": "16.14.2"
   }
 }
